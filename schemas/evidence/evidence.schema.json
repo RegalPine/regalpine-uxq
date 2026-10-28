@@ -1,0 +1,150 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://uxq.dev/schemas/evidence/evidence/1.0.0",
+  "title": "Evidence",
+  "allOf": [
+    {
+      "$ref": "#/$defs/BaseRecord"
+    }
+  ],
+  "type": "object",
+  "unevaluatedProperties": false,
+  "properties": {
+    "runId": {
+      "$ref": "#/$defs/Id"
+    },
+    "stepId": {
+      "$ref": "#/$defs/Id"
+    },
+    "attemptId": {
+      "$ref": "#/$defs/Id"
+    },
+    "sourceCategory": {
+      "$ref": "#/$defs/EvidenceSource"
+    },
+    "materialType": {
+      "enum": [
+        "SCREENSHOT",
+        "DOM",
+        "TRACE",
+        "TASK_RECORD",
+        "OBSERVATION",
+        "RULE_CHECK",
+        "REVIEW",
+        "RESEARCH",
+        "EXTERNAL_CONSTRAINT"
+      ]
+    },
+    "sourceMethod": {
+      "$ref": "#/$defs/Text"
+    },
+    "lifecycle": {
+      "$ref": "#/$defs/EvidenceLifecycle"
+    },
+    "validity": {
+      "$ref": "#/$defs/EvidenceValidity"
+    },
+    "summary": {
+      "$ref": "#/$defs/Text"
+    },
+    "artifact": {
+      "$ref": "#/$defs/ArtifactReference"
+    },
+    "content": {
+      "$ref": "#/$defs/JsonValue"
+    },
+    "derivedFromIds": {
+      "$ref": "#/$defs/IdList"
+    },
+    "observedAt": {
+      "$ref": "#/$defs/Timestamp"
+    },
+    "privacy": {
+      "$ref": "#/$defs/EvidencePrivacy"
+    },
+    "limitations": {
+      "$ref": "#/$defs/TextList"
+    }
+  },
+  "required": [
+    "runId",
+    "sourceCategory",
+    "materialType",
+    "sourceMethod",
+    "lifecycle",
+    "validity",
+    "summary",
+    "derivedFromIds",
+    "observedAt",
+    "privacy",
+    "limitations"
+  ],
+  "$defs": {
+    "EvidenceSource": {
+      "enum": [
+        "E1",
+        "E2",
+        "E3",
+        "E4",
+        "E5"
+      ]
+    },
+    "EvidenceLifecycle": {
+      "enum": [
+        "CAPTURED",
+        "VALIDATED",
+        "DERIVED",
+        "RETIRED"
+      ]
+    },
+    "EvidenceValidity": {
+      "enum": [
+        "UNVERIFIED",
+        "VALID",
+        "DISPUTED",
+        "INVALID"
+      ]
+    },
+    "EvidencePrivacy": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "classification": {
+          "enum": [
+            "PUBLIC",
+            "INTERNAL",
+            "SENSITIVE"
+          ]
+        },
+        "redacted": {
+          "type": "boolean"
+        },
+        "allowedPurposes": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "EVALUATION",
+              "VERIFICATION",
+              "SHARING",
+              "RESEARCH"
+            ]
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "retentionUntil": {
+          "$ref": "#/$defs/Timestamp"
+        },
+        "consentRef": {
+          "$ref": "#/$defs/Id"
+        }
+      },
+      "required": [
+        "classification",
+        "redacted",
+        "allowedPurposes",
+        "retentionUntil"
+      ]
+    }
+  }
+}

@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>UXQ Reference — 表单验证与错误反馈</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: system-ui, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 2rem; }
+    h1 { margin-bottom: 1.5rem; }
+    .form-group { margin-bottom: 1rem; }
+    label { display: block; margin-bottom: 0.25rem; font-weight: 600; }
+    input, select { width: 100%; padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px; font-size: 1rem; }
+    input:focus, select:focus { outline: 2px solid #0066cc; border-color: #0066cc; }
+    input.invalid { border-color: #cc0000; }
+    input.valid { border-color: #00994d; }
+    .error-msg { color: #cc0000; font-size: 0.875rem; margin-top: 0.25rem; display: none; }
+    .error-msg.visible { display: block; }
+    .hint { color: #666; font-size: 0.875rem; margin-top: 0.25rem; }
+    .btn { padding: 0.75rem 1.5rem; background: #0066cc; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 1rem; }
+    .btn:hover { background: #0052a3; }
+    .alert { padding: 1rem; border-radius: 4px; margin-top: 1rem; display: none; }
+    .alert-success { background: #e6fff0; border: 1px solid #00994d; color: #00663d; }
+    .alert-error { background: #ffe6e6; border: 1px solid #cc0000; color: #cc0000; }
+    .alert.visible { display: block; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>表单验证与错误反馈</h1>
+    <p>此页面演示多种表单验证场景和错误反馈模式。</p>
+
+    <form id="demo-form" novalidate>
+      <div class="form-group">
+        <label for="email">邮箱地址 <span aria-hidden="true">*</span></label>
+        <input type="email" id="email" name="email" required aria-required="true" aria-describedby="email-hint email-error">
+        <div class="hint" id="email-hint">请输入有效的邮箱地址</div>
+        <div class="error-msg" id="email-error" role="alert">请输入有效的邮箱地址</div>
+      </div>
+
+      <div class="form-group">
+        <label for="password">密码 <span aria-hidden="true">*</span></label>
+        <input type="password" id="password" name="password" required aria-required="true" minlength="8" aria-describedby="pwd-hint pwd-error">
+        <div class="hint" id="pwd-hint">密码至少 8 个字符</div>
+        <div class="error-msg" id="pwd-error" role="alert">密码长度不足 8 个字符</div>
+      </div>
+
+      <div class="form-group">
+        <label for="age">年龄</label>
+        <input type="number" id="age" name="age" min="1" max="150" aria-describedby="age-error">
+        <div class="error-msg" id="age-error" role="alert">请输入 1-150 之间的有效年龄</div>
+      </div>
+
+      <div class="form-group">
+        <label for="role">角色</label>
+        <select id="role" name="role">
+          <option value="">请选择角色</option>
+          <option value="evaluator">评价员</option>
+          <option value="reviewer">审核员</option>
+          <option value="admin">管理员</option>
+        </select>
+      </div>
+
+      <button type="submit" class="btn">提交</button>
+    </form>
+
+    <div class="alert alert-success" id="success-alert" role="status">✓ 表单提交成功！</div>
+    <div class="alert alert-error" id="error-alert" role="alert">✗ 请修正以下错误后重新提交。</div>
+  </main>
+
+  <script>
+    const form = document.getElementById('demo-form');
+    const emailInput = document.getElementById('email');
+    const passwordInput = document.getElementById('password');
+    const ageInput = document.getElementById('age');
+
+    function validateField(input, errorId, validator) {
+      const errorEl = document.getElementById(errorId);
+      const isValid = validator(input.value);
+      input.classList.toggle('invalid', !isValid);
+      input.classList.toggle('valid', isValid && input.value.length > 0);
+      errorEl.classList.toggle('visible', !isValid);
+      input.setAttribute('aria-invalid', String(!isValid));
+      return isValid;
+    }
+
+    emailInput.addEventListener('blur', () => {
+      validateField(emailInput, 'email-error', (v) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v));
+    });
+
+    passwordInput.addEventListener('blur', () => {
+      validateField(passwordInput, 'pwd-error', (v) => v.length >= 8);
+    });
+
+    ageInput.addEventListener('blur', () => {
+      if (ageInput.value === '') return;
+      validateField(ageInput, 'age-error', (v) => { const n = Number(v); return n >= 1 && n <= 150; });
+    });
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const emailValid = validateField(emailInput, 'email-error', (v) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v));
+      const pwdValid = validateField(passwordInput, 'pwd-error', (v) => v.length >= 8);
+      let ageValid = true;
+      if (ageInput.value !== '') {
+        ageValid = validateField(ageInput, 'age-error', (v) => { const n = Number(v); return n >= 1 && n <= 150; });
+      }
+
+      const successAlert = document.getElementById('success-alert');
+      const errorAlert = document.getElementById('error-alert');
+      successAlert.classList.remove('visible');
+      errorAlert.classList.remove('visible');
+
+      if (emailValid && pwdValid && ageValid) {
+        successAlert.classList.add('visible');
+      } else {
+        errorAlert.classList.add('visible');
+      }
+    });
+  </script>
+</body>
+</html>

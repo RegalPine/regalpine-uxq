@@ -1,0 +1,131 @@
+{
+  "id": "definition-offline",
+  "schemaVersion": "1.0.0",
+  "createdAt": "2026-01-01T00:00:00Z",
+  "definitionVersion": "1.0.0",
+  "name": "离线契约演示",
+  "target": {
+    "id": "target-demo",
+    "name": "固定观测夹具",
+    "type": "OFFLINE",
+    "version": "fixture-1",
+    "environment": "test"
+  },
+  "scope": {
+    "entityIds": ["target-demo"],
+    "routes": [],
+    "taskIds": [],
+    "exclusions": ["真实用户研究"],
+    "limitations": ["合成观测仅用于测试，不代表真实用户体验"]
+  },
+  "dimensions": ["D02"],
+  "methods": ["AUTOMATED"],
+  "metrics": [
+    {
+      "id": "metric-duration",
+      "schemaVersion": "1.0.0",
+      "createdAt": "2026-01-01T00:00:00Z",
+      "version": "1.0.0",
+      "implementationVersion": "1.0.0",
+      "name": "演示耗时",
+      "description": "固定样本的平均耗时，用于验证合法零值",
+      "dimensionId": "D02",
+      "metricType": "CALC",
+      "valueKind": "NUMBER",
+      "direction": "LOWER_IS_BETTER",
+      "sourceKey": "duration",
+      "unit": "ms",
+      "aggregation": "MEAN",
+      "minimumSamples": 1,
+      "minimum": 0,
+      "maximum": 100,
+      "required": true,
+      "applicable": true,
+      "evidenceRequired": true,
+      "limitations": ["合成样本"]
+    }
+  ],
+  "rules": [
+    {
+      "id": "rule-duration",
+      "schemaVersion": "1.0.0",
+      "createdAt": "2026-01-01T00:00:00Z",
+      "version": "1.0.0",
+      "name": "演示耗时门槛",
+      "expression": { "op": "LTE", "metricId": "metric-duration", "expected": 80 },
+      "required": true,
+      "critical": true
+    }
+  ],
+  "policy": {
+    "id": "policy-demo",
+    "schemaVersion": "1.0.0",
+    "createdAt": "2026-01-01T00:00:00Z",
+    "version": "1.0.0",
+    "name": "测试评分策略",
+    "mode": "SCORE",
+    "bindings": [
+      {
+        "metricId": "metric-duration",
+        "weight": 1,
+        "normalization": "LINEAR_LOWER",
+        "min": 0,
+        "max": 100
+      }
+    ],
+    "dimensions": [{ "dimensionId": "D02", "weight": 1, "minimumCoverage": 1 }],
+    "missingPolicy": "BLOCK",
+    "minimumCoverage": 1,
+    "allowPartial": false,
+    "overallThreshold": 70,
+    "criticalRuleIds": ["rule-duration"],
+    "riskSeverities": ["S1"],
+    "rationale": "固定夹具测试，门槛和权重不得作为通用 UX 标准",
+    "limitations": ["非产品评价策略"]
+  },
+  "tasks": [],
+  "steps": [
+    {
+      "stepId": "capture",
+      "kind": "OBSERVATION_CAPTURE",
+      "dependsOn": [],
+      "required": true,
+      "inputRefs": [],
+      "outputContracts": ["RawObservation", "Evidence"],
+      "requiredCapabilities": [],
+      "observation": {
+        "key": "duration",
+        "value": 0,
+        "unit": "ms",
+        "entityId": "target-demo",
+        "scenarioId": "scenario-demo",
+        "source": "E1",
+        "method": "AUTOMATED",
+        "observedAt": "2026-01-01T00:00:00Z",
+        "sampleId": "sample-1",
+        "excluded": false
+      }
+    },
+    {
+      "stepId": "measure",
+      "kind": "METRIC_CALCULATION",
+      "dependsOn": ["capture"],
+      "required": true,
+      "inputRefs": [{ "stepId": "capture", "contract": "RawObservation" }],
+      "outputContracts": ["MetricResult"],
+      "requiredCapabilities": ["METRIC_CALCULATION"],
+      "metricIds": ["metric-duration"]
+    },
+    {
+      "stepId": "judge",
+      "kind": "RULE_EVALUATION",
+      "dependsOn": ["measure"],
+      "required": true,
+      "inputRefs": [{ "stepId": "measure", "contract": "MetricResult" }],
+      "outputContracts": ["RuleResult"],
+      "requiredCapabilities": ["RULE_EVALUATION"],
+      "ruleIds": ["rule-duration"]
+    }
+  ],
+  "limitations": ["此定义仅用于测试和离线演示"]
+}

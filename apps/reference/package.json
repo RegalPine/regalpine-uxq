@@ -1,0 +1,20 @@
+{
+  "name": "@uxq/reference",
+  "version": "0.1.0",
+  "type": "module",
+  "private": true,
+  "description": "UXQ reference pages, evaluation definitions and demo data",
+  "bin": {
+    "uxq-reference": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsup src/index.ts --format esm --dts --sourcemap",
+    "dev": "tsup src/index.ts --format esm --dts --sourcemap --watch",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "@uxq/contracts": "workspace:*",
+    "commander": "^13.0.0",
+    "chalk": "^5.4.1"
+  }
+}

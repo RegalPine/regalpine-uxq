@@ -1,0 +1,119 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://uxq.dev/schemas/diagnostic/verification/1.0.0",
+  "title": "Verification",
+  "$defs": {
+    "VerificationPlan": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/BaseRecord"
+        }
+      ],
+      "type": "object",
+      "unevaluatedProperties": false,
+      "properties": {
+        "findingIds": {
+          "$ref": "#/$defs/IdList"
+        },
+        "recommendationIds": {
+          "$ref": "#/$defs/IdList"
+        },
+        "baselineRunId": {
+          "$ref": "#/$defs/Id"
+        },
+        "definition": {
+          "$ref": "#/$defs/EvaluationDefinition"
+        },
+        "requiredRuleIds": {
+          "$ref": "#/$defs/IdList"
+        },
+        "requiredMetricIds": {
+          "$ref": "#/$defs/IdList"
+        },
+        "acceptanceCriteria": {
+          "$ref": "#/$defs/TextList"
+        },
+        "criteriaDigest": {
+          "$ref": "#/$defs/Digest"
+        },
+        "allowCaveats": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "findingIds",
+        "recommendationIds",
+        "baselineRunId",
+        "definition",
+        "requiredRuleIds",
+        "requiredMetricIds",
+        "acceptanceCriteria",
+        "criteriaDigest",
+        "allowCaveats"
+      ]
+    },
+    "VerificationResult": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/BaseRecord"
+        }
+      ],
+      "type": "object",
+      "unevaluatedProperties": false,
+      "properties": {
+        "planId": {
+          "$ref": "#/$defs/Id"
+        },
+        "criteriaDigest": {
+          "$ref": "#/$defs/Digest"
+        },
+        "findingIds": {
+          "$ref": "#/$defs/IdList"
+        },
+        "runId": {
+          "$ref": "#/$defs/Id"
+        },
+        "status": {
+          "$ref": "#/$defs/VerificationStatus"
+        },
+        "comparability": {
+          "$ref": "#/$defs/Comparability"
+        },
+        "evidenceIds": {
+          "$ref": "#/$defs/IdList"
+        },
+        "reason": {
+          "$ref": "#/$defs/Text"
+        },
+        "startedAt": {
+          "$ref": "#/$defs/Timestamp"
+        },
+        "endedAt": {
+          "$ref": "#/$defs/Timestamp"
+        }
+      },
+      "required": [
+        "planId",
+        "criteriaDigest",
+        "findingIds",
+        "status",
+        "comparability",
+        "evidenceIds",
+        "reason"
+      ]
+    },
+    "VerificationStatus": {
+      "enum": [
+        "PENDING",
+        "RUNNING",
+        "PASSED",
+        "FAILED",
+        "INCONCLUSIVE",
+        "BLOCKED",
+        "CANCELLED"
+      ]
+    }
+  },
+  "type": "object",
+  "description": "Container for VerificationPlan, VerificationResult, VerificationStatus"
+}

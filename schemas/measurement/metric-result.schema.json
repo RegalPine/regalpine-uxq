@@ -1,0 +1,158 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://uxq.dev/schemas/measurement/metric-result/1.0.0",
+  "title": "MetricResult",
+  "allOf": [
+    {
+      "$ref": "#/$defs/MetricResultBase"
+    }
+  ],
+  "type": "object",
+  "unevaluatedProperties": false,
+  "oneOf": [
+    {
+      "type": "object",
+      "properties": {
+        "status": {
+          "const": "MEASURED"
+        },
+        "value": {
+          "$ref": "#/$defs/MeasuredValue"
+        },
+        "unit": {
+          "$ref": "#/$defs/Text"
+        }
+      },
+      "required": [
+        "status",
+        "value"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "status": {
+          "enum": [
+            "NOT_EVALUATED",
+            "NOT_APPLICABLE",
+            "INSUFFICIENT_EVIDENCE",
+            "EXECUTION_FAILED",
+            "INVALID"
+          ]
+        },
+        "reason": {
+          "$ref": "#/$defs/Text"
+        },
+        "error": {
+          "$ref": "#/$defs/ErrorRecord"
+        }
+      },
+      "required": [
+        "status",
+        "reason"
+      ]
+    }
+  ],
+  "$defs": {
+    "MetricResultBase": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/BaseRecord"
+        }
+      ],
+      "type": "object",
+      "properties": {
+        "runId": {
+          "$ref": "#/$defs/Id"
+        },
+        "metricId": {
+          "$ref": "#/$defs/Id"
+        },
+        "metricVersion": {
+          "$ref": "#/$defs/Version"
+        },
+        "implementationVersion": {
+          "$ref": "#/$defs/Version"
+        },
+        "dimensionId": {
+          "$ref": "#/$defs/DimensionId"
+        },
+        "measuredAt": {
+          "$ref": "#/$defs/Timestamp"
+        },
+        "evidenceIds": {
+          "$ref": "#/$defs/IdList"
+        },
+        "observationIds": {
+          "$ref": "#/$defs/IdList"
+        },
+        "excludedSampleIds": {
+          "$ref": "#/$defs/IdList"
+        },
+        "sampleCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "inputDigest": {
+          "$ref": "#/$defs/Digest"
+        },
+        "limitations": {
+          "$ref": "#/$defs/TextList"
+        },
+        "cacheSourceId": {
+          "$ref": "#/$defs/Id"
+        }
+      },
+      "required": [
+        "runId",
+        "metricId",
+        "metricVersion",
+        "implementationVersion",
+        "dimensionId",
+        "measuredAt",
+        "evidenceIds",
+        "observationIds",
+        "excludedSampleIds",
+        "sampleCount",
+        "inputDigest",
+        "limitations"
+      ]
+    },
+    "MeasuredValue": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "string"
+        },
+        {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          }
+        }
+      ]
+    },
+    "MetricDirection": {
+      "enum": [
+        "HIGHER_IS_BETTER",
+        "LOWER_IS_BETTER",
+        "TARGET_RANGE",
+        "CONTEXT_DEPENDENT",
+        "DESCRIPTIVE_ONLY"
+      ]
+    },
+    "ValueKind": {
+      "enum": [
+        "NUMBER",
+        "BOOLEAN",
+        "CATEGORY",
+        "STRUCTURED"
+      ]
+    }
+  }
+}

@@ -1,0 +1,80 @@
+{
+  "scope": "当前已实现的本地快速、契约、架构、治理、单元和构建门禁；不代表 G1–G3 或 M4 全部达成",
+  "startedAt": "2026-10-28T07:55:46.242Z",
+  "nodeVersion": "v24.13.0",
+  "sourceDigest": "0666125c9408f3e2b4c6664651e87addc0745cfd0e83a6943f1a04927ead6ff2",
+  "checkedFiles": 58,
+  "checks": [
+    {
+      "command": [
+        "pnpm",
+        "format:check"
+      ],
+      "startedAt": "2026-10-28T07:55:46.243Z",
+      "finishedAt": "2026-10-28T07:55:46.713Z",
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "\n> uxq-workspace@0.1.0 format:check /Users/wangqingsong/Documents/UXQ\n> prettier --check .\n\nChecking formatting...\nAll matched files use Prettier code style!\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "pnpm",
+        "lint"
+      ],
+      "startedAt": "2026-10-28T07:55:46.713Z",
+      "finishedAt": "2026-10-28T07:55:48.254Z",
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "\n> uxq-workspace@0.1.0 lint /Users/wangqingsong/Documents/UXQ\n> eslint .\n\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "pnpm",
+        "typecheck"
+      ],
+      "startedAt": "2026-10-28T07:55:48.254Z",
+      "finishedAt": "2026-10-28T07:55:49.581Z",
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "\n> uxq-workspace@0.1.0 typecheck /Users/wangqingsong/Documents/UXQ\n> tsc --noEmit\n\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "pnpm",
+        "exec",
+        "vitest",
+        "run",
+        "--reporter=default",
+        "--reporter=json",
+        "--outputFile=artifacts/verification/unit-tests.json"
+      ],
+      "startedAt": "2026-10-28T07:55:49.581Z",
+      "finishedAt": "2026-10-28T07:55:51.197Z",
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "\n\u001b[1m\u001b[30m\u001b[46m RUN \u001b[49m\u001b[39m\u001b[22m \u001b[36mv4.1.12 \u001b[39m\u001b[90m/Users/wangqingsong/Documents/UXQ\u001b[39m\n\n \u001b[32m✓\u001b[39m tests/governance/baseline.test.ts \u001b[2m(\u001b[22m\u001b[2m5 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[32m 28\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/governance/traceability.test.ts \u001b[2m(\u001b[22m\u001b[2m2 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[32m 8\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m packages/core/tests/core.test.ts \u001b[2m(\u001b[22m\u001b[2m40 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[32m 10\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/architecture/dependencies.test.ts \u001b[2m(\u001b[22m\u001b[2m1 test\u001b[22m\u001b[2m)\u001b[22m\u001b[32m 17\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/contract/toolchain.test.ts \u001b[2m(\u001b[22m\u001b[2m2 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[32m 269\u001b[2mms\u001b[22m\u001b[39m\n\n\u001b[2m Test Files \u001b[22m \u001b[1m\u001b[32m5 passed\u001b[39m\u001b[22m\u001b[90m (5)\u001b[39m\n\u001b[2m      Tests \u001b[22m \u001b[1m\u001b[32m50 passed\u001b[39m\u001b[22m\u001b[90m (50)\u001b[39m\n\u001b[2m   Start at \u001b[22m 15:55:50\n\u001b[2m   Duration \u001b[22m 763ms\u001b[2m (transform 194ms, setup 0ms, import 884ms, tests 332ms, environment 0ms)\u001b[22m\n\nJSON report written to /Users/wangqingsong/Documents/UXQ/artifacts/verification/unit-tests.json\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "pnpm",
+        "build"
+      ],
+      "startedAt": "2026-10-28T07:55:51.197Z",
+      "finishedAt": "2026-10-28T07:55:52.879Z",
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "\n> uxq-workspace@0.1.0 build /Users/wangqingsong/Documents/UXQ\n> pnpm -r --if-present build\n\n\n> @uxq/core@0.1.0 build /Users/wangqingsong/Documents/UXQ/packages/core\n> tsup src/index.ts --format esm --dts --sourcemap\n\nCLI Building entry: src/index.ts\nCLI Using tsconfig: ../../tsconfig.json\nCLI tsup v8.5.1\nCLI Target: es2023\nESM Build start\nESM dist/index.js     6.32 KB\nESM dist/index.js.map 10.65 KB\nESM ⚡️ Build success in 102ms\nDTS Build start\nDTS ⚡️ Build success in 446ms\nDTS dist/index.d.ts 2.20 KB\n",
+      "stderr": ""
+    }
+  ],
+  "passed": true
+}

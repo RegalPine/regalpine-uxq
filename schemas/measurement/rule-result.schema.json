@@ -1,0 +1,108 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://uxq.dev/schemas/measurement/rule-result/1.0.0",
+  "title": "RuleResult",
+  "allOf": [
+    {
+      "$ref": "#/$defs/RuleResultBase"
+    }
+  ],
+  "type": "object",
+  "unevaluatedProperties": false,
+  "oneOf": [
+    {
+      "type": "object",
+      "properties": {
+        "executionStatus": {
+          "const": "COMPLETED"
+        },
+        "outcome": {
+          "enum": [
+            "PASS",
+            "FAIL",
+            "INDETERMINATE",
+            "NOT_APPLICABLE"
+          ]
+        }
+      },
+      "required": [
+        "executionStatus",
+        "outcome"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "executionStatus": {
+          "const": "ERROR"
+        },
+        "outcome": {
+          "const": "EXECUTION_ERROR"
+        },
+        "error": {
+          "$ref": "#/$defs/ErrorRecord"
+        }
+      },
+      "required": [
+        "executionStatus",
+        "outcome",
+        "error"
+      ]
+    }
+  ],
+  "$defs": {
+    "RuleResultBase": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/BaseRecord"
+        }
+      ],
+      "type": "object",
+      "properties": {
+        "runId": {
+          "$ref": "#/$defs/Id"
+        },
+        "ruleId": {
+          "$ref": "#/$defs/Id"
+        },
+        "ruleVersion": {
+          "$ref": "#/$defs/Version"
+        },
+        "configurationDigest": {
+          "$ref": "#/$defs/Digest"
+        },
+        "inputMetricResultIds": {
+          "$ref": "#/$defs/IdList"
+        },
+        "evidenceIds": {
+          "$ref": "#/$defs/IdList"
+        },
+        "evaluatedAt": {
+          "$ref": "#/$defs/Timestamp"
+        },
+        "reason": {
+          "$ref": "#/$defs/Text"
+        }
+      },
+      "required": [
+        "runId",
+        "ruleId",
+        "ruleVersion",
+        "configurationDigest",
+        "inputMetricResultIds",
+        "evidenceIds",
+        "evaluatedAt",
+        "reason"
+      ]
+    },
+    "RuleOutcome": {
+      "enum": [
+        "PASS",
+        "FAIL",
+        "INDETERMINATE",
+        "NOT_APPLICABLE",
+        "EXECUTION_ERROR"
+      ]
+    }
+  }
+}

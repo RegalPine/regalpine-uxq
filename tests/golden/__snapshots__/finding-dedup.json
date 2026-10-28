@@ -1,0 +1,14 @@
+[
+  {
+    "title": "规则失败：rule-rr-snap-1",
+    "type": "CONFIRMED_DEFECT",
+    "deduplicationKey": "3180583ac1c6dc87d7a332ae24e15c37f8c0d66f11b17895d586087fa4cba261",
+    "signalCount": 2
+  },
+  {
+    "title": "规则失败：rule-rr-snap-2",
+    "type": "CONFIRMED_DEFECT",
+    "deduplicationKey": "26e10709bb81e9590846b996e9b1cffda4b7e01ab3fcce8f0e6d3672e920b305",
+    "signalCount": 1
+  }
+]

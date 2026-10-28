@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://uxq.dev/schemas/diagnostic/root-cause-hypothesis/1.0.0",
+  "title": "RootCauseHypothesis",
+  "allOf": [
+    {
+      "$ref": "#/$defs/BaseRecord"
+    }
+  ],
+  "type": "object",
+  "unevaluatedProperties": false,
+  "properties": {
+    "findingIds": {
+      "$ref": "#/$defs/IdList"
+    },
+    "description": {
+      "$ref": "#/$defs/Text"
+    },
+    "status": {
+      "enum": [
+        "HYPOTHESIS",
+        "SUPPORTED",
+        "REJECTED"
+      ]
+    },
+    "confidence": {
+      "$ref": "#/$defs/Confidence"
+    },
+    "evidenceLinks": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/EvidenceLink"
+      }
+    },
+    "limitations": {
+      "$ref": "#/$defs/TextList"
+    }
+  },
+  "required": [
+    "findingIds",
+    "description",
+    "status",
+    "confidence",
+    "evidenceLinks",
+    "limitations"
+  ],
+  "$defs": {}
+}

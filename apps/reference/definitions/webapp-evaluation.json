@@ -1,0 +1,360 @@
+{
+  "id": "definition-reference-webapp",
+  "schemaVersion": "1.0.0",
+  "createdAt": "2026-10-28T00:00:00Z",
+  "definitionVersion": "1.0.0",
+  "name": "Web 应用 UX 综合评价（参考实现）",
+  "description": "覆盖 6 个维度的完整 Web 应用用户体验评价定义，作为参考实现供学习和测试使用。",
+  "target": {
+    "id": "target-webapp",
+    "name": "示例 Web 应用",
+    "type": "WEB_APP",
+    "version": "1.0.0",
+    "environment": "staging"
+  },
+  "scope": {
+    "entityIds": ["target-webapp"],
+    "routes": ["/", "/login", "/dashboard", "/settings"],
+    "taskIds": ["task-login", "task-search", "task-submit"],
+    "exclusions": ["第三方嵌入内容"],
+    "limitations": ["仅覆盖主要用户路径", "不包含移动端原生手势"]
+  },
+  "dimensions": ["D01", "D02", "D03", "D04", "D05", "D06"],
+  "methods": ["AUTOMATED", "EXPERT_REVIEW"],
+  "metrics": [
+    {
+      "id": "metric-task-completion-rate",
+      "schemaVersion": "1.0.0",
+      "createdAt": "2026-10-28T00:00:00Z",
+      "version": "1.0.0",
+      "implementationVersion": "1.0.0",
+      "name": "任务完成率",
+      "description": "用户成功完成目标任务的比例",
+      "dimensionId": "D01",
+      "metricType": "CALC",
+      "valueKind": "NUMBER",
+      "direction": "HIGHER_IS_BETTER",
+      "sourceKey": "task-completion",
+      "unit": "%",
+      "aggregation": "MEAN",
+      "minimumSamples": 5,
+      "minimum": 0,
+      "maximum": 100,
+      "required": true,
+      "applicable": true,
+      "evidenceRequired": true,
+      "limitations": ["基于自动化任务执行"]
+    },
+    {
+      "id": "metric-task-time",
+      "schemaVersion": "1.0.0",
+      "createdAt": "2026-10-28T00:00:00Z",
+      "version": "1.0.0",
+      "implementationVersion": "1.0.0",
+      "name": "任务完成时间",
+      "description": "用户完成核心任务所需的平均时间",
+      "dimensionId": "D01",
+      "metricType": "CALC",
+      "valueKind": "NUMBER",
+      "direction": "LOWER_IS_BETTER",
+      "sourceKey": "task-duration",
+      "unit": "ms",
+      "aggregation": "MEDIAN",
+      "minimumSamples": 5,
+      "minimum": 0,
+      "required": true,
+      "applicable": true,
+      "evidenceRequired": true,
+      "limitations": ["不含网络延迟"]
+    },
+    {
+      "id": "metric-error-rate",
+      "schemaVersion": "1.0.0",
+      "createdAt": "2026-10-28T00:00:00Z",
+      "version": "1.0.0",
+      "implementationVersion": "1.0.0",
+      "name": "错误率",
+      "description": "用户在任务执行过程中犯错的频率",
+      "dimensionId": "D02",
+      "metricType": "CALC",
+      "valueKind": "NUMBER",
+      "direction": "LOWER_IS_BETTER",
+      "sourceKey": "error-count",
+      "unit": "次/任务",
+      "aggregation": "MEAN",
+      "minimumSamples": 3,
+      "minimum": 0,
+      "required": true,
+      "applicable": true,
+      "evidenceRequired": true,
+      "limitations": []
+    },
+    {
+      "id": "metric-img-alt-missing",
+      "schemaVersion": "1.0.0",
+      "createdAt": "2026-10-28T00:00:00Z",
+      "version": "1.0.0",
+      "implementationVersion": "1.0.0",
+      "name": "缺失 alt 属性的图片数",
+      "description": "页面中缺少 alt 属性的 img 元素数量",
+      "dimensionId": "D04",
+      "metricType": "OBS",
+      "valueKind": "NUMBER",
+      "direction": "LOWER_IS_BETTER",
+      "sourceKey": "img-alt-count",
+      "unit": "个",
+      "aggregation": "SUM",
+      "minimumSamples": 1,
+      "minimum": 0,
+      "required": true,
+      "applicable": true,
+      "evidenceRequired": true,
+      "limitations": ["仅检测 img 元素"]
+    },
+    {
+      "id": "metric-color-contrast-ratio",
+      "schemaVersion": "1.0.0",
+      "createdAt": "2026-10-28T00:00:00Z",
+      "version": "1.0.0",
+      "implementationVersion": "1.0.0",
+      "name": "颜色对比度比率",
+      "description": "文本与背景之间的最小对比度比率",
+      "dimensionId": "D04",
+      "metricType": "OBS",
+      "valueKind": "NUMBER",
+      "direction": "HIGHER_IS_BETTER",
+      "sourceKey": "contrast-ratio",
+      "unit": "ratio",
+      "aggregation": "MEAN",
+      "minimumSamples": 1,
+      "minimum": 1,
+      "maximum": 21,
+      "required": true,
+      "applicable": true,
+      "evidenceRequired": true,
+      "limitations": ["基于自动化检测"]
+    },
+    {
+      "id": "metric-sus-score",
+      "schemaVersion": "1.0.0",
+      "createdAt": "2026-10-28T00:00:00Z",
+      "version": "1.0.0",
+      "implementationVersion": "1.0.0",
+      "name": "SUS 可用性量表得分",
+      "description": "System Usability Scale 标准化问卷得分",
+      "dimensionId": "D06",
+      "metricType": "SUBJECTIVE",
+      "valueKind": "NUMBER",
+      "direction": "HIGHER_IS_BETTER",
+      "sourceKey": "sus-score",
+      "unit": "分",
+      "aggregation": "MEAN",
+      "minimumSamples": 5,
+      "minimum": 0,
+      "maximum": 100,
+      "required": false,
+      "applicable": true,
+      "evidenceRequired": false,
+      "limitations": ["基于主观问卷"]
+    }
+  ],
+  "rules": [
+    {
+      "id": "rule-alt-missing-zero",
+      "schemaVersion": "1.0.0",
+      "createdAt": "2026-10-28T00:00:00Z",
+      "version": "1.0.0",
+      "name": "图片 alt 属性完整性",
+      "expression": { "op": "EQ", "metricId": "metric-img-alt-missing", "expected": 0 },
+      "required": true,
+      "critical": true,
+      "finding": {
+        "problemKey": "a11y-img-no-alt",
+        "title": "图片缺少 alt 属性",
+        "description": "存在未提供替代文本的图片元素，影响视障用户理解内容",
+        "type": "CONFIRMED_DEFECT",
+        "severity": "S1",
+        "priority": "P0",
+        "confidence": "HIGH",
+        "entityId": "target-webapp",
+        "scenarioId": "scenario-accessibility"
+      }
+    },
+    {
+      "id": "rule-contrast-ratio",
+      "schemaVersion": "1.0.0",
+      "createdAt": "2026-10-28T00:00:00Z",
+      "version": "1.0.0",
+      "name": "颜色对比度达标",
+      "expression": { "op": "GTE", "metricId": "metric-color-contrast-ratio", "expected": 4.5 },
+      "required": true,
+      "critical": false
+    },
+    {
+      "id": "rule-task-completion",
+      "schemaVersion": "1.0.0",
+      "createdAt": "2026-10-28T00:00:00Z",
+      "version": "1.0.0",
+      "name": "任务完成率达标",
+      "expression": { "op": "GTE", "metricId": "metric-task-completion-rate", "expected": 80 },
+      "required": true,
+      "critical": true
+    }
+  ],
+  "policy": {
+    "id": "policy-reference-webapp",
+    "schemaVersion": "1.0.0",
+    "createdAt": "2026-10-28T00:00:00Z",
+    "version": "1.0.0",
+    "name": "Web 应用综合评分策略",
+    "mode": "SCORE",
+    "bindings": [
+      {
+        "metricId": "metric-task-completion-rate",
+        "weight": 2.0,
+        "normalization": "LINEAR_HIGHER",
+        "min": 0,
+        "max": 100
+      },
+      {
+        "metricId": "metric-task-time",
+        "weight": 1.5,
+        "normalization": "LINEAR_LOWER",
+        "min": 0,
+        "max": 30000
+      },
+      {
+        "metricId": "metric-error-rate",
+        "weight": 1.5,
+        "normalization": "LINEAR_LOWER",
+        "min": 0,
+        "max": 10
+      },
+      {
+        "metricId": "metric-img-alt-missing",
+        "weight": 2.0,
+        "normalization": "LINEAR_LOWER",
+        "min": 0,
+        "max": 5
+      },
+      {
+        "metricId": "metric-color-contrast-ratio",
+        "weight": 1.5,
+        "normalization": "TARGET_RANGE",
+        "min": 3,
+        "max": 21,
+        "targetMin": 4.5,
+        "targetMax": 21
+      },
+      {
+        "metricId": "metric-sus-score",
+        "weight": 1.0,
+        "normalization": "LINEAR_HIGHER",
+        "min": 0,
+        "max": 100
+      }
+    ],
+    "dimensions": [
+      { "dimensionId": "D01", "weight": 0.25, "minimumCoverage": 0.8 },
+      { "dimensionId": "D02", "weight": 0.15, "minimumCoverage": 0.8 },
+      { "dimensionId": "D03", "weight": 0.10, "minimumCoverage": 0.5 },
+      { "dimensionId": "D04", "weight": 0.25, "minimumCoverage": 0.8 },
+      { "dimensionId": "D05", "weight": 0.10, "minimumCoverage": 0.5 },
+      { "dimensionId": "D06", "weight": 0.15, "minimumCoverage": 0.5 }
+    ],
+    "missingPolicy": "EXCLUDE",
+    "minimumCoverage": 0.7,
+    "allowPartial": true,
+    "overallThreshold": 70,
+    "criticalRuleIds": ["rule-alt-missing-zero", "rule-task-completion"],
+    "riskSeverities": ["S1", "S2"],
+    "rationale": "参考策略：任务效率和可访问性各占 25%，体现核心 UX 优先级",
+    "limitations": ["此为参考策略，实际项目应根据业务目标调整权重"]
+  },
+  "tasks": [
+    {
+      "id": "task-login",
+      "schemaVersion": "1.0.0",
+      "createdAt": "2026-10-28T00:00:00Z",
+      "version": "1.0.0",
+      "name": "用户登录",
+      "scenarioId": "scenario-auth",
+      "actions": [
+        { "action": "NAVIGATE", "url": "/login" },
+        { "action": "FILL", "selector": "#email", "value": "test@example.com" },
+        { "action": "FILL", "selector": "#password", "value": "test1234" },
+        { "action": "CLICK", "selector": "#login-btn" },
+        { "action": "WAIT_FOR", "selector": "#dashboard", "state": "visible" }
+      ],
+      "businessConditions": [
+        { "kind": "URL", "url": "/dashboard", "equals": true }
+      ],
+      "feedbackConditions": [
+        { "kind": "VISIBLE", "selector": ".welcome-message", "equals": true }
+      ],
+      "sideEffect": "NONE",
+      "authorized": true,
+      "limitations": []
+    }
+  ],
+  "steps": [
+    {
+      "stepId": "env-check",
+      "kind": "ENV_SETUP",
+      "dependsOn": [],
+      "required": true,
+      "inputRefs": [],
+      "outputContracts": ["Evidence"],
+      "requiredCapabilities": ["BROWSER_CHROMIUM"]
+    },
+    {
+      "stepId": "task-login-exec",
+      "kind": "TASK_EXECUTION",
+      "dependsOn": ["env-check"],
+      "required": true,
+      "inputRefs": [],
+      "outputContracts": ["TaskExecution", "Evidence"],
+      "requiredCapabilities": ["BROWSER_CHROMIUM", "DOM_OBSERVATION"],
+      "taskId": "task-login"
+    },
+    {
+      "stepId": "observe-metrics",
+      "kind": "OBSERVATION_CAPTURE",
+      "dependsOn": ["task-login-exec"],
+      "required": true,
+      "inputRefs": [],
+      "outputContracts": ["RawObservation", "Evidence"],
+      "requiredCapabilities": ["DOM_OBSERVATION", "ACCESSIBILITY_INSPECTION"]
+    },
+    {
+      "stepId": "calc-metrics",
+      "kind": "METRIC_CALCULATION",
+      "dependsOn": ["observe-metrics"],
+      "required": true,
+      "inputRefs": [{ "stepId": "observe-metrics", "contract": "RawObservation" }],
+      "outputContracts": ["MetricResult"],
+      "requiredCapabilities": ["METRIC_CALCULATION"],
+      "metricIds": ["metric-task-completion-rate", "metric-task-time", "metric-error-rate", "metric-img-alt-missing", "metric-color-contrast-ratio"]
+    },
+    {
+      "stepId": "eval-rules",
+      "kind": "RULE_EVALUATION",
+      "dependsOn": ["calc-metrics"],
+      "required": true,
+      "inputRefs": [{ "stepId": "calc-metrics", "contract": "MetricResult" }],
+      "outputContracts": ["RuleResult"],
+      "requiredCapabilities": ["RULE_EVALUATION"],
+      "ruleIds": ["rule-alt-missing-zero", "rule-contrast-ratio", "rule-task-completion"]
+    },
+    {
+      "stepId": "score",
+      "kind": "SCORING",
+      "dependsOn": ["eval-rules"],
+      "required": true,
+      "inputRefs": [{ "stepId": "calc-metrics", "contract": "MetricResult" }],
+      "outputContracts": ["ScoreResult"],
+      "requiredCapabilities": ["METRIC_CALCULATION"]
+    }
+  ],
+  "limitations": ["此为参考实现，不代表特定业务场景的最优评价方案"]
+}

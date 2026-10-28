@@ -1,0 +1,24 @@
+{
+  "name": "@uxq/contracts",
+  "version": "0.1.0",
+  "type": "module",
+  "private": true,
+  "exports": {
+    ".": {
+      "development": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "node ../../scripts/generate-contracts.mjs && tsup src/index.ts --format esm --dts --sourcemap"
+  },
+  "dependencies": {
+    "@uxq/core": "workspace:*",
+    "ajv": "8.20.0",
+    "ajv-formats": "3.0.1"
+  }
+}

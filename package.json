@@ -1,0 +1,58 @@
+{
+  "name": "uxq-workspace",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@10.28.2",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/RegalPine/regalpine-uxq.git"
+  },
+  "bugs": {
+    "url": "https://github.com/RegalPine/regalpine-uxq/issues"
+  },
+  "homepage": "https://github.com/RegalPine/regalpine-uxq#readme",
+  "keywords": [
+    "ux",
+    "evaluation",
+    "testing",
+    "accessibility",
+    "metrics",
+    "user-experience",
+    "quality-assurance"
+  ],
+  "engines": {
+    "node": ">=24 <25",
+    "pnpm": ">=10 <11"
+  },
+  "scripts": {
+    "build": "pnpm -r --if-present build",
+    "generate": "node scripts/generate-contracts.mjs",
+    "contracts:check": "node scripts/generate-contracts.mjs --check",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "format:check": "prettier --check .",
+    "format": "prettier --write .",
+    "test": "vitest run",
+    "test:architecture": "vitest run tests/architecture",
+    "test:governance": "vitest run tests/governance",
+    "verify": "node scripts/verify.mjs",
+    "check": "pnpm format:check && pnpm contracts:check && pnpm lint && pnpm typecheck && pnpm test && pnpm build",
+    "schemas:extract": "node scripts/extract-schemas.mjs",
+    "test:browser": "playwright test"
+  },
+  "devDependencies": {
+    "@eslint/js": "9.39.5",
+    "@playwright/test": "1.64.1",
+    "@types/node": "24.19.2",
+    "ajv": "8.20.0",
+    "ajv-formats": "3.0.1",
+    "eslint": "9.39.4",
+    "json-schema-to-typescript": "15.0.4",
+    "prettier": "3.9.10",
+    "tsup": "8.5.1",
+    "typescript": "5.9.3",
+    "typescript-eslint": "8.72.1",
+    "vitest": "4.1.12"
+  }
+}

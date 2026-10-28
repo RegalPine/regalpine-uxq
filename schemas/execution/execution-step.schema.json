@@ -1,0 +1,204 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://uxq.dev/schemas/execution/execution-step/1.0.0",
+  "title": "ExecutionStep",
+  "allOf": [
+    {
+      "$ref": "#/$defs/BaseRecord"
+    }
+  ],
+  "type": "object",
+  "unevaluatedProperties": false,
+  "properties": {
+    "runId": {
+      "$ref": "#/$defs/Id"
+    },
+    "stepId": {
+      "$ref": "#/$defs/Id"
+    },
+    "status": {
+      "$ref": "#/$defs/StepStatus"
+    },
+    "revision": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "attemptIds": {
+      "$ref": "#/$defs/IdList"
+    },
+    "startedAt": {
+      "$ref": "#/$defs/Timestamp"
+    },
+    "endedAt": {
+      "$ref": "#/$defs/Timestamp"
+    },
+    "reason": {
+      "$ref": "#/$defs/Text"
+    },
+    "outputIds": {
+      "$ref": "#/$defs/IdList"
+    }
+  },
+  "required": [
+    "runId",
+    "stepId",
+    "status",
+    "revision",
+    "attemptIds",
+    "outputIds"
+  ],
+  "$defs": {
+    "StepStatus": {
+      "enum": [
+        "PENDING",
+        "RUNNING",
+        "PASSED",
+        "FAILED",
+        "SKIPPED",
+        "BLOCKED",
+        "ERROR"
+      ]
+    },
+    "StepAttempt": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/BaseRecord"
+        }
+      ],
+      "type": "object",
+      "unevaluatedProperties": false,
+      "properties": {
+        "runId": {
+          "$ref": "#/$defs/Id"
+        },
+        "stepId": {
+          "$ref": "#/$defs/Id"
+        },
+        "number": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10
+        },
+        "status": {
+          "enum": [
+            "RUNNING",
+            "PASSED",
+            "FAILED",
+            "ERROR"
+          ]
+        },
+        "startedAt": {
+          "$ref": "#/$defs/Timestamp"
+        },
+        "endedAt": {
+          "$ref": "#/$defs/Timestamp"
+        },
+        "durationMs": {
+          "type": "number",
+          "minimum": 0
+        },
+        "retryReason": {
+          "$ref": "#/$defs/Text"
+        },
+        "error": {
+          "$ref": "#/$defs/ErrorRecord"
+        },
+        "evidenceIds": {
+          "$ref": "#/$defs/IdList"
+        },
+        "outputIds": {
+          "$ref": "#/$defs/IdList"
+        }
+      },
+      "required": [
+        "runId",
+        "stepId",
+        "number",
+        "status",
+        "startedAt",
+        "evidenceIds",
+        "outputIds"
+      ]
+    },
+    "ExecutionEvent": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/BaseRecord"
+        }
+      ],
+      "type": "object",
+      "unevaluatedProperties": false,
+      "properties": {
+        "runId": {
+          "$ref": "#/$defs/Id"
+        },
+        "stepId": {
+          "$ref": "#/$defs/Id"
+        },
+        "attemptId": {
+          "$ref": "#/$defs/Id"
+        },
+        "sequence": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "type": {
+          "enum": [
+            "RunCreated",
+            "RunPreparationStarted",
+            "RunStarted",
+            "RunCompleted",
+            "RunPartiallyCompleted",
+            "RunFailed",
+            "RunCancelRequested",
+            "RunCancelled",
+            "StepStarted",
+            "StepPassed",
+            "StepFailed",
+            "StepError",
+            "StepSkipped",
+            "StepBlocked",
+            "AttemptStarted",
+            "AttemptFinished",
+            "TaskStarted",
+            "TaskFinished",
+            "ObservationCaptured",
+            "MetricMeasured",
+            "MetricEvaluationSkipped",
+            "RuleEvaluated",
+            "EvidenceCaptured",
+            "FindingCreated",
+            "FindingConfirmed",
+            "VerificationStarted",
+            "VerificationFinished",
+            "CleanupFailed",
+            "ArtifactFailed"
+          ]
+        },
+        "occurredAt": {
+          "$ref": "#/$defs/Timestamp"
+        },
+        "recordedAt": {
+          "$ref": "#/$defs/Timestamp"
+        },
+        "reason": {
+          "$ref": "#/$defs/Text"
+        },
+        "error": {
+          "$ref": "#/$defs/ErrorRecord"
+        },
+        "outputIds": {
+          "$ref": "#/$defs/IdList"
+        }
+      },
+      "required": [
+        "runId",
+        "sequence",
+        "type",
+        "occurredAt",
+        "recordedAt",
+        "outputIds"
+      ]
+    }
+  }
+}

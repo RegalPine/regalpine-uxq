@@ -1,0 +1,48 @@
+{
+  "id": "evaluation-<UUID>",
+  "schemaVersion": "1.0.0",
+  "createdAt": "2026-01-15T10:00:00Z",
+  "runId": "run-golden-001",
+  "policyId": "policy-golden",
+  "policyVersion": "1.0.0",
+  "policyDigest": "94ba1075fff2662ef13d6bd5154120996c66da107011e07e463284aa0fb9e02f",
+  "evaluationStatus": "COMPLETE",
+  "overallOutcome": "PASS",
+  "overallScore": 77,
+  "coverage": {
+    "planned": 1,
+    "applicable": 1,
+    "measured": 1,
+    "scored": 1,
+    "ratio": 1
+  },
+  "metricResultIds": [
+    "mr-001",
+    "mr-002"
+  ],
+  "ruleResultIds": [
+    "rr-001"
+  ],
+  "scoreResultIds": [
+    "score-<UUID>",
+    "score-<UUID>"
+  ],
+  "dimensionResultIds": [
+    "dimension-<UUID>"
+  ],
+  "findingIds": [],
+  "evidenceIds": [],
+  "constraints": [
+    {
+      "kind": "FINDING_SEVERITY",
+      "sourceIds": [],
+      "reason": "策略声明关注 S1 级别问题"
+    },
+    {
+      "kind": "FINDING_SEVERITY",
+      "sourceIds": [],
+      "reason": "策略声明关注 S2 级别问题"
+    }
+  ],
+  "limitations": []
+}

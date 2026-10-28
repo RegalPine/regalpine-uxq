@@ -1,0 +1,64 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://uxq.dev/schemas/execution/run-context/1.0.0",
+  "title": "RunContext",
+  "allOf": [
+    {
+      "$ref": "#/$defs/BaseRecord"
+    }
+  ],
+  "type": "object",
+  "unevaluatedProperties": false,
+  "properties": {
+    "runId": {
+      "$ref": "#/$defs/Id"
+    },
+    "engineVersion": {
+      "$ref": "#/$defs/Version"
+    },
+    "nodeVersion": {
+      "$ref": "#/$defs/Text"
+    },
+    "platform": {
+      "$ref": "#/$defs/Text"
+    },
+    "browserVersion": {
+      "$ref": "#/$defs/Text"
+    },
+    "profile": {
+      "$ref": "#/$defs/ExecutionProfile"
+    },
+    "configSources": {
+      "type": "object",
+      "additionalProperties": {
+        "enum": [
+          "DEFAULT",
+          "CONFIG",
+          "DEFINITION",
+          "CLI"
+        ]
+      }
+    },
+    "environmentFingerprint": {
+      "$ref": "#/$defs/Digest"
+    },
+    "sampleDescription": {
+      "$ref": "#/$defs/Text"
+    },
+    "limitations": {
+      "$ref": "#/$defs/TextList"
+    }
+  },
+  "required": [
+    "runId",
+    "engineVersion",
+    "nodeVersion",
+    "platform",
+    "profile",
+    "configSources",
+    "environmentFingerprint",
+    "sampleDescription",
+    "limitations"
+  ],
+  "$defs": {}
+}

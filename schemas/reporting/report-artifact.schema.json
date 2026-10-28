@@ -1,0 +1,244 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://uxq.dev/schemas/reporting/report-artifact/1.0.0",
+  "title": "ReportArtifact",
+  "allOf": [
+    {
+      "$ref": "#/$defs/BaseRecord"
+    }
+  ],
+  "type": "object",
+  "unevaluatedProperties": false,
+  "properties": {
+    "runId": {
+      "$ref": "#/$defs/Id"
+    },
+    "evaluationResultId": {
+      "$ref": "#/$defs/Id"
+    },
+    "templateVersion": {
+      "$ref": "#/$defs/Version"
+    },
+    "contentDigest": {
+      "$ref": "#/$defs/Digest"
+    },
+    "json": {
+      "$ref": "#/$defs/ArtifactReference"
+    },
+    "markdown": {
+      "$ref": "#/$defs/ArtifactReference"
+    }
+  },
+  "required": [
+    "runId",
+    "evaluationResultId",
+    "templateVersion",
+    "contentDigest",
+    "json",
+    "markdown"
+  ],
+  "$defs": {
+    "ReportDocument": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/BaseRecord"
+        }
+      ],
+      "type": "object",
+      "unevaluatedProperties": false,
+      "properties": {
+        "reportSchemaVersion": {
+          "const": "1.0.0"
+        },
+        "templateVersion": {
+          "$ref": "#/$defs/Version"
+        },
+        "reportType": {
+          "enum": [
+            "FULL",
+            "SUMMARY",
+            "DIAGNOSTIC",
+            "ACCESSIBILITY",
+            "TASK",
+            "EXECUTION",
+            "EVIDENCE",
+            "REGRESSION"
+          ]
+        },
+        "generatedAt": {
+          "$ref": "#/$defs/Timestamp"
+        },
+        "provenance": {
+          "$ref": "#/$defs/ReportProvenance"
+        },
+        "target": {
+          "$ref": "#/$defs/Target"
+        },
+        "scope": {
+          "$ref": "#/$defs/Scope"
+        },
+        "methods": {
+          "$ref": "#/$defs/TextList"
+        },
+        "runStatus": {
+          "$ref": "#/$defs/RunStatus"
+        },
+        "evaluation": {
+          "$ref": "#/$defs/EvaluationResult"
+        },
+        "metrics": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/MetricResult"
+          }
+        },
+        "rules": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/RuleResult"
+          }
+        },
+        "scores": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ScoreResult"
+          }
+        },
+        "dimensions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/DimensionResult"
+          }
+        },
+        "findings": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Finding"
+          }
+        },
+        "evidenceIndex": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Evidence"
+          }
+        },
+        "limitations": {
+          "$ref": "#/$defs/TextList"
+        },
+        "contentDigest": {
+          "$ref": "#/$defs/Digest"
+        }
+      },
+      "required": [
+        "reportSchemaVersion",
+        "templateVersion",
+        "reportType",
+        "generatedAt",
+        "provenance",
+        "target",
+        "scope",
+        "methods",
+        "runStatus",
+        "evaluation",
+        "metrics",
+        "rules",
+        "scores",
+        "dimensions",
+        "findings",
+        "evidenceIndex",
+        "limitations",
+        "contentDigest"
+      ]
+    },
+    "ReportProvenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "definitionId": {
+          "$ref": "#/$defs/Id"
+        },
+        "definitionVersion": {
+          "$ref": "#/$defs/Version"
+        },
+        "planId": {
+          "$ref": "#/$defs/Id"
+        },
+        "planDigest": {
+          "$ref": "#/$defs/Digest"
+        },
+        "runId": {
+          "$ref": "#/$defs/Id"
+        },
+        "evaluationResultId": {
+          "$ref": "#/$defs/Id"
+        },
+        "policyId": {
+          "$ref": "#/$defs/Id"
+        },
+        "policyVersion": {
+          "$ref": "#/$defs/Version"
+        },
+        "engineVersion": {
+          "$ref": "#/$defs/Version"
+        },
+        "environmentFingerprint": {
+          "$ref": "#/$defs/Digest"
+        },
+        "metricVersions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/VersionRef"
+          }
+        },
+        "ruleVersions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/VersionRef"
+          }
+        }
+      },
+      "required": [
+        "definitionId",
+        "definitionVersion",
+        "planId",
+        "planDigest",
+        "runId",
+        "evaluationResultId",
+        "policyId",
+        "policyVersion",
+        "engineVersion",
+        "environmentFingerprint",
+        "metricVersions",
+        "ruleVersions"
+      ]
+    },
+    "ArtifactReference": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024,
+          "format": "uxq-relative-path"
+        },
+        "digest": {
+          "$ref": "#/$defs/Digest"
+        },
+        "bytes": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "mediaType": {
+          "$ref": "#/$defs/Text"
+        }
+      },
+      "required": [
+        "path",
+        "digest",
+        "bytes",
+        "mediaType"
+      ]
+    }
+  }
+}

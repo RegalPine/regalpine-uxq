@@ -1,0 +1,1068 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://uxq.dev/schemas/definition/evaluation-definition/1.0.0",
+  "title": "EvaluationDefinition",
+  "allOf": [
+    {
+      "$ref": "#/$defs/BaseRecord"
+    }
+  ],
+  "type": "object",
+  "unevaluatedProperties": false,
+  "properties": {
+    "definitionVersion": {
+      "$ref": "#/$defs/Version"
+    },
+    "name": {
+      "$ref": "#/$defs/Text"
+    },
+    "description": {
+      "$ref": "#/$defs/Text"
+    },
+    "target": {
+      "$ref": "#/$defs/Target"
+    },
+    "scope": {
+      "$ref": "#/$defs/Scope"
+    },
+    "dimensions": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/DimensionId"
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "methods": {
+      "type": "array",
+      "items": {
+        "enum": [
+          "AUTOMATED",
+          "EXPERT_REVIEW",
+          "USER_RESEARCH",
+          "PROXY"
+        ]
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "metrics": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/MetricDefinition"
+      },
+      "minItems": 1,
+      "maxItems": 1000
+    },
+    "rules": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/RuleDefinition"
+      },
+      "maxItems": 1000
+    },
+    "policy": {
+      "$ref": "#/$defs/ScoringPolicy"
+    },
+    "tasks": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/TaskDefinition"
+      },
+      "maxItems": 1000
+    },
+    "steps": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/PlannedStep"
+      },
+      "minItems": 1,
+      "maxItems": 1000
+    },
+    "profile": {
+      "$ref": "#/$defs/ProfileOverrides"
+    },
+    "limitations": {
+      "$ref": "#/$defs/TextList"
+    }
+  },
+  "required": [
+    "definitionVersion",
+    "name",
+    "target",
+    "scope",
+    "dimensions",
+    "methods",
+    "metrics",
+    "rules",
+    "policy",
+    "tasks",
+    "steps",
+    "limitations"
+  ],
+  "$defs": {
+    "Target": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/Id"
+        },
+        "name": {
+          "$ref": "#/$defs/Text"
+        },
+        "type": {
+          "enum": [
+            "WEB_APP",
+            "PAGE",
+            "COMPONENT",
+            "TASK",
+            "JOURNEY",
+            "OFFLINE"
+          ]
+        },
+        "url": {
+          "type": "string",
+          "format": "uri"
+        },
+        "version": {
+          "$ref": "#/$defs/Text"
+        },
+        "environment": {
+          "$ref": "#/$defs/Text"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "type",
+        "version",
+        "environment"
+      ]
+    },
+    "Scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "entityIds": {
+          "$ref": "#/$defs/IdList"
+        },
+        "routes": {
+          "$ref": "#/$defs/TextList"
+        },
+        "taskIds": {
+          "$ref": "#/$defs/IdList"
+        },
+        "exclusions": {
+          "$ref": "#/$defs/TextList"
+        },
+        "limitations": {
+          "$ref": "#/$defs/TextList"
+        }
+      },
+      "required": [
+        "entityIds",
+        "routes",
+        "taskIds",
+        "exclusions",
+        "limitations"
+      ]
+    },
+    "DimensionId": {
+      "enum": [
+        "D01",
+        "D02",
+        "D03",
+        "D04",
+        "D05",
+        "D06"
+      ]
+    },
+    "VersionRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/Id"
+        },
+        "version": {
+          "$ref": "#/$defs/Version"
+        },
+        "implementationVersion": {
+          "$ref": "#/$defs/Version"
+        }
+      },
+      "required": [
+        "id",
+        "version"
+      ]
+    },
+    "MetricField": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "key": {
+          "$ref": "#/$defs/Id"
+        },
+        "kind": {
+          "enum": [
+            "NUMBER",
+            "BOOLEAN",
+            "CATEGORY"
+          ]
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "categories": {
+          "$ref": "#/$defs/TextList"
+        }
+      },
+      "required": [
+        "key",
+        "kind",
+        "required"
+      ]
+    },
+    "MetricDefinition": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/BaseRecord"
+        }
+      ],
+      "type": "object",
+      "unevaluatedProperties": false,
+      "properties": {
+        "version": {
+          "$ref": "#/$defs/Version"
+        },
+        "implementationVersion": {
+          "$ref": "#/$defs/Version"
+        },
+        "name": {
+          "$ref": "#/$defs/Text"
+        },
+        "description": {
+          "$ref": "#/$defs/Text"
+        },
+        "dimensionId": {
+          "$ref": "#/$defs/DimensionId"
+        },
+        "metricType": {
+          "enum": [
+            "OBS",
+            "CALC",
+            "STRUCT",
+            "PROXY",
+            "SUBJECTIVE",
+            "EXPERT"
+          ]
+        },
+        "valueKind": {
+          "$ref": "#/$defs/ValueKind"
+        },
+        "direction": {
+          "$ref": "#/$defs/MetricDirection"
+        },
+        "sourceKey": {
+          "$ref": "#/$defs/Id"
+        },
+        "unit": {
+          "$ref": "#/$defs/Text"
+        },
+        "aggregation": {
+          "enum": [
+            "LATEST",
+            "MEAN",
+            "MEDIAN",
+            "P95",
+            "SUM",
+            "COUNT",
+            "RATIO",
+            "SUCCESS_RATE"
+          ]
+        },
+        "minimumSamples": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10000
+        },
+        "minimum": {
+          "type": "number"
+        },
+        "maximum": {
+          "type": "number"
+        },
+        "categories": {
+          "$ref": "#/$defs/TextList"
+        },
+        "structure": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/MetricField"
+          },
+          "minItems": 1
+        },
+        "numeratorKey": {
+          "$ref": "#/$defs/Id"
+        },
+        "denominatorKey": {
+          "$ref": "#/$defs/Id"
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "applicable": {
+          "type": "boolean"
+        },
+        "evidenceRequired": {
+          "type": "boolean"
+        },
+        "limitations": {
+          "$ref": "#/$defs/TextList"
+        }
+      },
+      "required": [
+        "version",
+        "implementationVersion",
+        "name",
+        "description",
+        "dimensionId",
+        "metricType",
+        "valueKind",
+        "direction",
+        "sourceKey",
+        "aggregation",
+        "minimumSamples",
+        "required",
+        "applicable",
+        "evidenceRequired",
+        "limitations"
+      ]
+    },
+    "RuleExpression": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "op": {
+              "enum": [
+                "ALL",
+                "ANY"
+              ]
+            },
+            "children": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/RuleExpression"
+              },
+              "minItems": 1,
+              "maxItems": 128
+            }
+          },
+          "required": [
+            "op",
+            "children"
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "op": {
+              "const": "NOT"
+            },
+            "child": {
+              "$ref": "#/$defs/RuleExpression"
+            }
+          },
+          "required": [
+            "op",
+            "child"
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "op": {
+              "enum": [
+                "LT",
+                "LTE",
+                "GT",
+                "GTE"
+              ]
+            },
+            "metricId": {
+              "$ref": "#/$defs/Id"
+            },
+            "expected": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "op",
+            "metricId",
+            "expected"
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "op": {
+              "enum": [
+                "EQ",
+                "NE"
+              ]
+            },
+            "metricId": {
+              "$ref": "#/$defs/Id"
+            },
+            "expected": {
+              "$ref": "#/$defs/Scalar"
+            }
+          },
+          "required": [
+            "op",
+            "metricId",
+            "expected"
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "op": {
+              "const": "BETWEEN"
+            },
+            "metricId": {
+              "$ref": "#/$defs/Id"
+            },
+            "lower": {
+              "type": "number"
+            },
+            "upper": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "op",
+            "metricId",
+            "lower",
+            "upper"
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "op": {
+              "const": "IN"
+            },
+            "metricId": {
+              "$ref": "#/$defs/Id"
+            },
+            "expected": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/Scalar"
+              },
+              "minItems": 1,
+              "maxItems": 128,
+              "uniqueItems": true
+            }
+          },
+          "required": [
+            "op",
+            "metricId",
+            "expected"
+          ]
+        }
+      ]
+    },
+    "RuleDefinition": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/BaseRecord"
+        }
+      ],
+      "type": "object",
+      "unevaluatedProperties": false,
+      "properties": {
+        "version": {
+          "$ref": "#/$defs/Version"
+        },
+        "name": {
+          "$ref": "#/$defs/Text"
+        },
+        "expression": {
+          "$ref": "#/$defs/RuleExpression"
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "critical": {
+          "type": "boolean"
+        },
+        "finding": {
+          "$ref": "#/$defs/FindingTemplate"
+        }
+      },
+      "required": [
+        "version",
+        "name",
+        "expression",
+        "required",
+        "critical"
+      ]
+    },
+    "FindingTemplate": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "problemKey": {
+          "$ref": "#/$defs/Id"
+        },
+        "title": {
+          "$ref": "#/$defs/Text"
+        },
+        "description": {
+          "$ref": "#/$defs/Text"
+        },
+        "type": {
+          "$ref": "#/$defs/FindingType"
+        },
+        "severity": {
+          "$ref": "#/$defs/Severity"
+        },
+        "priority": {
+          "$ref": "#/$defs/Priority"
+        },
+        "confidence": {
+          "$ref": "#/$defs/Confidence"
+        },
+        "entityId": {
+          "$ref": "#/$defs/Id"
+        },
+        "scenarioId": {
+          "$ref": "#/$defs/Id"
+        }
+      },
+      "required": [
+        "problemKey",
+        "title",
+        "description",
+        "type",
+        "severity",
+        "priority",
+        "confidence",
+        "entityId",
+        "scenarioId"
+      ]
+    },
+    "FindingTemplateBase": {
+      "type": "object",
+      "properties": {
+        "problemKey": {
+          "$ref": "#/$defs/Id"
+        },
+        "title": {
+          "$ref": "#/$defs/Text"
+        },
+        "description": {
+          "$ref": "#/$defs/Text"
+        },
+        "type": {
+          "$ref": "#/$defs/FindingType"
+        },
+        "severity": {
+          "$ref": "#/$defs/Severity"
+        },
+        "priority": {
+          "$ref": "#/$defs/Priority"
+        },
+        "confidence": {
+          "$ref": "#/$defs/Confidence"
+        },
+        "entityId": {
+          "$ref": "#/$defs/Id"
+        },
+        "scenarioId": {
+          "$ref": "#/$defs/Id"
+        }
+      },
+      "required": [
+        "problemKey",
+        "title",
+        "description",
+        "type",
+        "severity",
+        "priority",
+        "confidence",
+        "entityId",
+        "scenarioId"
+      ]
+    },
+    "ScoreBinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "metricId": {
+          "$ref": "#/$defs/Id"
+        },
+        "weight": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "normalization": {
+          "enum": [
+            "LINEAR_HIGHER",
+            "LINEAR_LOWER",
+            "TARGET_RANGE",
+            "BOOLEAN"
+          ]
+        },
+        "min": {
+          "type": "number"
+        },
+        "max": {
+          "type": "number"
+        },
+        "targetMin": {
+          "type": "number"
+        },
+        "targetMax": {
+          "type": "number"
+        },
+        "contextRationale": {
+          "$ref": "#/$defs/Text"
+        },
+        "countingGroup": {
+          "$ref": "#/$defs/Id"
+        }
+      },
+      "required": [
+        "metricId",
+        "weight",
+        "normalization"
+      ]
+    },
+    "DimensionWeight": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "dimensionId": {
+          "$ref": "#/$defs/DimensionId"
+        },
+        "weight": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "minimumCoverage": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        }
+      },
+      "required": [
+        "dimensionId",
+        "weight",
+        "minimumCoverage"
+      ]
+    },
+    "ScoringPolicy": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/BaseRecord"
+        }
+      ],
+      "type": "object",
+      "unevaluatedProperties": false,
+      "properties": {
+        "version": {
+          "$ref": "#/$defs/Version"
+        },
+        "name": {
+          "$ref": "#/$defs/Text"
+        },
+        "mode": {
+          "enum": [
+            "DESCRIPTIVE",
+            "SCORE"
+          ]
+        },
+        "bindings": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ScoreBinding"
+          },
+          "maxItems": 1000
+        },
+        "dimensions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/DimensionWeight"
+          },
+          "maxItems": 6
+        },
+        "missingPolicy": {
+          "enum": [
+            "BLOCK",
+            "EXCLUDE"
+          ]
+        },
+        "minimumCoverage": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "allowPartial": {
+          "type": "boolean"
+        },
+        "overallThreshold": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "criticalRuleIds": {
+          "$ref": "#/$defs/IdList"
+        },
+        "riskSeverities": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Severity"
+          },
+          "uniqueItems": true
+        },
+        "rationale": {
+          "$ref": "#/$defs/Text"
+        },
+        "limitations": {
+          "$ref": "#/$defs/TextList"
+        }
+      },
+      "required": [
+        "version",
+        "name",
+        "mode",
+        "bindings",
+        "dimensions",
+        "missingPolicy",
+        "minimumCoverage",
+        "allowPartial",
+        "criticalRuleIds",
+        "riskSeverities",
+        "rationale",
+        "limitations"
+      ]
+    },
+    "BrowserAction": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "action": {
+              "const": "NAVIGATE"
+            },
+            "url": {
+              "type": "string",
+              "format": "uri"
+            }
+          },
+          "required": [
+            "action",
+            "url"
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "action": {
+              "const": "CLICK"
+            },
+            "selector": {
+              "$ref": "#/$defs/Text"
+            }
+          },
+          "required": [
+            "action",
+            "selector"
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "action": {
+              "const": "FILL"
+            },
+            "selector": {
+              "$ref": "#/$defs/Text"
+            },
+            "value": {
+              "type": "string",
+              "maxLength": 10000
+            }
+          },
+          "required": [
+            "action",
+            "selector",
+            "value"
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "action": {
+              "const": "FILL_SECRET"
+            },
+            "selector": {
+              "$ref": "#/$defs/Text"
+            },
+            "secretRef": {
+              "$ref": "#/$defs/Id"
+            }
+          },
+          "required": [
+            "action",
+            "selector",
+            "secretRef"
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "action": {
+              "const": "PRESS"
+            },
+            "key": {
+              "enum": [
+                "Tab",
+                "Shift+Tab",
+                "Enter",
+                "Space",
+                "Escape",
+                "ArrowDown",
+                "ArrowUp",
+                "ArrowLeft",
+                "ArrowRight"
+              ]
+            }
+          },
+          "required": [
+            "action",
+            "key"
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "action": {
+              "const": "WAIT_FOR"
+            },
+            "selector": {
+              "$ref": "#/$defs/Text"
+            },
+            "state": {
+              "enum": [
+                "visible",
+                "hidden",
+                "attached",
+                "detached"
+              ]
+            }
+          },
+          "required": [
+            "action",
+            "selector",
+            "state"
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "action": {
+              "const": "CAPTURE"
+            },
+            "selector": {
+              "$ref": "#/$defs/Text"
+            },
+            "key": {
+              "$ref": "#/$defs/Id"
+            },
+            "extractor": {
+              "enum": [
+                "COUNT",
+                "VISIBLE",
+                "TEXT",
+                "VALUE",
+                "ACCESSIBLE_NAME"
+              ]
+            },
+            "unit": {
+              "$ref": "#/$defs/Text"
+            }
+          },
+          "required": [
+            "action",
+            "selector",
+            "key",
+            "extractor"
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "action": {
+              "const": "SCREENSHOT"
+            },
+            "name": {
+              "$ref": "#/$defs/Id"
+            }
+          },
+          "required": [
+            "action",
+            "name"
+          ]
+        }
+      ]
+    },
+    "SuccessCondition": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "enum": [
+            "TEXT",
+            "VISIBLE",
+            "ATTRIBUTE",
+            "URL",
+            "BUSINESS_JSON"
+          ]
+        },
+        "selector": {
+          "$ref": "#/$defs/Text"
+        },
+        "attribute": {
+          "$ref": "#/$defs/Id"
+        },
+        "url": {
+          "type": "string",
+          "format": "uri"
+        },
+        "field": {
+          "$ref": "#/$defs/Id"
+        },
+        "equals": {
+          "$ref": "#/$defs/Scalar"
+        }
+      },
+      "required": [
+        "kind",
+        "equals"
+      ]
+    },
+    "TaskDefinition": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/BaseRecord"
+        }
+      ],
+      "type": "object",
+      "unevaluatedProperties": false,
+      "properties": {
+        "version": {
+          "$ref": "#/$defs/Version"
+        },
+        "name": {
+          "$ref": "#/$defs/Text"
+        },
+        "scenarioId": {
+          "$ref": "#/$defs/Id"
+        },
+        "actions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/BrowserAction"
+          },
+          "minItems": 1,
+          "maxItems": 100
+        },
+        "businessConditions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/SuccessCondition"
+          },
+          "minItems": 1
+        },
+        "feedbackConditions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/SuccessCondition"
+          },
+          "minItems": 1
+        },
+        "sideEffect": {
+          "enum": [
+            "NONE",
+            "WRITE"
+          ]
+        },
+        "authorized": {
+          "type": "boolean"
+        },
+        "testDataScope": {
+          "$ref": "#/$defs/Text"
+        },
+        "idempotencyKey": {
+          "$ref": "#/$defs/Id"
+        },
+        "timeoutMs": {
+          "$ref": "#/$defs/ExecutionProfile/properties/taskTimeoutMs"
+        },
+        "limitations": {
+          "$ref": "#/$defs/TextList"
+        }
+      },
+      "required": [
+        "version",
+        "name",
+        "scenarioId",
+        "actions",
+        "businessConditions",
+        "feedbackConditions",
+        "sideEffect",
+        "authorized",
+        "limitations"
+      ]
+    },
+    "Capability": {
+      "enum": [
+        "BROWSER_CHROMIUM",
+        "BROWSER_FIREFOX",
+        "BROWSER_WEBKIT",
+        "SCREENSHOT_CAPTURE",
+        "DOM_OBSERVATION",
+        "ACCESSIBILITY_INSPECTION",
+        "LOCAL_FILE_READ",
+        "METRIC_CALCULATION",
+        "RULE_EVALUATION"
+      ]
+    },
+    "FailureMode": {
+      "enum": [
+        "CONTINUE_INDEPENDENT_STEPS",
+        "STOP_ON_REQUIRED_FAILURE"
+      ]
+    }
+  }
+}

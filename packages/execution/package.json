@@ -1,0 +1,33 @@
+{
+  "name": "@uxq/execution",
+  "version": "0.1.0",
+  "type": "module",
+  "private": true,
+  "exports": {
+    ".": {
+      "development": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup src/index.ts --format esm --dts --sourcemap"
+  },
+  "dependencies": {
+    "@uxq/core": "workspace:*",
+    "@uxq/contracts": "workspace:*",
+    "@uxq/measurement": "workspace:*",
+    "@uxq/metrics": "workspace:*",
+    "@uxq/rules": "workspace:*",
+    "@uxq/tasks": "workspace:*",
+    "@uxq/evidence": "workspace:*",
+    "@uxq/scoring": "workspace:*",
+    "@uxq/diagnostic": "workspace:*",
+    "@uxq/browser": "workspace:*",
+    "@uxq/regression": "workspace:*",
+    "@uxq/reporting": "workspace:*"
+  }
+}

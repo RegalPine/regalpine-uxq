@@ -1,0 +1,113 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://uxq.dev/schemas/execution/task-execution/1.0.0",
+  "title": "TaskExecution",
+  "allOf": [
+    {
+      "$ref": "#/$defs/BaseRecord"
+    }
+  ],
+  "type": "object",
+  "unevaluatedProperties": false,
+  "properties": {
+    "runId": {
+      "$ref": "#/$defs/Id"
+    },
+    "stepId": {
+      "$ref": "#/$defs/Id"
+    },
+    "attemptId": {
+      "$ref": "#/$defs/Id"
+    },
+    "taskId": {
+      "$ref": "#/$defs/Id"
+    },
+    "taskVersion": {
+      "$ref": "#/$defs/Version"
+    },
+    "outcome": {
+      "$ref": "#/$defs/TaskOutcome"
+    },
+    "businessSuccess": {
+      "type": [
+        "boolean",
+        "null"
+      ]
+    },
+    "feedbackSuccess": {
+      "type": [
+        "boolean",
+        "null"
+      ]
+    },
+    "startedAt": {
+      "$ref": "#/$defs/Timestamp"
+    },
+    "endedAt": {
+      "$ref": "#/$defs/Timestamp"
+    },
+    "durationMs": {
+      "type": "number",
+      "minimum": 0
+    },
+    "userOperationMs": {
+      "type": "number",
+      "minimum": 0
+    },
+    "systemWaitMs": {
+      "type": "number",
+      "minimum": 0
+    },
+    "infrastructureMs": {
+      "type": "number",
+      "minimum": 0
+    },
+    "method": {
+      "enum": [
+        "AUTOMATED",
+        "USER_RESEARCH"
+      ]
+    },
+    "evidenceIds": {
+      "$ref": "#/$defs/IdList"
+    },
+    "errors": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/ErrorRecord"
+      }
+    },
+    "limitations": {
+      "$ref": "#/$defs/TextList"
+    }
+  },
+  "required": [
+    "runId",
+    "stepId",
+    "attemptId",
+    "taskId",
+    "taskVersion",
+    "outcome",
+    "businessSuccess",
+    "feedbackSuccess",
+    "startedAt",
+    "endedAt",
+    "durationMs",
+    "method",
+    "evidenceIds",
+    "errors",
+    "limitations"
+  ],
+  "$defs": {
+    "TaskOutcome": {
+      "enum": [
+        "SUCCESS",
+        "PARTIAL_SUCCESS",
+        "FAILURE",
+        "ABORTED",
+        "TIMEOUT",
+        "INVALID"
+      ]
+    }
+  }
+}

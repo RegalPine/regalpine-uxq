@@ -1,0 +1,27 @@
+{
+  "id": "eval-result-001",
+  "schemaVersion": "1.0.0",
+  "createdAt": "2026-10-28T10:00:00Z",
+  "runId": "run-001",
+  "policyId": "policy-001",
+  "policyVersion": "1.0.0",
+  "policyDigest": "sha256:abc123",
+  "evaluationStatus": "COMPLETE",
+  "overallOutcome": "PASS",
+  "overallScore": 85.5,
+  "coverage": {
+    "planned": 6,
+    "applicable": 6,
+    "measured": 6,
+    "scored": 6,
+    "ratio": 1.0
+  },
+  "metricResultIds": ["metric-001", "metric-002", "metric-003"],
+  "ruleResultIds": ["rule-001", "rule-002"],
+  "scoreResultIds": ["score-001", "score-002"],
+  "dimensionResultIds": ["dim-001", "dim-002"],
+  "findingIds": ["finding-001"],
+  "evidenceIds": ["evidence-001", "evidence-002"],
+  "constraints": [],
+  "limitations": ["部分指标基于自动化测试，可能存在误差"]
+}

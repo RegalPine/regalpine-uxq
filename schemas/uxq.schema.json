@@ -1,0 +1,1880 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://uxq.dev/schemas/contracts/1.0.0",
+  "title": "UXQContracts",
+  "$defs": {
+    "Id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+      "format": "uxq-id"
+    },
+    "Version": {
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)(?:-[0-9A-Za-z.-]+)?$"
+    },
+    "Timestamp": { "type": "string", "format": "uxq-timestamp" },
+    "Digest": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "Text": { "type": "string", "minLength": 1, "maxLength": 20000 },
+    "IdList": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/Id" },
+      "uniqueItems": true,
+      "maxItems": 10000
+    },
+    "TextList": { "type": "array", "items": { "$ref": "#/$defs/Text" }, "maxItems": 10000 },
+    "Scalar": { "type": ["string", "number", "boolean", "null"] },
+    "JsonValue": {
+      "anyOf": [
+        { "$ref": "#/$defs/Scalar" },
+        { "type": "array", "items": { "$ref": "#/$defs/JsonValue" }, "maxItems": 10000 },
+        {
+          "type": "object",
+          "additionalProperties": { "$ref": "#/$defs/JsonValue" },
+          "maxProperties": 1000
+        }
+      ]
+    },
+    "DimensionId": { "enum": ["D01", "D02", "D03", "D04", "D05", "D06"] },
+    "RunStatus": {
+      "enum": ["CREATED", "PREPARING", "RUNNING", "COMPLETED", "PARTIAL", "FAILED", "CANCELLED"]
+    },
+    "StepStatus": {
+      "enum": ["PENDING", "RUNNING", "PASSED", "FAILED", "SKIPPED", "BLOCKED", "ERROR"]
+    },
+    "TaskOutcome": {
+      "enum": ["SUCCESS", "PARTIAL_SUCCESS", "FAILURE", "ABORTED", "TIMEOUT", "INVALID"]
+    },
+    "MeasurementStatus": {
+      "enum": [
+        "MEASURED",
+        "NOT_EVALUATED",
+        "NOT_APPLICABLE",
+        "INSUFFICIENT_EVIDENCE",
+        "EXECUTION_FAILED",
+        "INVALID"
+      ]
+    },
+    "RuleOutcome": {
+      "enum": ["PASS", "FAIL", "INDETERMINATE", "NOT_APPLICABLE", "EXECUTION_ERROR"]
+    },
+    "ScoreStatus": {
+      "enum": ["SCORED", "NOT_SCORED", "INSUFFICIENT_INPUTS", "CALCULATION_FAILED"]
+    },
+    "EvaluationStatus": {
+      "enum": ["COMPLETE", "PARTIAL", "INSUFFICIENT_EVIDENCE", "CONSTRAINED", "EXECUTION_FAILED"]
+    },
+    "OverallOutcome": { "enum": ["PASS", "FAIL", "INCONCLUSIVE", "NOT_RATED"] },
+    "EvidenceSource": { "enum": ["E1", "E2", "E3", "E4", "E5"] },
+    "EvidenceLifecycle": { "enum": ["CAPTURED", "VALIDATED", "DERIVED", "RETIRED"] },
+    "EvidenceValidity": { "enum": ["UNVERIFIED", "VALID", "DISPUTED", "INVALID"] },
+    "FindingLifecycleStatus": {
+      "enum": [
+        "NEW",
+        "TRIAGED",
+        "INVESTIGATING",
+        "CONFIRMED",
+        "ACCEPTED",
+        "PLANNED",
+        "IN_PROGRESS",
+        "FIXED",
+        "VERIFIED",
+        "REOPENED",
+        "WONT_FIX",
+        "INVALID",
+        "CLOSED"
+      ]
+    },
+    "FindingType": {
+      "enum": [
+        "CONFIRMED_DEFECT",
+        "POTENTIAL_DEFECT",
+        "USABILITY_OBSERVATION",
+        "DESIGN_INCONSISTENCY",
+        "COMPLIANCE_FINDING",
+        "IMPROVEMENT_OPPORTUNITY",
+        "INSUFFICIENT_EVIDENCE"
+      ]
+    },
+    "Severity": { "enum": ["S1", "S2", "S3", "S4"] },
+    "Priority": { "enum": ["P0", "P1", "P2", "P3"] },
+    "Confidence": { "enum": ["HIGH", "MEDIUM", "LOW"] },
+    "VerificationStatus": {
+      "enum": ["PENDING", "RUNNING", "PASSED", "FAILED", "INCONCLUSIVE", "BLOCKED", "CANCELLED"]
+    },
+    "Comparability": { "enum": ["COMPARABLE", "COMPARABLE_WITH_CAVEATS", "NOT_COMPARABLE"] },
+    "MetricDirection": {
+      "enum": [
+        "HIGHER_IS_BETTER",
+        "LOWER_IS_BETTER",
+        "TARGET_RANGE",
+        "CONTEXT_DEPENDENT",
+        "DESCRIPTIVE_ONLY"
+      ]
+    },
+    "ValueKind": { "enum": ["NUMBER", "BOOLEAN", "CATEGORY", "STRUCTURED"] },
+    "StepKind": {
+      "enum": [
+        "ENVIRONMENT_CHECK",
+        "BROWSER_SETUP",
+        "PAGE_NAVIGATION",
+        "TASK_EXECUTION",
+        "OBSERVATION_CAPTURE",
+        "METRIC_CALCULATION",
+        "RULE_EVALUATION",
+        "SCORING",
+        "EVIDENCE_VALIDATION",
+        "RESULT_FINALIZATION"
+      ]
+    },
+    "Capability": {
+      "enum": [
+        "BROWSER_CHROMIUM",
+        "BROWSER_FIREFOX",
+        "BROWSER_WEBKIT",
+        "SCREENSHOT_CAPTURE",
+        "DOM_OBSERVATION",
+        "ACCESSIBILITY_INSPECTION",
+        "LOCAL_FILE_READ",
+        "METRIC_CALCULATION",
+        "RULE_EVALUATION"
+      ]
+    },
+    "FailureMode": { "enum": ["CONTINUE_INDEPENDENT_STEPS", "STOP_ON_REQUIRED_FAILURE"] },
+    "BaseRecord": {
+      "type": "object",
+      "properties": {
+        "id": { "$ref": "#/$defs/Id" },
+        "schemaVersion": { "const": "1.0.0" },
+        "createdAt": { "$ref": "#/$defs/Timestamp" }
+      },
+      "required": ["id", "schemaVersion", "createdAt"]
+    },
+    "ErrorRecord": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "code": { "$ref": "#/$defs/Id" },
+        "message": { "$ref": "#/$defs/Text" },
+        "category": {
+          "enum": [
+            "INPUT",
+            "ENVIRONMENT",
+            "EXECUTION",
+            "CONTRACT",
+            "ARTIFACT",
+            "CANCELLED",
+            "QUALITY"
+          ]
+        },
+        "path": { "type": "string" }
+      },
+      "required": ["code", "message", "category"]
+    },
+    "Viewport": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "width": { "type": "integer", "minimum": 240, "maximum": 7680 },
+        "height": { "type": "integer", "minimum": 240, "maximum": 4320 }
+      },
+      "required": ["width", "height"]
+    },
+    "ExecutionProfile": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "maxConcurrency": { "type": "integer", "minimum": 1, "maximum": 16, "default": 2 },
+        "runTimeoutMs": { "type": "integer", "minimum": 100, "maximum": 3600000, "default": 60000 },
+        "stepTimeoutMs": { "type": "integer", "minimum": 10, "maximum": 600000, "default": 10000 },
+        "taskTimeoutMs": { "type": "integer", "minimum": 10, "maximum": 600000, "default": 30000 },
+        "cancellationGracePeriodMs": {
+          "type": "integer",
+          "minimum": 10,
+          "maximum": 30000,
+          "default": 5000
+        },
+        "maxAttempts": { "type": "integer", "minimum": 1, "maximum": 10, "default": 1 },
+        "retryableErrorCodes": { "$ref": "#/$defs/IdList", "default": [] },
+        "initialDelayMs": { "type": "integer", "minimum": 0, "maximum": 60000, "default": 100 },
+        "maxDelayMs": { "type": "integer", "minimum": 0, "maximum": 60000, "default": 2000 },
+        "backoff": { "enum": ["FIXED", "EXPONENTIAL"], "default": "FIXED" },
+        "failureMode": { "$ref": "#/$defs/FailureMode", "default": "CONTINUE_INDEPENDENT_STEPS" },
+        "browser": { "enum": ["chromium", "firefox", "webkit"], "default": "chromium" },
+        "viewport": { "$ref": "#/$defs/Viewport", "default": { "width": 1280, "height": 800 } },
+        "locale": { "type": "string", "pattern": "^[a-z]{2}(?:-[A-Z]{2})?$", "default": "zh-CN" },
+        "colorScheme": { "enum": ["light", "dark"], "default": "light" },
+        "allowedOrigins": {
+          "type": "array",
+          "items": { "type": "string", "format": "uri" },
+          "uniqueItems": true,
+          "maxItems": 100,
+          "default": []
+        },
+        "allowPrivateNetwork": { "type": "boolean", "default": false },
+        "allowSideEffects": { "type": "boolean", "default": false },
+        "maxPages": { "type": "integer", "minimum": 1, "maximum": 16, "default": 4 },
+        "maxArtifactBytes": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 104857600,
+          "default": 5242880
+        },
+        "maxTotalArtifactBytes": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1073741824,
+          "default": 26214400
+        },
+        "cacheEnabled": { "type": "boolean", "default": false },
+        "headless": { "type": "boolean", "default": true }
+      },
+      "required": [
+        "maxConcurrency",
+        "runTimeoutMs",
+        "stepTimeoutMs",
+        "taskTimeoutMs",
+        "cancellationGracePeriodMs",
+        "maxAttempts",
+        "retryableErrorCodes",
+        "initialDelayMs",
+        "maxDelayMs",
+        "backoff",
+        "failureMode",
+        "browser",
+        "viewport",
+        "locale",
+        "colorScheme",
+        "allowedOrigins",
+        "allowPrivateNetwork",
+        "allowSideEffects",
+        "maxPages",
+        "maxArtifactBytes",
+        "maxTotalArtifactBytes",
+        "cacheEnabled",
+        "headless"
+      ]
+    },
+    "ProfileOverrides": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "maxConcurrency": { "$ref": "#/$defs/ExecutionProfile/properties/maxConcurrency" },
+        "runTimeoutMs": { "$ref": "#/$defs/ExecutionProfile/properties/runTimeoutMs" },
+        "stepTimeoutMs": { "$ref": "#/$defs/ExecutionProfile/properties/stepTimeoutMs" },
+        "taskTimeoutMs": { "$ref": "#/$defs/ExecutionProfile/properties/taskTimeoutMs" },
+        "cancellationGracePeriodMs": {
+          "$ref": "#/$defs/ExecutionProfile/properties/cancellationGracePeriodMs"
+        },
+        "maxAttempts": { "$ref": "#/$defs/ExecutionProfile/properties/maxAttempts" },
+        "retryableErrorCodes": {
+          "$ref": "#/$defs/ExecutionProfile/properties/retryableErrorCodes"
+        },
+        "initialDelayMs": { "$ref": "#/$defs/ExecutionProfile/properties/initialDelayMs" },
+        "maxDelayMs": { "$ref": "#/$defs/ExecutionProfile/properties/maxDelayMs" },
+        "backoff": { "$ref": "#/$defs/ExecutionProfile/properties/backoff" },
+        "failureMode": { "$ref": "#/$defs/ExecutionProfile/properties/failureMode" },
+        "browser": { "$ref": "#/$defs/ExecutionProfile/properties/browser" },
+        "viewport": { "$ref": "#/$defs/Viewport" },
+        "locale": { "$ref": "#/$defs/ExecutionProfile/properties/locale" },
+        "colorScheme": { "$ref": "#/$defs/ExecutionProfile/properties/colorScheme" },
+        "allowedOrigins": { "$ref": "#/$defs/ExecutionProfile/properties/allowedOrigins" },
+        "allowPrivateNetwork": { "type": "boolean" },
+        "allowSideEffects": { "type": "boolean" },
+        "maxPages": { "$ref": "#/$defs/ExecutionProfile/properties/maxPages" },
+        "maxArtifactBytes": { "$ref": "#/$defs/ExecutionProfile/properties/maxArtifactBytes" },
+        "maxTotalArtifactBytes": {
+          "$ref": "#/$defs/ExecutionProfile/properties/maxTotalArtifactBytes"
+        },
+        "cacheEnabled": { "type": "boolean" },
+        "headless": { "type": "boolean" }
+      }
+    },
+    "RetryPolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "maxAttempts": { "$ref": "#/$defs/ExecutionProfile/properties/maxAttempts" },
+        "retryableErrorCodes": { "$ref": "#/$defs/IdList" },
+        "initialDelayMs": { "$ref": "#/$defs/ExecutionProfile/properties/initialDelayMs" },
+        "maxDelayMs": { "$ref": "#/$defs/ExecutionProfile/properties/maxDelayMs" },
+        "backoff": { "enum": ["FIXED", "EXPONENTIAL"] }
+      },
+      "required": ["maxAttempts", "retryableErrorCodes", "initialDelayMs", "maxDelayMs", "backoff"]
+    },
+    "Target": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": { "$ref": "#/$defs/Id" },
+        "name": { "$ref": "#/$defs/Text" },
+        "type": { "enum": ["WEB_APP", "PAGE", "COMPONENT", "TASK", "JOURNEY", "OFFLINE"] },
+        "url": { "type": "string", "format": "uri" },
+        "version": { "$ref": "#/$defs/Text" },
+        "environment": { "$ref": "#/$defs/Text" }
+      },
+      "required": ["id", "name", "type", "version", "environment"]
+    },
+    "Scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "entityIds": { "$ref": "#/$defs/IdList" },
+        "routes": { "$ref": "#/$defs/TextList" },
+        "taskIds": { "$ref": "#/$defs/IdList" },
+        "exclusions": { "$ref": "#/$defs/TextList" },
+        "limitations": { "$ref": "#/$defs/TextList" }
+      },
+      "required": ["entityIds", "routes", "taskIds", "exclusions", "limitations"]
+    },
+    "MetricField": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "key": { "$ref": "#/$defs/Id" },
+        "kind": { "enum": ["NUMBER", "BOOLEAN", "CATEGORY"] },
+        "required": { "type": "boolean" },
+        "categories": { "$ref": "#/$defs/TextList" }
+      },
+      "required": ["key", "kind", "required"]
+    },
+    "MetricDefinition": {
+      "allOf": [{ "$ref": "#/$defs/BaseRecord" }],
+      "type": "object",
+      "unevaluatedProperties": false,
+      "properties": {
+        "version": { "$ref": "#/$defs/Version" },
+        "implementationVersion": { "$ref": "#/$defs/Version" },
+        "name": { "$ref": "#/$defs/Text" },
+        "description": { "$ref": "#/$defs/Text" },
+        "dimensionId": { "$ref": "#/$defs/DimensionId" },
+        "metricType": { "enum": ["OBS", "CALC", "STRUCT", "PROXY", "SUBJECTIVE", "EXPERT"] },
+        "valueKind": { "$ref": "#/$defs/ValueKind" },
+        "direction": { "$ref": "#/$defs/MetricDirection" },
+        "sourceKey": { "$ref": "#/$defs/Id" },
+        "unit": { "$ref": "#/$defs/Text" },
+        "aggregation": {
+          "enum": ["LATEST", "MEAN", "MEDIAN", "P95", "SUM", "COUNT", "RATIO", "SUCCESS_RATE"]
+        },
+        "minimumSamples": { "type": "integer", "minimum": 1, "maximum": 10000 },
+        "minimum": { "type": "number" },
+        "maximum": { "type": "number" },
+        "categories": { "$ref": "#/$defs/TextList" },
+        "structure": { "type": "array", "items": { "$ref": "#/$defs/MetricField" }, "minItems": 1 },
+        "numeratorKey": { "$ref": "#/$defs/Id" },
+        "denominatorKey": { "$ref": "#/$defs/Id" },
+        "required": { "type": "boolean" },
+        "applicable": { "type": "boolean" },
+        "evidenceRequired": { "type": "boolean" },
+        "limitations": { "$ref": "#/$defs/TextList" }
+      },
+      "required": [
+        "version",
+        "implementationVersion",
+        "name",
+        "description",
+        "dimensionId",
+        "metricType",
+        "valueKind",
+        "direction",
+        "sourceKey",
+        "aggregation",
+        "minimumSamples",
+        "required",
+        "applicable",
+        "evidenceRequired",
+        "limitations"
+      ]
+    },
+    "RuleExpression": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "op": { "enum": ["ALL", "ANY"] },
+            "children": {
+              "type": "array",
+              "items": { "$ref": "#/$defs/RuleExpression" },
+              "minItems": 1,
+              "maxItems": 128
+            }
+          },
+          "required": ["op", "children"]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": { "op": { "const": "NOT" }, "child": { "$ref": "#/$defs/RuleExpression" } },
+          "required": ["op", "child"]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "op": { "enum": ["LT", "LTE", "GT", "GTE"] },
+            "metricId": { "$ref": "#/$defs/Id" },
+            "expected": { "type": "number" }
+          },
+          "required": ["op", "metricId", "expected"]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "op": { "enum": ["EQ", "NE"] },
+            "metricId": { "$ref": "#/$defs/Id" },
+            "expected": { "$ref": "#/$defs/Scalar" }
+          },
+          "required": ["op", "metricId", "expected"]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "op": { "const": "BETWEEN" },
+            "metricId": { "$ref": "#/$defs/Id" },
+            "lower": { "type": "number" },
+            "upper": { "type": "number" }
+          },
+          "required": ["op", "metricId", "lower", "upper"]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "op": { "const": "IN" },
+            "metricId": { "$ref": "#/$defs/Id" },
+            "expected": {
+              "type": "array",
+              "items": { "$ref": "#/$defs/Scalar" },
+              "minItems": 1,
+              "maxItems": 128,
+              "uniqueItems": true
+            }
+          },
+          "required": ["op", "metricId", "expected"]
+        }
+      ]
+    },
+    "FindingTemplate": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "problemKey": { "$ref": "#/$defs/Id" },
+        "title": { "$ref": "#/$defs/Text" },
+        "description": { "$ref": "#/$defs/Text" },
+        "type": { "$ref": "#/$defs/FindingType" },
+        "severity": { "$ref": "#/$defs/Severity" },
+        "priority": { "$ref": "#/$defs/Priority" },
+        "confidence": { "$ref": "#/$defs/Confidence" },
+        "entityId": { "$ref": "#/$defs/Id" },
+        "scenarioId": { "$ref": "#/$defs/Id" }
+      },
+      "required": [
+        "problemKey",
+        "title",
+        "description",
+        "type",
+        "severity",
+        "priority",
+        "confidence",
+        "entityId",
+        "scenarioId"
+      ]
+    },
+    "RuleDefinition": {
+      "allOf": [{ "$ref": "#/$defs/BaseRecord" }],
+      "type": "object",
+      "unevaluatedProperties": false,
+      "properties": {
+        "version": { "$ref": "#/$defs/Version" },
+        "name": { "$ref": "#/$defs/Text" },
+        "expression": { "$ref": "#/$defs/RuleExpression" },
+        "required": { "type": "boolean" },
+        "critical": { "type": "boolean" },
+        "finding": { "$ref": "#/$defs/FindingTemplate" }
+      },
+      "required": ["version", "name", "expression", "required", "critical"]
+    },
+    "ScoreBinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "metricId": { "$ref": "#/$defs/Id" },
+        "weight": { "type": "number", "exclusiveMinimum": 0 },
+        "normalization": { "enum": ["LINEAR_HIGHER", "LINEAR_LOWER", "TARGET_RANGE", "BOOLEAN"] },
+        "min": { "type": "number" },
+        "max": { "type": "number" },
+        "targetMin": { "type": "number" },
+        "targetMax": { "type": "number" },
+        "contextRationale": { "$ref": "#/$defs/Text" },
+        "countingGroup": { "$ref": "#/$defs/Id" }
+      },
+      "required": ["metricId", "weight", "normalization"]
+    },
+    "DimensionWeight": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "dimensionId": { "$ref": "#/$defs/DimensionId" },
+        "weight": { "type": "number", "exclusiveMinimum": 0 },
+        "minimumCoverage": { "type": "number", "minimum": 0, "maximum": 1 }
+      },
+      "required": ["dimensionId", "weight", "minimumCoverage"]
+    },
+    "ScoringPolicy": {
+      "allOf": [{ "$ref": "#/$defs/BaseRecord" }],
+      "type": "object",
+      "unevaluatedProperties": false,
+      "properties": {
+        "version": { "$ref": "#/$defs/Version" },
+        "name": { "$ref": "#/$defs/Text" },
+        "mode": { "enum": ["DESCRIPTIVE", "SCORE"] },
+        "bindings": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/ScoreBinding" },
+          "maxItems": 1000
+        },
+        "dimensions": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/DimensionWeight" },
+          "maxItems": 6
+        },
+        "missingPolicy": { "enum": ["BLOCK", "EXCLUDE"] },
+        "minimumCoverage": { "type": "number", "minimum": 0, "maximum": 1 },
+        "allowPartial": { "type": "boolean" },
+        "overallThreshold": { "type": "number", "minimum": 0, "maximum": 100 },
+        "criticalRuleIds": { "$ref": "#/$defs/IdList" },
+        "riskSeverities": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/Severity" },
+          "uniqueItems": true
+        },
+        "rationale": { "$ref": "#/$defs/Text" },
+        "limitations": { "$ref": "#/$defs/TextList" }
+      },
+      "required": [
+        "version",
+        "name",
+        "mode",
+        "bindings",
+        "dimensions",
+        "missingPolicy",
+        "minimumCoverage",
+        "allowPartial",
+        "criticalRuleIds",
+        "riskSeverities",
+        "rationale",
+        "limitations"
+      ]
+    },
+    "BrowserAction": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "action": { "const": "NAVIGATE" },
+            "url": { "type": "string", "format": "uri" }
+          },
+          "required": ["action", "url"]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": { "action": { "const": "CLICK" }, "selector": { "$ref": "#/$defs/Text" } },
+          "required": ["action", "selector"]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "action": { "const": "FILL" },
+            "selector": { "$ref": "#/$defs/Text" },
+            "value": { "type": "string", "maxLength": 10000 }
+          },
+          "required": ["action", "selector", "value"]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "action": { "const": "FILL_SECRET" },
+            "selector": { "$ref": "#/$defs/Text" },
+            "secretRef": { "$ref": "#/$defs/Id" }
+          },
+          "required": ["action", "selector", "secretRef"]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "action": { "const": "PRESS" },
+            "key": {
+              "enum": [
+                "Tab",
+                "Shift+Tab",
+                "Enter",
+                "Space",
+                "Escape",
+                "ArrowDown",
+                "ArrowUp",
+                "ArrowLeft",
+                "ArrowRight"
+              ]
+            }
+          },
+          "required": ["action", "key"]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "action": { "const": "WAIT_FOR" },
+            "selector": { "$ref": "#/$defs/Text" },
+            "state": { "enum": ["visible", "hidden", "attached", "detached"] }
+          },
+          "required": ["action", "selector", "state"]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "action": { "const": "CAPTURE" },
+            "selector": { "$ref": "#/$defs/Text" },
+            "key": { "$ref": "#/$defs/Id" },
+            "extractor": { "enum": ["COUNT", "VISIBLE", "TEXT", "VALUE", "ACCESSIBLE_NAME"] },
+            "unit": { "$ref": "#/$defs/Text" }
+          },
+          "required": ["action", "selector", "key", "extractor"]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": { "action": { "const": "SCREENSHOT" }, "name": { "$ref": "#/$defs/Id" } },
+          "required": ["action", "name"]
+        }
+      ]
+    },
+    "SuccessCondition": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "kind": { "enum": ["TEXT", "VISIBLE", "ATTRIBUTE", "URL", "BUSINESS_JSON"] },
+        "selector": { "$ref": "#/$defs/Text" },
+        "attribute": { "$ref": "#/$defs/Id" },
+        "url": { "type": "string", "format": "uri" },
+        "field": { "$ref": "#/$defs/Id" },
+        "equals": { "$ref": "#/$defs/Scalar" }
+      },
+      "required": ["kind", "equals"]
+    },
+    "TaskDefinition": {
+      "allOf": [{ "$ref": "#/$defs/BaseRecord" }],
+      "type": "object",
+      "unevaluatedProperties": false,
+      "properties": {
+        "version": { "$ref": "#/$defs/Version" },
+        "name": { "$ref": "#/$defs/Text" },
+        "scenarioId": { "$ref": "#/$defs/Id" },
+        "actions": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/BrowserAction" },
+          "minItems": 1,
+          "maxItems": 100
+        },
+        "businessConditions": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/SuccessCondition" },
+          "minItems": 1
+        },
+        "feedbackConditions": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/SuccessCondition" },
+          "minItems": 1
+        },
+        "sideEffect": { "enum": ["NONE", "WRITE"] },
+        "authorized": { "type": "boolean" },
+        "testDataScope": { "$ref": "#/$defs/Text" },
+        "idempotencyKey": { "$ref": "#/$defs/Id" },
+        "timeoutMs": { "$ref": "#/$defs/ExecutionProfile/properties/taskTimeoutMs" },
+        "limitations": { "$ref": "#/$defs/TextList" }
+      },
+      "required": [
+        "version",
+        "name",
+        "scenarioId",
+        "actions",
+        "businessConditions",
+        "feedbackConditions",
+        "sideEffect",
+        "authorized",
+        "limitations"
+      ]
+    },
+    "ObservationInput": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "key": { "$ref": "#/$defs/Id" },
+        "value": { "$ref": "#/$defs/JsonValue" },
+        "unit": { "$ref": "#/$defs/Text" },
+        "entityId": { "$ref": "#/$defs/Id" },
+        "scenarioId": { "$ref": "#/$defs/Id" },
+        "source": { "$ref": "#/$defs/EvidenceSource" },
+        "method": { "enum": ["AUTOMATED", "EXPERT_REVIEW", "USER_RESEARCH", "PROXY"] },
+        "observedAt": { "$ref": "#/$defs/Timestamp" },
+        "sampleId": { "$ref": "#/$defs/Id" },
+        "excluded": { "type": "boolean" },
+        "exclusionReason": { "$ref": "#/$defs/Text" }
+      },
+      "required": [
+        "key",
+        "value",
+        "entityId",
+        "scenarioId",
+        "source",
+        "method",
+        "observedAt",
+        "sampleId",
+        "excluded"
+      ]
+    },
+    "PlanReference": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "stepId": { "$ref": "#/$defs/Id" },
+        "contract": {
+          "enum": [
+            "RawObservation",
+            "MetricResult",
+            "RuleResult",
+            "TaskExecution",
+            "Evidence",
+            "ScoreResult"
+          ]
+        }
+      },
+      "required": ["stepId", "contract"]
+    },
+    "PlannedStep": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "stepId": { "$ref": "#/$defs/Id" },
+        "kind": { "$ref": "#/$defs/StepKind" },
+        "dependsOn": { "$ref": "#/$defs/IdList" },
+        "required": { "type": "boolean" },
+        "inputRefs": { "type": "array", "items": { "$ref": "#/$defs/PlanReference" } },
+        "outputContracts": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "RawObservation",
+              "MetricResult",
+              "RuleResult",
+              "TaskExecution",
+              "Evidence",
+              "ScoreResult"
+            ]
+          },
+          "uniqueItems": true
+        },
+        "requiredCapabilities": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/Capability" },
+          "uniqueItems": true
+        },
+        "taskId": { "$ref": "#/$defs/Id" },
+        "action": { "$ref": "#/$defs/BrowserAction" },
+        "observation": { "$ref": "#/$defs/ObservationInput" },
+        "metricIds": { "$ref": "#/$defs/IdList" },
+        "ruleIds": { "$ref": "#/$defs/IdList" },
+        "sessionId": { "$ref": "#/$defs/Id" },
+        "timeoutMs": { "$ref": "#/$defs/ExecutionProfile/properties/stepTimeoutMs" },
+        "retryPolicy": { "$ref": "#/$defs/RetryPolicy" }
+      },
+      "required": [
+        "stepId",
+        "kind",
+        "dependsOn",
+        "required",
+        "inputRefs",
+        "outputContracts",
+        "requiredCapabilities"
+      ]
+    },
+    "EvaluationDefinition": {
+      "allOf": [{ "$ref": "#/$defs/BaseRecord" }],
+      "type": "object",
+      "unevaluatedProperties": false,
+      "properties": {
+        "definitionVersion": { "$ref": "#/$defs/Version" },
+        "name": { "$ref": "#/$defs/Text" },
+        "description": { "$ref": "#/$defs/Text" },
+        "target": { "$ref": "#/$defs/Target" },
+        "scope": { "$ref": "#/$defs/Scope" },
+        "dimensions": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/DimensionId" },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "methods": {
+          "type": "array",
+          "items": { "enum": ["AUTOMATED", "EXPERT_REVIEW", "USER_RESEARCH", "PROXY"] },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "metrics": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/MetricDefinition" },
+          "minItems": 1,
+          "maxItems": 1000
+        },
+        "rules": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/RuleDefinition" },
+          "maxItems": 1000
+        },
+        "policy": { "$ref": "#/$defs/ScoringPolicy" },
+        "tasks": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/TaskDefinition" },
+          "maxItems": 1000
+        },
+        "steps": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/PlannedStep" },
+          "minItems": 1,
+          "maxItems": 1000
+        },
+        "profile": { "$ref": "#/$defs/ProfileOverrides" },
+        "limitations": { "$ref": "#/$defs/TextList" }
+      },
+      "required": [
+        "definitionVersion",
+        "name",
+        "target",
+        "scope",
+        "dimensions",
+        "methods",
+        "metrics",
+        "rules",
+        "policy",
+        "tasks",
+        "steps",
+        "limitations"
+      ]
+    },
+    "VersionRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": { "$ref": "#/$defs/Id" },
+        "version": { "$ref": "#/$defs/Version" },
+        "implementationVersion": { "$ref": "#/$defs/Version" }
+      },
+      "required": ["id", "version"]
+    },
+    "EvaluationPlan": {
+      "allOf": [{ "$ref": "#/$defs/BaseRecord" }],
+      "type": "object",
+      "unevaluatedProperties": false,
+      "properties": {
+        "definitionId": { "$ref": "#/$defs/Id" },
+        "definitionVersion": { "$ref": "#/$defs/Version" },
+        "definitionDigest": { "$ref": "#/$defs/Digest" },
+        "compilerVersion": { "$ref": "#/$defs/Version" },
+        "steps": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/PlannedStep" },
+          "minItems": 1,
+          "maxItems": 1000
+        },
+        "profile": { "$ref": "#/$defs/ExecutionProfile" },
+        "metricVersions": { "type": "array", "items": { "$ref": "#/$defs/VersionRef" } },
+        "ruleVersions": { "type": "array", "items": { "$ref": "#/$defs/VersionRef" } },
+        "policyVersion": { "$ref": "#/$defs/VersionRef" },
+        "requiredCapabilities": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/Capability" },
+          "uniqueItems": true
+        },
+        "planDigest": { "$ref": "#/$defs/Digest" }
+      },
+      "required": [
+        "definitionId",
+        "definitionVersion",
+        "definitionDigest",
+        "compilerVersion",
+        "steps",
+        "profile",
+        "metricVersions",
+        "ruleVersions",
+        "policyVersion",
+        "requiredCapabilities",
+        "planDigest"
+      ]
+    },
+    "EvaluationRun": {
+      "allOf": [{ "$ref": "#/$defs/BaseRecord" }],
+      "type": "object",
+      "unevaluatedProperties": false,
+      "properties": {
+        "planId": { "$ref": "#/$defs/Id" },
+        "planDigest": { "$ref": "#/$defs/Digest" },
+        "definitionId": { "$ref": "#/$defs/Id" },
+        "status": { "$ref": "#/$defs/RunStatus" },
+        "revision": { "type": "integer", "minimum": 0 },
+        "sourceRunId": { "$ref": "#/$defs/Id" },
+        "startedAt": { "$ref": "#/$defs/Timestamp" },
+        "endedAt": { "$ref": "#/$defs/Timestamp" },
+        "endReason": { "$ref": "#/$defs/Text" },
+        "contextId": { "$ref": "#/$defs/Id" },
+        "executionCommitted": { "type": "boolean" },
+        "limitations": { "$ref": "#/$defs/TextList" }
+      },
+      "required": [
+        "planId",
+        "planDigest",
+        "definitionId",
+        "status",
+        "revision",
+        "contextId",
+        "executionCommitted",
+        "limitations"
+      ]
+    },
+    "RunContext": {
+      "allOf": [{ "$ref": "#/$defs/BaseRecord" }],
+      "type": "object",
+      "unevaluatedProperties": false,
+      "properties": {
+        "runId": { "$ref": "#/$defs/Id" },
+        "engineVersion": { "$ref": "#/$defs/Version" },
+        "nodeVersion": { "$ref": "#/$defs/Text" },
+        "platform": { "$ref": "#/$defs/Text" },
+        "browserVersion": { "$ref": "#/$defs/Text" },
+        "profile": { "$ref": "#/$defs/ExecutionProfile" },
+        "configSources": {
+          "type": "object",
+          "additionalProperties": { "enum": ["DEFAULT", "CONFIG", "DEFINITION", "CLI"] }
+        },
+        "environmentFingerprint": { "$ref": "#/$defs/Digest" },
+        "sampleDescription": { "$ref": "#/$defs/Text" },
+        "limitations": { "$ref": "#/$defs/TextList" }
+      },
+      "required": [
+        "runId",
+        "engineVersion",
+        "nodeVersion",
+        "platform",
+        "profile",
+        "configSources",
+        "environmentFingerprint",
+        "sampleDescription",
+        "limitations"
+      ]
+    },
+    "ExecutionStep": {
+      "allOf": [{ "$ref": "#/$defs/BaseRecord" }],
+      "type": "object",
+      "unevaluatedProperties": false,
+      "properties": {
+        "runId": { "$ref": "#/$defs/Id" },
+        "stepId": { "$ref": "#/$defs/Id" },
+        "status": { "$ref": "#/$defs/StepStatus" },
+        "revision": { "type": "integer", "minimum": 0 },
+        "attemptIds": { "$ref": "#/$defs/IdList" },
+        "startedAt": { "$ref": "#/$defs/Timestamp" },
+        "endedAt": { "$ref": "#/$defs/Timestamp" },
+        "reason": { "$ref": "#/$defs/Text" },
+        "outputIds": { "$ref": "#/$defs/IdList" }
+      },
+      "required": ["runId", "stepId", "status", "revision", "attemptIds", "outputIds"]
+    },
+    "StepAttempt": {
+      "allOf": [{ "$ref": "#/$defs/BaseRecord" }],
+      "type": "object",
+      "unevaluatedProperties": false,
+      "properties": {
+        "runId": { "$ref": "#/$defs/Id" },
+        "stepId": { "$ref": "#/$defs/Id" },
+        "number": { "type": "integer", "minimum": 1, "maximum": 10 },
+        "status": { "enum": ["RUNNING", "PASSED", "FAILED", "ERROR"] },
+        "startedAt": { "$ref": "#/$defs/Timestamp" },
+        "endedAt": { "$ref": "#/$defs/Timestamp" },
+        "durationMs": { "type": "number", "minimum": 0 },
+        "retryReason": { "$ref": "#/$defs/Text" },
+        "error": { "$ref": "#/$defs/ErrorRecord" },
+        "evidenceIds": { "$ref": "#/$defs/IdList" },
+        "outputIds": { "$ref": "#/$defs/IdList" }
+      },
+      "required": ["runId", "stepId", "number", "status", "startedAt", "evidenceIds", "outputIds"]
+    },
+    "ExecutionEvent": {
+      "allOf": [{ "$ref": "#/$defs/BaseRecord" }],
+      "type": "object",
+      "unevaluatedProperties": false,
+      "properties": {
+        "runId": { "$ref": "#/$defs/Id" },
+        "stepId": { "$ref": "#/$defs/Id" },
+        "attemptId": { "$ref": "#/$defs/Id" },
+        "sequence": { "type": "integer", "minimum": 1 },
+        "type": {
+          "enum": [
+            "RunCreated",
+            "RunPreparationStarted",
+            "RunStarted",
+            "RunCompleted",
+            "RunPartiallyCompleted",
+            "RunFailed",
+            "RunCancelRequested",
+            "RunCancelled",
+            "StepStarted",
+            "StepPassed",
+            "StepFailed",
+            "StepError",
+            "StepSkipped",
+            "StepBlocked",
+            "AttemptStarted",
+            "AttemptFinished",
+            "TaskStarted",
+            "TaskFinished",
+            "ObservationCaptured",
+            "MetricMeasured",
+            "MetricEvaluationSkipped",
+            "RuleEvaluated",
+            "EvidenceCaptured",
+            "FindingCreated",
+            "FindingConfirmed",
+            "VerificationStarted",
+            "VerificationFinished",
+            "CleanupFailed",
+            "ArtifactFailed"
+          ]
+        },
+        "occurredAt": { "$ref": "#/$defs/Timestamp" },
+        "recordedAt": { "$ref": "#/$defs/Timestamp" },
+        "reason": { "$ref": "#/$defs/Text" },
+        "error": { "$ref": "#/$defs/ErrorRecord" },
+        "outputIds": { "$ref": "#/$defs/IdList" }
+      },
+      "required": ["runId", "sequence", "type", "occurredAt", "recordedAt", "outputIds"]
+    },
+    "TaskExecution": {
+      "allOf": [{ "$ref": "#/$defs/BaseRecord" }],
+      "type": "object",
+      "unevaluatedProperties": false,
+      "properties": {
+        "runId": { "$ref": "#/$defs/Id" },
+        "stepId": { "$ref": "#/$defs/Id" },
+        "attemptId": { "$ref": "#/$defs/Id" },
+        "taskId": { "$ref": "#/$defs/Id" },
+        "taskVersion": { "$ref": "#/$defs/Version" },
+        "outcome": { "$ref": "#/$defs/TaskOutcome" },
+        "businessSuccess": { "type": ["boolean", "null"] },
+        "feedbackSuccess": { "type": ["boolean", "null"] },
+        "startedAt": { "$ref": "#/$defs/Timestamp" },
+        "endedAt": { "$ref": "#/$defs/Timestamp" },
+        "durationMs": { "type": "number", "minimum": 0 },
+        "userOperationMs": { "type": "number", "minimum": 0 },
+        "systemWaitMs": { "type": "number", "minimum": 0 },
+        "infrastructureMs": { "type": "number", "minimum": 0 },
+        "method": { "enum": ["AUTOMATED", "USER_RESEARCH"] },
+        "evidenceIds": { "$ref": "#/$defs/IdList" },
+        "errors": { "type": "array", "items": { "$ref": "#/$defs/ErrorRecord" } },
+        "limitations": { "$ref": "#/$defs/TextList" }
+      },
+      "required": [
+        "runId",
+        "stepId",
+        "attemptId",
+        "taskId",
+        "taskVersion",
+        "outcome",
+        "businessSuccess",
+        "feedbackSuccess",
+        "startedAt",
+        "endedAt",
+        "durationMs",
+        "method",
+        "evidenceIds",
+        "errors",
+        "limitations"
+      ]
+    },
+    "RawObservation": {
+      "allOf": [{ "$ref": "#/$defs/BaseRecord" }, { "$ref": "#/$defs/ObservationInputBase" }],
+      "type": "object",
+      "unevaluatedProperties": false,
+      "properties": {
+        "runId": { "$ref": "#/$defs/Id" },
+        "stepId": { "$ref": "#/$defs/Id" },
+        "attemptId": { "$ref": "#/$defs/Id" },
+        "evidenceIds": { "$ref": "#/$defs/IdList" }
+      },
+      "required": ["runId", "stepId", "attemptId", "evidenceIds"]
+    },
+    "ObservationInputBase": {
+      "type": "object",
+      "properties": {
+        "key": { "$ref": "#/$defs/Id" },
+        "value": { "$ref": "#/$defs/JsonValue" },
+        "unit": { "$ref": "#/$defs/Text" },
+        "entityId": { "$ref": "#/$defs/Id" },
+        "scenarioId": { "$ref": "#/$defs/Id" },
+        "source": { "$ref": "#/$defs/EvidenceSource" },
+        "method": { "enum": ["AUTOMATED", "EXPERT_REVIEW", "USER_RESEARCH", "PROXY"] },
+        "observedAt": { "$ref": "#/$defs/Timestamp" },
+        "sampleId": { "$ref": "#/$defs/Id" },
+        "excluded": { "type": "boolean" },
+        "exclusionReason": { "$ref": "#/$defs/Text" }
+      },
+      "required": [
+        "key",
+        "value",
+        "entityId",
+        "scenarioId",
+        "source",
+        "method",
+        "observedAt",
+        "sampleId",
+        "excluded"
+      ]
+    },
+    "MetricResultBase": {
+      "allOf": [{ "$ref": "#/$defs/BaseRecord" }],
+      "type": "object",
+      "properties": {
+        "runId": { "$ref": "#/$defs/Id" },
+        "metricId": { "$ref": "#/$defs/Id" },
+        "metricVersion": { "$ref": "#/$defs/Version" },
+        "implementationVersion": { "$ref": "#/$defs/Version" },
+        "dimensionId": { "$ref": "#/$defs/DimensionId" },
+        "measuredAt": { "$ref": "#/$defs/Timestamp" },
+        "evidenceIds": { "$ref": "#/$defs/IdList" },
+        "observationIds": { "$ref": "#/$defs/IdList" },
+        "excludedSampleIds": { "$ref": "#/$defs/IdList" },
+        "sampleCount": { "type": "integer", "minimum": 0 },
+        "inputDigest": { "$ref": "#/$defs/Digest" },
+        "limitations": { "$ref": "#/$defs/TextList" },
+        "cacheSourceId": { "$ref": "#/$defs/Id" }
+      },
+      "required": [
+        "runId",
+        "metricId",
+        "metricVersion",
+        "implementationVersion",
+        "dimensionId",
+        "measuredAt",
+        "evidenceIds",
+        "observationIds",
+        "excludedSampleIds",
+        "sampleCount",
+        "inputDigest",
+        "limitations"
+      ]
+    },
+    "MeasuredValue": {
+      "anyOf": [
+        { "type": "number" },
+        { "type": "boolean" },
+        { "type": "string" },
+        { "type": "object", "additionalProperties": { "$ref": "#/$defs/JsonValue" } }
+      ]
+    },
+    "MetricResult": {
+      "allOf": [{ "$ref": "#/$defs/MetricResultBase" }],
+      "type": "object",
+      "unevaluatedProperties": false,
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "status": { "const": "MEASURED" },
+            "value": { "$ref": "#/$defs/MeasuredValue" },
+            "unit": { "$ref": "#/$defs/Text" }
+          },
+          "required": ["status", "value"]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "status": {
+              "enum": [
+                "NOT_EVALUATED",
+                "NOT_APPLICABLE",
+                "INSUFFICIENT_EVIDENCE",
+                "EXECUTION_FAILED",
+                "INVALID"
+              ]
+            },
+            "reason": { "$ref": "#/$defs/Text" },
+            "error": { "$ref": "#/$defs/ErrorRecord" }
+          },
+          "required": ["status", "reason"]
+        }
+      ]
+    },
+    "RuleResultBase": {
+      "allOf": [{ "$ref": "#/$defs/BaseRecord" }],
+      "type": "object",
+      "properties": {
+        "runId": { "$ref": "#/$defs/Id" },
+        "ruleId": { "$ref": "#/$defs/Id" },
+        "ruleVersion": { "$ref": "#/$defs/Version" },
+        "configurationDigest": { "$ref": "#/$defs/Digest" },
+        "inputMetricResultIds": { "$ref": "#/$defs/IdList" },
+        "evidenceIds": { "$ref": "#/$defs/IdList" },
+        "evaluatedAt": { "$ref": "#/$defs/Timestamp" },
+        "reason": { "$ref": "#/$defs/Text" }
+      },
+      "required": [
+        "runId",
+        "ruleId",
+        "ruleVersion",
+        "configurationDigest",
+        "inputMetricResultIds",
+        "evidenceIds",
+        "evaluatedAt",
+        "reason"
+      ]
+    },
+    "RuleResult": {
+      "allOf": [{ "$ref": "#/$defs/RuleResultBase" }],
+      "type": "object",
+      "unevaluatedProperties": false,
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "executionStatus": { "const": "COMPLETED" },
+            "outcome": { "enum": ["PASS", "FAIL", "INDETERMINATE", "NOT_APPLICABLE"] }
+          },
+          "required": ["executionStatus", "outcome"]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "executionStatus": { "const": "ERROR" },
+            "outcome": { "const": "EXECUTION_ERROR" },
+            "error": { "$ref": "#/$defs/ErrorRecord" }
+          },
+          "required": ["executionStatus", "outcome", "error"]
+        }
+      ]
+    },
+    "ArtifactReference": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024,
+          "format": "uxq-relative-path"
+        },
+        "digest": { "$ref": "#/$defs/Digest" },
+        "bytes": { "type": "integer", "minimum": 0 },
+        "mediaType": { "$ref": "#/$defs/Text" }
+      },
+      "required": ["path", "digest", "bytes", "mediaType"]
+    },
+    "EvidencePrivacy": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "classification": { "enum": ["PUBLIC", "INTERNAL", "SENSITIVE"] },
+        "redacted": { "type": "boolean" },
+        "allowedPurposes": {
+          "type": "array",
+          "items": { "enum": ["EVALUATION", "VERIFICATION", "SHARING", "RESEARCH"] },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "retentionUntil": { "$ref": "#/$defs/Timestamp" },
+        "consentRef": { "$ref": "#/$defs/Id" }
+      },
+      "required": ["classification", "redacted", "allowedPurposes", "retentionUntil"]
+    },
+    "Evidence": {
+      "allOf": [{ "$ref": "#/$defs/BaseRecord" }],
+      "type": "object",
+      "unevaluatedProperties": false,
+      "properties": {
+        "runId": { "$ref": "#/$defs/Id" },
+        "stepId": { "$ref": "#/$defs/Id" },
+        "attemptId": { "$ref": "#/$defs/Id" },
+        "sourceCategory": { "$ref": "#/$defs/EvidenceSource" },
+        "materialType": {
+          "enum": [
+            "SCREENSHOT",
+            "DOM",
+            "TRACE",
+            "TASK_RECORD",
+            "OBSERVATION",
+            "RULE_CHECK",
+            "REVIEW",
+            "RESEARCH",
+            "EXTERNAL_CONSTRAINT"
+          ]
+        },
+        "sourceMethod": { "$ref": "#/$defs/Text" },
+        "lifecycle": { "$ref": "#/$defs/EvidenceLifecycle" },
+        "validity": { "$ref": "#/$defs/EvidenceValidity" },
+        "summary": { "$ref": "#/$defs/Text" },
+        "artifact": { "$ref": "#/$defs/ArtifactReference" },
+        "content": { "$ref": "#/$defs/JsonValue" },
+        "derivedFromIds": { "$ref": "#/$defs/IdList" },
+        "observedAt": { "$ref": "#/$defs/Timestamp" },
+        "privacy": { "$ref": "#/$defs/EvidencePrivacy" },
+        "limitations": { "$ref": "#/$defs/TextList" }
+      },
+      "required": [
+        "runId",
+        "sourceCategory",
+        "materialType",
+        "sourceMethod",
+        "lifecycle",
+        "validity",
+        "summary",
+        "derivedFromIds",
+        "observedAt",
+        "privacy",
+        "limitations"
+      ]
+    },
+    "EvidenceLink": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "evidenceId": { "$ref": "#/$defs/Id" },
+        "subjectId": { "$ref": "#/$defs/Id" },
+        "subjectType": {
+          "enum": [
+            "MetricResult",
+            "RuleResult",
+            "Finding",
+            "VerificationResult",
+            "RootCauseHypothesis",
+            "Recommendation"
+          ]
+        },
+        "relation": { "enum": ["SUPPORTS", "CONTRADICTS", "CONTEXT", "DERIVED_FROM"] },
+        "purpose": { "$ref": "#/$defs/Text" }
+      },
+      "required": ["evidenceId", "subjectId", "subjectType", "relation", "purpose"]
+    },
+    "ScoreValue": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "status": { "const": "SCORED" },
+            "value": { "type": "number", "minimum": 0, "maximum": 100 }
+          },
+          "required": ["status", "value"]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "status": { "enum": ["NOT_SCORED", "INSUFFICIENT_INPUTS", "CALCULATION_FAILED"] },
+            "reason": { "$ref": "#/$defs/Text" }
+          },
+          "required": ["status", "reason"]
+        }
+      ]
+    },
+    "ScoreResult": {
+      "allOf": [{ "$ref": "#/$defs/BaseRecord" }, { "$ref": "#/$defs/ScoreValue" }],
+      "type": "object",
+      "unevaluatedProperties": false,
+      "properties": {
+        "runId": { "$ref": "#/$defs/Id" },
+        "metricResultId": { "$ref": "#/$defs/Id" },
+        "metricId": { "$ref": "#/$defs/Id" },
+        "policyId": { "$ref": "#/$defs/Id" },
+        "policyVersion": { "$ref": "#/$defs/Version" },
+        "weight": { "type": "number", "exclusiveMinimum": 0 },
+        "calculatedAt": { "$ref": "#/$defs/Timestamp" }
+      },
+      "required": [
+        "runId",
+        "metricResultId",
+        "metricId",
+        "policyId",
+        "policyVersion",
+        "weight",
+        "calculatedAt"
+      ]
+    },
+    "Coverage": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "planned": { "type": "integer", "minimum": 0 },
+        "applicable": { "type": "integer", "minimum": 0 },
+        "measured": { "type": "integer", "minimum": 0 },
+        "scored": { "type": "integer", "minimum": 0 },
+        "ratio": { "type": ["number", "null"], "minimum": 0, "maximum": 1 }
+      },
+      "required": ["planned", "applicable", "measured", "scored", "ratio"]
+    },
+    "DimensionResult": {
+      "allOf": [{ "$ref": "#/$defs/BaseRecord" }, { "$ref": "#/$defs/ScoreValue" }],
+      "type": "object",
+      "unevaluatedProperties": false,
+      "properties": {
+        "runId": { "$ref": "#/$defs/Id" },
+        "dimensionId": { "$ref": "#/$defs/DimensionId" },
+        "scoreResultIds": { "$ref": "#/$defs/IdList" },
+        "excludedMetricIds": { "$ref": "#/$defs/IdList" },
+        "coverage": { "$ref": "#/$defs/Coverage" },
+        "weight": { "type": "number", "exclusiveMinimum": 0 },
+        "limitations": { "$ref": "#/$defs/TextList" }
+      },
+      "required": [
+        "runId",
+        "dimensionId",
+        "scoreResultIds",
+        "excludedMetricIds",
+        "coverage",
+        "weight",
+        "limitations"
+      ]
+    },
+    "DiagnosticSignal": {
+      "allOf": [{ "$ref": "#/$defs/BaseRecord" }, { "$ref": "#/$defs/FindingTemplateBase" }],
+      "type": "object",
+      "unevaluatedProperties": false,
+      "properties": {
+        "runId": { "$ref": "#/$defs/Id" },
+        "sourceResultIds": { "$ref": "#/$defs/IdList" },
+        "sourceType": { "enum": ["RULE", "METRIC", "EXPERT", "RESEARCH"] },
+        "valid": { "type": "boolean" },
+        "reason": { "$ref": "#/$defs/Text" },
+        "evidenceIds": { "$ref": "#/$defs/IdList" }
+      },
+      "required": ["runId", "sourceResultIds", "sourceType", "valid", "reason", "evidenceIds"]
+    },
+    "FindingTemplateBase": {
+      "type": "object",
+      "properties": {
+        "problemKey": { "$ref": "#/$defs/Id" },
+        "title": { "$ref": "#/$defs/Text" },
+        "description": { "$ref": "#/$defs/Text" },
+        "type": { "$ref": "#/$defs/FindingType" },
+        "severity": { "$ref": "#/$defs/Severity" },
+        "priority": { "$ref": "#/$defs/Priority" },
+        "confidence": { "$ref": "#/$defs/Confidence" },
+        "entityId": { "$ref": "#/$defs/Id" },
+        "scenarioId": { "$ref": "#/$defs/Id" }
+      },
+      "required": [
+        "problemKey",
+        "title",
+        "description",
+        "type",
+        "severity",
+        "priority",
+        "confidence",
+        "entityId",
+        "scenarioId"
+      ]
+    },
+    "Finding": {
+      "allOf": [{ "$ref": "#/$defs/BaseRecord" }, { "$ref": "#/$defs/FindingTemplateBase" }],
+      "type": "object",
+      "unevaluatedProperties": false,
+      "properties": {
+        "lifecycle": { "$ref": "#/$defs/FindingLifecycleStatus" },
+        "revision": { "type": "integer", "minimum": 0 },
+        "evaluationRunIds": { "$ref": "#/$defs/IdList" },
+        "diagnosticSignalIds": { "$ref": "#/$defs/IdList" },
+        "evidenceLinks": { "type": "array", "items": { "$ref": "#/$defs/EvidenceLink" } },
+        "affectedEntityIds": { "$ref": "#/$defs/IdList" },
+        "rootCauseHypothesisIds": { "$ref": "#/$defs/IdList" },
+        "recommendationIds": { "$ref": "#/$defs/IdList" },
+        "verificationResultIds": { "$ref": "#/$defs/IdList" },
+        "firstObservedAt": { "$ref": "#/$defs/Timestamp" },
+        "lastObservedAt": { "$ref": "#/$defs/Timestamp" },
+        "duplicateOfFindingId": { "$ref": "#/$defs/Id" },
+        "deduplicationKey": { "$ref": "#/$defs/Digest" },
+        "limitations": { "$ref": "#/$defs/TextList" }
+      },
+      "required": [
+        "lifecycle",
+        "revision",
+        "evaluationRunIds",
+        "diagnosticSignalIds",
+        "evidenceLinks",
+        "affectedEntityIds",
+        "rootCauseHypothesisIds",
+        "recommendationIds",
+        "verificationResultIds",
+        "firstObservedAt",
+        "lastObservedAt",
+        "deduplicationKey",
+        "limitations"
+      ]
+    },
+    "RootCauseHypothesis": {
+      "allOf": [{ "$ref": "#/$defs/BaseRecord" }],
+      "type": "object",
+      "unevaluatedProperties": false,
+      "properties": {
+        "findingIds": { "$ref": "#/$defs/IdList" },
+        "description": { "$ref": "#/$defs/Text" },
+        "status": { "enum": ["HYPOTHESIS", "SUPPORTED", "REJECTED"] },
+        "confidence": { "$ref": "#/$defs/Confidence" },
+        "evidenceLinks": { "type": "array", "items": { "$ref": "#/$defs/EvidenceLink" } },
+        "limitations": { "$ref": "#/$defs/TextList" }
+      },
+      "required": [
+        "findingIds",
+        "description",
+        "status",
+        "confidence",
+        "evidenceLinks",
+        "limitations"
+      ]
+    },
+    "Recommendation": {
+      "allOf": [{ "$ref": "#/$defs/BaseRecord" }],
+      "type": "object",
+      "unevaluatedProperties": false,
+      "properties": {
+        "findingIds": { "$ref": "#/$defs/IdList" },
+        "rootCauseHypothesisIds": { "$ref": "#/$defs/IdList" },
+        "description": { "$ref": "#/$defs/Text" },
+        "expectedOutcomes": { "$ref": "#/$defs/TextList" },
+        "verificationPlanIds": { "$ref": "#/$defs/IdList" },
+        "confidence": { "$ref": "#/$defs/Confidence" },
+        "limitations": { "$ref": "#/$defs/TextList" }
+      },
+      "required": [
+        "findingIds",
+        "rootCauseHypothesisIds",
+        "description",
+        "expectedOutcomes",
+        "verificationPlanIds",
+        "confidence",
+        "limitations"
+      ]
+    },
+    "VerificationPlan": {
+      "allOf": [{ "$ref": "#/$defs/BaseRecord" }],
+      "type": "object",
+      "unevaluatedProperties": false,
+      "properties": {
+        "findingIds": { "$ref": "#/$defs/IdList" },
+        "recommendationIds": { "$ref": "#/$defs/IdList" },
+        "baselineRunId": { "$ref": "#/$defs/Id" },
+        "definition": { "$ref": "#/$defs/EvaluationDefinition" },
+        "requiredRuleIds": { "$ref": "#/$defs/IdList" },
+        "requiredMetricIds": { "$ref": "#/$defs/IdList" },
+        "acceptanceCriteria": { "$ref": "#/$defs/TextList" },
+        "criteriaDigest": { "$ref": "#/$defs/Digest" },
+        "allowCaveats": { "type": "boolean" }
+      },
+      "required": [
+        "findingIds",
+        "recommendationIds",
+        "baselineRunId",
+        "definition",
+        "requiredRuleIds",
+        "requiredMetricIds",
+        "acceptanceCriteria",
+        "criteriaDigest",
+        "allowCaveats"
+      ]
+    },
+    "VerificationResult": {
+      "allOf": [{ "$ref": "#/$defs/BaseRecord" }],
+      "type": "object",
+      "unevaluatedProperties": false,
+      "properties": {
+        "planId": { "$ref": "#/$defs/Id" },
+        "criteriaDigest": { "$ref": "#/$defs/Digest" },
+        "findingIds": { "$ref": "#/$defs/IdList" },
+        "runId": { "$ref": "#/$defs/Id" },
+        "status": { "$ref": "#/$defs/VerificationStatus" },
+        "comparability": { "$ref": "#/$defs/Comparability" },
+        "evidenceIds": { "$ref": "#/$defs/IdList" },
+        "reason": { "$ref": "#/$defs/Text" },
+        "startedAt": { "$ref": "#/$defs/Timestamp" },
+        "endedAt": { "$ref": "#/$defs/Timestamp" }
+      },
+      "required": [
+        "planId",
+        "criteriaDigest",
+        "findingIds",
+        "status",
+        "comparability",
+        "evidenceIds",
+        "reason"
+      ]
+    },
+    "RiskConstraint": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "kind": { "enum": ["CRITICAL_RULE", "FINDING_SEVERITY", "COVERAGE", "EXECUTION"] },
+        "sourceIds": { "$ref": "#/$defs/IdList" },
+        "reason": { "$ref": "#/$defs/Text" }
+      },
+      "required": ["kind", "sourceIds", "reason"]
+    },
+    "EvaluationResult": {
+      "allOf": [{ "$ref": "#/$defs/BaseRecord" }],
+      "type": "object",
+      "unevaluatedProperties": false,
+      "properties": {
+        "runId": { "$ref": "#/$defs/Id" },
+        "policyId": { "$ref": "#/$defs/Id" },
+        "policyVersion": { "$ref": "#/$defs/Version" },
+        "policyDigest": { "$ref": "#/$defs/Digest" },
+        "evaluationStatus": { "$ref": "#/$defs/EvaluationStatus" },
+        "overallOutcome": { "$ref": "#/$defs/OverallOutcome" },
+        "overallScore": { "type": ["number", "null"], "minimum": 0, "maximum": 100 },
+        "coverage": { "$ref": "#/$defs/Coverage" },
+        "metricResultIds": { "$ref": "#/$defs/IdList" },
+        "ruleResultIds": { "$ref": "#/$defs/IdList" },
+        "scoreResultIds": { "$ref": "#/$defs/IdList" },
+        "dimensionResultIds": { "$ref": "#/$defs/IdList" },
+        "findingIds": { "$ref": "#/$defs/IdList" },
+        "evidenceIds": { "$ref": "#/$defs/IdList" },
+        "constraints": { "type": "array", "items": { "$ref": "#/$defs/RiskConstraint" } },
+        "limitations": { "$ref": "#/$defs/TextList" }
+      },
+      "required": [
+        "runId",
+        "policyId",
+        "policyVersion",
+        "policyDigest",
+        "evaluationStatus",
+        "overallOutcome",
+        "overallScore",
+        "coverage",
+        "metricResultIds",
+        "ruleResultIds",
+        "scoreResultIds",
+        "dimensionResultIds",
+        "findingIds",
+        "evidenceIds",
+        "constraints",
+        "limitations"
+      ]
+    },
+    "EvaluationSnapshot": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "evaluation": { "$ref": "#/$defs/EvaluationResult" },
+        "policy": { "$ref": "#/$defs/ScoringPolicy" },
+        "scores": { "type": "array", "items": { "$ref": "#/$defs/ScoreResult" } },
+        "dimensions": { "type": "array", "items": { "$ref": "#/$defs/DimensionResult" } },
+        "signals": { "type": "array", "items": { "$ref": "#/$defs/DiagnosticSignal" } },
+        "findings": { "type": "array", "items": { "$ref": "#/$defs/Finding" } }
+      },
+      "required": ["evaluation", "policy", "scores", "dimensions", "signals", "findings"]
+    },
+    "RunBundle": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "schemaVersion": { "const": "1.0.0" },
+        "definition": { "$ref": "#/$defs/EvaluationDefinition" },
+        "plan": { "$ref": "#/$defs/EvaluationPlan" },
+        "run": { "$ref": "#/$defs/EvaluationRun" },
+        "context": { "$ref": "#/$defs/RunContext" },
+        "steps": { "type": "array", "items": { "$ref": "#/$defs/ExecutionStep" } },
+        "attempts": { "type": "array", "items": { "$ref": "#/$defs/StepAttempt" } },
+        "events": { "type": "array", "items": { "$ref": "#/$defs/ExecutionEvent" } },
+        "tasks": { "type": "array", "items": { "$ref": "#/$defs/TaskExecution" } },
+        "observations": { "type": "array", "items": { "$ref": "#/$defs/RawObservation" } },
+        "metrics": { "type": "array", "items": { "$ref": "#/$defs/MetricResult" } },
+        "rules": { "type": "array", "items": { "$ref": "#/$defs/RuleResult" } },
+        "evidence": { "type": "array", "items": { "$ref": "#/$defs/Evidence" } }
+      },
+      "required": [
+        "schemaVersion",
+        "definition",
+        "plan",
+        "run",
+        "context",
+        "steps",
+        "attempts",
+        "events",
+        "tasks",
+        "observations",
+        "metrics",
+        "rules",
+        "evidence"
+      ]
+    },
+    "ReportProvenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "definitionId": { "$ref": "#/$defs/Id" },
+        "definitionVersion": { "$ref": "#/$defs/Version" },
+        "planId": { "$ref": "#/$defs/Id" },
+        "planDigest": { "$ref": "#/$defs/Digest" },
+        "runId": { "$ref": "#/$defs/Id" },
+        "evaluationResultId": { "$ref": "#/$defs/Id" },
+        "policyId": { "$ref": "#/$defs/Id" },
+        "policyVersion": { "$ref": "#/$defs/Version" },
+        "engineVersion": { "$ref": "#/$defs/Version" },
+        "environmentFingerprint": { "$ref": "#/$defs/Digest" },
+        "metricVersions": { "type": "array", "items": { "$ref": "#/$defs/VersionRef" } },
+        "ruleVersions": { "type": "array", "items": { "$ref": "#/$defs/VersionRef" } }
+      },
+      "required": [
+        "definitionId",
+        "definitionVersion",
+        "planId",
+        "planDigest",
+        "runId",
+        "evaluationResultId",
+        "policyId",
+        "policyVersion",
+        "engineVersion",
+        "environmentFingerprint",
+        "metricVersions",
+        "ruleVersions"
+      ]
+    },
+    "ReportDocument": {
+      "allOf": [{ "$ref": "#/$defs/BaseRecord" }],
+      "type": "object",
+      "unevaluatedProperties": false,
+      "properties": {
+        "reportSchemaVersion": { "const": "1.0.0" },
+        "templateVersion": { "$ref": "#/$defs/Version" },
+        "reportType": {
+          "enum": [
+            "FULL",
+            "SUMMARY",
+            "DIAGNOSTIC",
+            "ACCESSIBILITY",
+            "TASK",
+            "EXECUTION",
+            "EVIDENCE",
+            "REGRESSION"
+          ]
+        },
+        "generatedAt": { "$ref": "#/$defs/Timestamp" },
+        "provenance": { "$ref": "#/$defs/ReportProvenance" },
+        "target": { "$ref": "#/$defs/Target" },
+        "scope": { "$ref": "#/$defs/Scope" },
+        "methods": { "$ref": "#/$defs/TextList" },
+        "runStatus": { "$ref": "#/$defs/RunStatus" },
+        "evaluation": { "$ref": "#/$defs/EvaluationResult" },
+        "metrics": { "type": "array", "items": { "$ref": "#/$defs/MetricResult" } },
+        "rules": { "type": "array", "items": { "$ref": "#/$defs/RuleResult" } },
+        "scores": { "type": "array", "items": { "$ref": "#/$defs/ScoreResult" } },
+        "dimensions": { "type": "array", "items": { "$ref": "#/$defs/DimensionResult" } },
+        "findings": { "type": "array", "items": { "$ref": "#/$defs/Finding" } },
+        "evidenceIndex": { "type": "array", "items": { "$ref": "#/$defs/Evidence" } },
+        "limitations": { "$ref": "#/$defs/TextList" },
+        "contentDigest": { "$ref": "#/$defs/Digest" }
+      },
+      "required": [
+        "reportSchemaVersion",
+        "templateVersion",
+        "reportType",
+        "generatedAt",
+        "provenance",
+        "target",
+        "scope",
+        "methods",
+        "runStatus",
+        "evaluation",
+        "metrics",
+        "rules",
+        "scores",
+        "dimensions",
+        "findings",
+        "evidenceIndex",
+        "limitations",
+        "contentDigest"
+      ]
+    },
+    "ReportArtifact": {
+      "allOf": [{ "$ref": "#/$defs/BaseRecord" }],
+      "type": "object",
+      "unevaluatedProperties": false,
+      "properties": {
+        "runId": { "$ref": "#/$defs/Id" },
+        "evaluationResultId": { "$ref": "#/$defs/Id" },
+        "templateVersion": { "$ref": "#/$defs/Version" },
+        "contentDigest": { "$ref": "#/$defs/Digest" },
+        "json": { "$ref": "#/$defs/ArtifactReference" },
+        "markdown": { "$ref": "#/$defs/ArtifactReference" }
+      },
+      "required": [
+        "runId",
+        "evaluationResultId",
+        "templateVersion",
+        "contentDigest",
+        "json",
+        "markdown"
+      ]
+    },
+    "ManifestEvaluation": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "evaluationResultId": { "$ref": "#/$defs/Id" },
+        "policyId": { "$ref": "#/$defs/Id" },
+        "policyVersion": { "$ref": "#/$defs/Version" },
+        "createdAt": { "$ref": "#/$defs/Timestamp" },
+        "artifact": { "$ref": "#/$defs/ArtifactReference" }
+      },
+      "required": ["evaluationResultId", "policyId", "policyVersion", "createdAt", "artifact"]
+    },
+    "ManifestFailure": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "stage": {
+          "enum": ["EXECUTION", "CLEANUP", "PERSISTENCE", "SETTLEMENT", "REPORT", "RECOVERY"]
+        },
+        "at": { "$ref": "#/$defs/Timestamp" },
+        "error": { "$ref": "#/$defs/ErrorRecord" }
+      },
+      "required": ["stage", "at", "error"]
+    },
+    "RunManifest": {
+      "allOf": [{ "$ref": "#/$defs/BaseRecord" }],
+      "type": "object",
+      "unevaluatedProperties": false,
+      "properties": {
+        "runId": { "$ref": "#/$defs/Id" },
+        "revision": { "type": "integer", "minimum": 0 },
+        "runStatus": { "$ref": "#/$defs/RunStatus" },
+        "executionCommitted": { "type": "boolean" },
+        "files": { "type": "array", "items": { "$ref": "#/$defs/ArtifactReference" } },
+        "evaluations": { "type": "array", "items": { "$ref": "#/$defs/ManifestEvaluation" } },
+        "reports": { "type": "array", "items": { "$ref": "#/$defs/ReportArtifact" } },
+        "failures": { "type": "array", "items": { "$ref": "#/$defs/ManifestFailure" } }
+      },
+      "required": [
+        "runId",
+        "revision",
+        "runStatus",
+        "executionCommitted",
+        "files",
+        "evaluations",
+        "reports",
+        "failures"
+      ]
+    }
+  }
+}

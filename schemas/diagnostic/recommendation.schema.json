@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://uxq.dev/schemas/diagnostic/recommendation/1.0.0",
+  "title": "Recommendation",
+  "allOf": [
+    {
+      "$ref": "#/$defs/BaseRecord"
+    }
+  ],
+  "type": "object",
+  "unevaluatedProperties": false,
+  "properties": {
+    "findingIds": {
+      "$ref": "#/$defs/IdList"
+    },
+    "rootCauseHypothesisIds": {
+      "$ref": "#/$defs/IdList"
+    },
+    "description": {
+      "$ref": "#/$defs/Text"
+    },
+    "expectedOutcomes": {
+      "$ref": "#/$defs/TextList"
+    },
+    "verificationPlanIds": {
+      "$ref": "#/$defs/IdList"
+    },
+    "confidence": {
+      "$ref": "#/$defs/Confidence"
+    },
+    "limitations": {
+      "$ref": "#/$defs/TextList"
+    }
+  },
+  "required": [
+    "findingIds",
+    "rootCauseHypothesisIds",
+    "description",
+    "expectedOutcomes",
+    "verificationPlanIds",
+    "confidence",
+    "limitations"
+  ],
+  "$defs": {}
+}

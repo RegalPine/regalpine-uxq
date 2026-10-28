@@ -1,0 +1,29 @@
+{
+  "name": "@uxq/tests",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "devDependencies": {
+    "@uxq/accessibility": "workspace:*",
+    "@uxq/browser": "workspace:*",
+    "@uxq/cognition": "workspace:*",
+    "@uxq/color": "workspace:*",
+    "@uxq/conformance": "workspace:*",
+    "@uxq/contracts": "workspace:*",
+    "@uxq/core": "workspace:*",
+    "@uxq/diagnostic": "workspace:*",
+    "@uxq/evidence": "workspace:*",
+    "@uxq/execution": "workspace:*",
+    "@uxq/geometry": "workspace:*",
+    "@uxq/measurement": "workspace:*",
+    "@uxq/metrics": "workspace:*",
+    "@uxq/regression": "workspace:*",
+    "@uxq/reporting": "workspace:*",
+    "@uxq/research": "workspace:*",
+    "@uxq/rules": "workspace:*",
+    "@uxq/scoring": "workspace:*",
+    "@uxq/tasks": "workspace:*",
+    "@uxq/theme": "workspace:*",
+    "@uxq/tokens": "workspace:*"
+  }
+}

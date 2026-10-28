@@ -1,0 +1,483 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://uxq.dev/schemas/definition/evaluation-plan/1.0.0",
+  "title": "EvaluationPlan",
+  "allOf": [
+    {
+      "$ref": "#/$defs/BaseRecord"
+    }
+  ],
+  "type": "object",
+  "unevaluatedProperties": false,
+  "properties": {
+    "definitionId": {
+      "$ref": "#/$defs/Id"
+    },
+    "definitionVersion": {
+      "$ref": "#/$defs/Version"
+    },
+    "definitionDigest": {
+      "$ref": "#/$defs/Digest"
+    },
+    "compilerVersion": {
+      "$ref": "#/$defs/Version"
+    },
+    "steps": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/PlannedStep"
+      },
+      "minItems": 1,
+      "maxItems": 1000
+    },
+    "profile": {
+      "$ref": "#/$defs/ExecutionProfile"
+    },
+    "metricVersions": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/VersionRef"
+      }
+    },
+    "ruleVersions": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/VersionRef"
+      }
+    },
+    "policyVersion": {
+      "$ref": "#/$defs/VersionRef"
+    },
+    "requiredCapabilities": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/Capability"
+      },
+      "uniqueItems": true
+    },
+    "planDigest": {
+      "$ref": "#/$defs/Digest"
+    }
+  },
+  "required": [
+    "definitionId",
+    "definitionVersion",
+    "definitionDigest",
+    "compilerVersion",
+    "steps",
+    "profile",
+    "metricVersions",
+    "ruleVersions",
+    "policyVersion",
+    "requiredCapabilities",
+    "planDigest"
+  ],
+  "$defs": {
+    "PlanReference": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "stepId": {
+          "$ref": "#/$defs/Id"
+        },
+        "contract": {
+          "enum": [
+            "RawObservation",
+            "MetricResult",
+            "RuleResult",
+            "TaskExecution",
+            "Evidence",
+            "ScoreResult"
+          ]
+        }
+      },
+      "required": [
+        "stepId",
+        "contract"
+      ]
+    },
+    "PlannedStep": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "stepId": {
+          "$ref": "#/$defs/Id"
+        },
+        "kind": {
+          "$ref": "#/$defs/StepKind"
+        },
+        "dependsOn": {
+          "$ref": "#/$defs/IdList"
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "inputRefs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/PlanReference"
+          }
+        },
+        "outputContracts": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "RawObservation",
+              "MetricResult",
+              "RuleResult",
+              "TaskExecution",
+              "Evidence",
+              "ScoreResult"
+            ]
+          },
+          "uniqueItems": true
+        },
+        "requiredCapabilities": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Capability"
+          },
+          "uniqueItems": true
+        },
+        "taskId": {
+          "$ref": "#/$defs/Id"
+        },
+        "action": {
+          "$ref": "#/$defs/BrowserAction"
+        },
+        "observation": {
+          "$ref": "#/$defs/ObservationInput"
+        },
+        "metricIds": {
+          "$ref": "#/$defs/IdList"
+        },
+        "ruleIds": {
+          "$ref": "#/$defs/IdList"
+        },
+        "sessionId": {
+          "$ref": "#/$defs/Id"
+        },
+        "timeoutMs": {
+          "$ref": "#/$defs/ExecutionProfile/properties/stepTimeoutMs"
+        },
+        "retryPolicy": {
+          "$ref": "#/$defs/RetryPolicy"
+        }
+      },
+      "required": [
+        "stepId",
+        "kind",
+        "dependsOn",
+        "required",
+        "inputRefs",
+        "outputContracts",
+        "requiredCapabilities"
+      ]
+    },
+    "StepKind": {
+      "enum": [
+        "ENVIRONMENT_CHECK",
+        "BROWSER_SETUP",
+        "PAGE_NAVIGATION",
+        "TASK_EXECUTION",
+        "OBSERVATION_CAPTURE",
+        "METRIC_CALCULATION",
+        "RULE_EVALUATION",
+        "SCORING",
+        "EVIDENCE_VALIDATION",
+        "RESULT_FINALIZATION"
+      ]
+    },
+    "ExecutionProfile": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "maxConcurrency": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 16,
+          "default": 2
+        },
+        "runTimeoutMs": {
+          "type": "integer",
+          "minimum": 100,
+          "maximum": 3600000,
+          "default": 60000
+        },
+        "stepTimeoutMs": {
+          "type": "integer",
+          "minimum": 10,
+          "maximum": 600000,
+          "default": 10000
+        },
+        "taskTimeoutMs": {
+          "type": "integer",
+          "minimum": 10,
+          "maximum": 600000,
+          "default": 30000
+        },
+        "cancellationGracePeriodMs": {
+          "type": "integer",
+          "minimum": 10,
+          "maximum": 30000,
+          "default": 5000
+        },
+        "maxAttempts": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10,
+          "default": 1
+        },
+        "retryableErrorCodes": {
+          "$ref": "#/$defs/IdList",
+          "default": []
+        },
+        "initialDelayMs": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 60000,
+          "default": 100
+        },
+        "maxDelayMs": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 60000,
+          "default": 2000
+        },
+        "backoff": {
+          "enum": [
+            "FIXED",
+            "EXPONENTIAL"
+          ],
+          "default": "FIXED"
+        },
+        "failureMode": {
+          "$ref": "#/$defs/FailureMode",
+          "default": "CONTINUE_INDEPENDENT_STEPS"
+        },
+        "browser": {
+          "enum": [
+            "chromium",
+            "firefox",
+            "webkit"
+          ],
+          "default": "chromium"
+        },
+        "viewport": {
+          "$ref": "#/$defs/Viewport",
+          "default": {
+            "width": 1280,
+            "height": 800
+          }
+        },
+        "locale": {
+          "type": "string",
+          "pattern": "^[a-z]{2}(?:-[A-Z]{2})?$",
+          "default": "zh-CN"
+        },
+        "colorScheme": {
+          "enum": [
+            "light",
+            "dark"
+          ],
+          "default": "light"
+        },
+        "allowedOrigins": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "uri"
+          },
+          "uniqueItems": true,
+          "maxItems": 100,
+          "default": []
+        },
+        "allowPrivateNetwork": {
+          "type": "boolean",
+          "default": false
+        },
+        "allowSideEffects": {
+          "type": "boolean",
+          "default": false
+        },
+        "maxPages": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 16,
+          "default": 4
+        },
+        "maxArtifactBytes": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 104857600,
+          "default": 5242880
+        },
+        "maxTotalArtifactBytes": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1073741824,
+          "default": 26214400
+        },
+        "cacheEnabled": {
+          "type": "boolean",
+          "default": false
+        },
+        "headless": {
+          "type": "boolean",
+          "default": true
+        }
+      },
+      "required": [
+        "maxConcurrency",
+        "runTimeoutMs",
+        "stepTimeoutMs",
+        "taskTimeoutMs",
+        "cancellationGracePeriodMs",
+        "maxAttempts",
+        "retryableErrorCodes",
+        "initialDelayMs",
+        "maxDelayMs",
+        "backoff",
+        "failureMode",
+        "browser",
+        "viewport",
+        "locale",
+        "colorScheme",
+        "allowedOrigins",
+        "allowPrivateNetwork",
+        "allowSideEffects",
+        "maxPages",
+        "maxArtifactBytes",
+        "maxTotalArtifactBytes",
+        "cacheEnabled",
+        "headless"
+      ]
+    },
+    "ProfileOverrides": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "maxConcurrency": {
+          "$ref": "#/$defs/ExecutionProfile/properties/maxConcurrency"
+        },
+        "runTimeoutMs": {
+          "$ref": "#/$defs/ExecutionProfile/properties/runTimeoutMs"
+        },
+        "stepTimeoutMs": {
+          "$ref": "#/$defs/ExecutionProfile/properties/stepTimeoutMs"
+        },
+        "taskTimeoutMs": {
+          "$ref": "#/$defs/ExecutionProfile/properties/taskTimeoutMs"
+        },
+        "cancellationGracePeriodMs": {
+          "$ref": "#/$defs/ExecutionProfile/properties/cancellationGracePeriodMs"
+        },
+        "maxAttempts": {
+          "$ref": "#/$defs/ExecutionProfile/properties/maxAttempts"
+        },
+        "retryableErrorCodes": {
+          "$ref": "#/$defs/ExecutionProfile/properties/retryableErrorCodes"
+        },
+        "initialDelayMs": {
+          "$ref": "#/$defs/ExecutionProfile/properties/initialDelayMs"
+        },
+        "maxDelayMs": {
+          "$ref": "#/$defs/ExecutionProfile/properties/maxDelayMs"
+        },
+        "backoff": {
+          "$ref": "#/$defs/ExecutionProfile/properties/backoff"
+        },
+        "failureMode": {
+          "$ref": "#/$defs/ExecutionProfile/properties/failureMode"
+        },
+        "browser": {
+          "$ref": "#/$defs/ExecutionProfile/properties/browser"
+        },
+        "viewport": {
+          "$ref": "#/$defs/Viewport"
+        },
+        "locale": {
+          "$ref": "#/$defs/ExecutionProfile/properties/locale"
+        },
+        "colorScheme": {
+          "$ref": "#/$defs/ExecutionProfile/properties/colorScheme"
+        },
+        "allowedOrigins": {
+          "$ref": "#/$defs/ExecutionProfile/properties/allowedOrigins"
+        },
+        "allowPrivateNetwork": {
+          "type": "boolean"
+        },
+        "allowSideEffects": {
+          "type": "boolean"
+        },
+        "maxPages": {
+          "$ref": "#/$defs/ExecutionProfile/properties/maxPages"
+        },
+        "maxArtifactBytes": {
+          "$ref": "#/$defs/ExecutionProfile/properties/maxArtifactBytes"
+        },
+        "maxTotalArtifactBytes": {
+          "$ref": "#/$defs/ExecutionProfile/properties/maxTotalArtifactBytes"
+        },
+        "cacheEnabled": {
+          "type": "boolean"
+        },
+        "headless": {
+          "type": "boolean"
+        }
+      }
+    },
+    "RetryPolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "maxAttempts": {
+          "$ref": "#/$defs/ExecutionProfile/properties/maxAttempts"
+        },
+        "retryableErrorCodes": {
+          "$ref": "#/$defs/IdList"
+        },
+        "initialDelayMs": {
+          "$ref": "#/$defs/ExecutionProfile/properties/initialDelayMs"
+        },
+        "maxDelayMs": {
+          "$ref": "#/$defs/ExecutionProfile/properties/maxDelayMs"
+        },
+        "backoff": {
+          "enum": [
+            "FIXED",
+            "EXPONENTIAL"
+          ]
+        }
+      },
+      "required": [
+        "maxAttempts",
+        "retryableErrorCodes",
+        "initialDelayMs",
+        "maxDelayMs",
+        "backoff"
+      ]
+    },
+    "Viewport": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "width": {
+          "type": "integer",
+          "minimum": 240,
+          "maximum": 7680
+        },
+        "height": {
+          "type": "integer",
+          "minimum": 240,
+          "maximum": 4320
+        }
+      },
+      "required": [
+        "width",
+        "height"
+      ]
+    }
+  }
+}

@@ -1,0 +1,14 @@
+node_modules/
+**/dist/
+coverage/
+.uxq/
+playwright-report/
+test-results/
+artifacts/verification/
+pnpm-lock.yaml
+# 历史规范仅做语义修订，不批量重排原始排版。
+docs/spec/
+docs/architecture/UXQ-架构设计.md
+docs/architecture/UXQ-分阶段实现计划.md
+**/generated.ts
+**/*.generated.ts

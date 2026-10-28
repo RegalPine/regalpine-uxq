@@ -1,0 +1,28 @@
+{
+  "name": "@uxq/cli",
+  "version": "0.1.0",
+  "type": "module",
+  "private": true,
+  "bin": {
+    "uxq": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsup src/index.ts --format esm --dts --sourcemap"
+  },
+  "dependencies": {
+    "@uxq/core": "workspace:*",
+    "@uxq/contracts": "workspace:*",
+    "@uxq/execution": "workspace:*",
+    "@uxq/browser": "workspace:*",
+    "@uxq/tasks": "workspace:*",
+    "@uxq/evidence": "workspace:*",
+    "@uxq/measurement": "workspace:*",
+    "@uxq/metrics": "workspace:*",
+    "@uxq/rules": "workspace:*",
+    "@uxq/scoring": "workspace:*",
+    "@uxq/diagnostic": "workspace:*",
+    "@uxq/reporting": "workspace:*",
+    "@uxq/regression": "workspace:*",
+    "@uxq/conformance": "workspace:*"
+  }
+}

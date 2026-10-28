@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://uxq.dev/schemas/common/timestamp/1.0.0",
+  "title": "UXQ Timestamp",
+  "$defs": {
+    "Timestamp": {
+      "type": "string",
+      "format": "uxq-timestamp"
+    }
+  },
+  "type": "object",
+  "description": "Container for Timestamp"
+}

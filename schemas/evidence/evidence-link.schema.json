@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://uxq.dev/schemas/evidence/evidence-link/1.0.0",
+  "title": "EvidenceLink",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "evidenceId": {
+      "$ref": "#/$defs/Id"
+    },
+    "subjectId": {
+      "$ref": "#/$defs/Id"
+    },
+    "subjectType": {
+      "enum": [
+        "MetricResult",
+        "RuleResult",
+        "Finding",
+        "VerificationResult",
+        "RootCauseHypothesis",
+        "Recommendation"
+      ]
+    },
+    "relation": {
+      "enum": [
+        "SUPPORTS",
+        "CONTRADICTS",
+        "CONTEXT",
+        "DERIVED_FROM"
+      ]
+    },
+    "purpose": {
+      "$ref": "#/$defs/Text"
+    }
+  },
+  "required": [
+    "evidenceId",
+    "subjectId",
+    "subjectType",
+    "relation",
+    "purpose"
+  ],
+  "$defs": {}
+}

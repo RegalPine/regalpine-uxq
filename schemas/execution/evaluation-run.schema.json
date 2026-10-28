@@ -1,0 +1,187 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://uxq.dev/schemas/execution/evaluation-run/1.0.0",
+  "title": "EvaluationRun",
+  "allOf": [
+    {
+      "$ref": "#/$defs/BaseRecord"
+    }
+  ],
+  "type": "object",
+  "unevaluatedProperties": false,
+  "properties": {
+    "planId": {
+      "$ref": "#/$defs/Id"
+    },
+    "planDigest": {
+      "$ref": "#/$defs/Digest"
+    },
+    "definitionId": {
+      "$ref": "#/$defs/Id"
+    },
+    "status": {
+      "$ref": "#/$defs/RunStatus"
+    },
+    "revision": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "sourceRunId": {
+      "$ref": "#/$defs/Id"
+    },
+    "startedAt": {
+      "$ref": "#/$defs/Timestamp"
+    },
+    "endedAt": {
+      "$ref": "#/$defs/Timestamp"
+    },
+    "endReason": {
+      "$ref": "#/$defs/Text"
+    },
+    "contextId": {
+      "$ref": "#/$defs/Id"
+    },
+    "executionCommitted": {
+      "type": "boolean"
+    },
+    "limitations": {
+      "$ref": "#/$defs/TextList"
+    }
+  },
+  "required": [
+    "planId",
+    "planDigest",
+    "definitionId",
+    "status",
+    "revision",
+    "contextId",
+    "executionCommitted",
+    "limitations"
+  ],
+  "$defs": {
+    "RunStatus": {
+      "enum": [
+        "CREATED",
+        "PREPARING",
+        "RUNNING",
+        "COMPLETED",
+        "PARTIAL",
+        "FAILED",
+        "CANCELLED"
+      ]
+    },
+    "RunManifest": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/BaseRecord"
+        }
+      ],
+      "type": "object",
+      "unevaluatedProperties": false,
+      "properties": {
+        "runId": {
+          "$ref": "#/$defs/Id"
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "runStatus": {
+          "$ref": "#/$defs/RunStatus"
+        },
+        "executionCommitted": {
+          "type": "boolean"
+        },
+        "files": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ArtifactReference"
+          }
+        },
+        "evaluations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ManifestEvaluation"
+          }
+        },
+        "reports": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ReportArtifact"
+          }
+        },
+        "failures": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ManifestFailure"
+          }
+        }
+      },
+      "required": [
+        "runId",
+        "revision",
+        "runStatus",
+        "executionCommitted",
+        "files",
+        "evaluations",
+        "reports",
+        "failures"
+      ]
+    },
+    "ManifestEvaluation": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "evaluationResultId": {
+          "$ref": "#/$defs/Id"
+        },
+        "policyId": {
+          "$ref": "#/$defs/Id"
+        },
+        "policyVersion": {
+          "$ref": "#/$defs/Version"
+        },
+        "createdAt": {
+          "$ref": "#/$defs/Timestamp"
+        },
+        "artifact": {
+          "$ref": "#/$defs/ArtifactReference"
+        }
+      },
+      "required": [
+        "evaluationResultId",
+        "policyId",
+        "policyVersion",
+        "createdAt",
+        "artifact"
+      ]
+    },
+    "ManifestFailure": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "stage": {
+          "enum": [
+            "EXECUTION",
+            "CLEANUP",
+            "PERSISTENCE",
+            "SETTLEMENT",
+            "REPORT",
+            "RECOVERY"
+          ]
+        },
+        "at": {
+          "$ref": "#/$defs/Timestamp"
+        },
+        "error": {
+          "$ref": "#/$defs/ErrorRecord"
+        }
+      },
+      "required": [
+        "stage",
+        "at",
+        "error"
+      ]
+    }
+  }
+}

@@ -1,0 +1,214 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://uxq.dev/schemas/result/evaluation-result/1.0.0",
+  "title": "EvaluationResult",
+  "allOf": [
+    {
+      "$ref": "#/$defs/BaseRecord"
+    }
+  ],
+  "type": "object",
+  "unevaluatedProperties": false,
+  "properties": {
+    "runId": {
+      "$ref": "#/$defs/Id"
+    },
+    "policyId": {
+      "$ref": "#/$defs/Id"
+    },
+    "policyVersion": {
+      "$ref": "#/$defs/Version"
+    },
+    "policyDigest": {
+      "$ref": "#/$defs/Digest"
+    },
+    "evaluationStatus": {
+      "$ref": "#/$defs/EvaluationStatus"
+    },
+    "overallOutcome": {
+      "$ref": "#/$defs/OverallOutcome"
+    },
+    "overallScore": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0,
+      "maximum": 100
+    },
+    "coverage": {
+      "$ref": "#/$defs/Coverage"
+    },
+    "metricResultIds": {
+      "$ref": "#/$defs/IdList"
+    },
+    "ruleResultIds": {
+      "$ref": "#/$defs/IdList"
+    },
+    "scoreResultIds": {
+      "$ref": "#/$defs/IdList"
+    },
+    "dimensionResultIds": {
+      "$ref": "#/$defs/IdList"
+    },
+    "findingIds": {
+      "$ref": "#/$defs/IdList"
+    },
+    "evidenceIds": {
+      "$ref": "#/$defs/IdList"
+    },
+    "constraints": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/RiskConstraint"
+      }
+    },
+    "limitations": {
+      "$ref": "#/$defs/TextList"
+    }
+  },
+  "required": [
+    "runId",
+    "policyId",
+    "policyVersion",
+    "policyDigest",
+    "evaluationStatus",
+    "overallOutcome",
+    "overallScore",
+    "coverage",
+    "metricResultIds",
+    "ruleResultIds",
+    "scoreResultIds",
+    "dimensionResultIds",
+    "findingIds",
+    "evidenceIds",
+    "constraints",
+    "limitations"
+  ],
+  "$defs": {
+    "EvaluationStatus": {
+      "enum": [
+        "COMPLETE",
+        "PARTIAL",
+        "INSUFFICIENT_EVIDENCE",
+        "CONSTRAINED",
+        "EXECUTION_FAILED"
+      ]
+    },
+    "OverallOutcome": {
+      "enum": [
+        "PASS",
+        "FAIL",
+        "INCONCLUSIVE",
+        "NOT_RATED"
+      ]
+    },
+    "Coverage": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "planned": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "applicable": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "measured": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "scored": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "ratio": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 1
+        }
+      },
+      "required": [
+        "planned",
+        "applicable",
+        "measured",
+        "scored",
+        "ratio"
+      ]
+    },
+    "DimensionResult": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/BaseRecord"
+        },
+        {
+          "$ref": "#/$defs/ScoreValue"
+        }
+      ],
+      "type": "object",
+      "unevaluatedProperties": false,
+      "properties": {
+        "runId": {
+          "$ref": "#/$defs/Id"
+        },
+        "dimensionId": {
+          "$ref": "#/$defs/DimensionId"
+        },
+        "scoreResultIds": {
+          "$ref": "#/$defs/IdList"
+        },
+        "excludedMetricIds": {
+          "$ref": "#/$defs/IdList"
+        },
+        "coverage": {
+          "$ref": "#/$defs/Coverage"
+        },
+        "weight": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "limitations": {
+          "$ref": "#/$defs/TextList"
+        }
+      },
+      "required": [
+        "runId",
+        "dimensionId",
+        "scoreResultIds",
+        "excludedMetricIds",
+        "coverage",
+        "weight",
+        "limitations"
+      ]
+    },
+    "RiskConstraint": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "enum": [
+            "CRITICAL_RULE",
+            "FINDING_SEVERITY",
+            "COVERAGE",
+            "EXECUTION"
+          ]
+        },
+        "sourceIds": {
+          "$ref": "#/$defs/IdList"
+        },
+        "reason": {
+          "$ref": "#/$defs/Text"
+        }
+      },
+      "required": [
+        "kind",
+        "sourceIds",
+        "reason"
+      ]
+    }
+  }
+}

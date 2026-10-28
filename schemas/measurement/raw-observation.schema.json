@@ -1,0 +1,146 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://uxq.dev/schemas/measurement/raw-observation/1.0.0",
+  "title": "RawObservation",
+  "allOf": [
+    {
+      "$ref": "#/$defs/BaseRecord"
+    },
+    {
+      "$ref": "#/$defs/ObservationInputBase"
+    }
+  ],
+  "type": "object",
+  "unevaluatedProperties": false,
+  "properties": {
+    "runId": {
+      "$ref": "#/$defs/Id"
+    },
+    "stepId": {
+      "$ref": "#/$defs/Id"
+    },
+    "attemptId": {
+      "$ref": "#/$defs/Id"
+    },
+    "evidenceIds": {
+      "$ref": "#/$defs/IdList"
+    }
+  },
+  "required": [
+    "runId",
+    "stepId",
+    "attemptId",
+    "evidenceIds"
+  ],
+  "$defs": {
+    "ObservationInput": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "key": {
+          "$ref": "#/$defs/Id"
+        },
+        "value": {
+          "$ref": "#/$defs/JsonValue"
+        },
+        "unit": {
+          "$ref": "#/$defs/Text"
+        },
+        "entityId": {
+          "$ref": "#/$defs/Id"
+        },
+        "scenarioId": {
+          "$ref": "#/$defs/Id"
+        },
+        "source": {
+          "$ref": "#/$defs/EvidenceSource"
+        },
+        "method": {
+          "enum": [
+            "AUTOMATED",
+            "EXPERT_REVIEW",
+            "USER_RESEARCH",
+            "PROXY"
+          ]
+        },
+        "observedAt": {
+          "$ref": "#/$defs/Timestamp"
+        },
+        "sampleId": {
+          "$ref": "#/$defs/Id"
+        },
+        "excluded": {
+          "type": "boolean"
+        },
+        "exclusionReason": {
+          "$ref": "#/$defs/Text"
+        }
+      },
+      "required": [
+        "key",
+        "value",
+        "entityId",
+        "scenarioId",
+        "source",
+        "method",
+        "observedAt",
+        "sampleId",
+        "excluded"
+      ]
+    },
+    "ObservationInputBase": {
+      "type": "object",
+      "properties": {
+        "key": {
+          "$ref": "#/$defs/Id"
+        },
+        "value": {
+          "$ref": "#/$defs/JsonValue"
+        },
+        "unit": {
+          "$ref": "#/$defs/Text"
+        },
+        "entityId": {
+          "$ref": "#/$defs/Id"
+        },
+        "scenarioId": {
+          "$ref": "#/$defs/Id"
+        },
+        "source": {
+          "$ref": "#/$defs/EvidenceSource"
+        },
+        "method": {
+          "enum": [
+            "AUTOMATED",
+            "EXPERT_REVIEW",
+            "USER_RESEARCH",
+            "PROXY"
+          ]
+        },
+        "observedAt": {
+          "$ref": "#/$defs/Timestamp"
+        },
+        "sampleId": {
+          "$ref": "#/$defs/Id"
+        },
+        "excluded": {
+          "type": "boolean"
+        },
+        "exclusionReason": {
+          "$ref": "#/$defs/Text"
+        }
+      },
+      "required": [
+        "key",
+        "value",
+        "entityId",
+        "scenarioId",
+        "source",
+        "method",
+        "observedAt",
+        "sampleId",
+        "excluded"
+      ]
+    }
+  }
+}

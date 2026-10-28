@@ -1,0 +1,30 @@
+{
+  "name": "@uxq/inspector",
+  "version": "0.1.0",
+  "type": "module",
+  "private": true,
+  "description": "Interactive UXQ evaluation result inspector",
+  "bin": {
+    "uxq-inspector": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsup src/index.ts --format esm --dts --sourcemap",
+    "dev": "tsup src/index.ts --format esm --dts --sourcemap --watch",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "@uxq/core": "workspace:*",
+    "@uxq/contracts": "workspace:*",
+    "@uxq/reporting": "workspace:*",
+    "@uxq/scoring": "workspace:*",
+    "@uxq/diagnostic": "workspace:*",
+    "@uxq/evidence": "workspace:*",
+    "@uxq/regression": "workspace:*",
+    "commander": "^13.0.0",
+    "chalk": "^5.4.1",
+    "inquirer": "^12.0.0"
+  },
+  "devDependencies": {
+    "@types/inquirer": "^9.0.7"
+  }
+}

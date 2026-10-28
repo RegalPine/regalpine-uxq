@@ -1,0 +1,59 @@
+{
+  "id": "regression-report-<UUID>",
+  "schemaVersion": "1.0.0",
+  "createdAt": "2026-01-15T10:00:00Z",
+  "reportType": "REGRESSION",
+  "baselineName": "v1.0-golden",
+  "baselineRunId": "run-golden-baseline",
+  "currentRunId": "run-golden-current",
+  "comparability": "COMPARABLE",
+  "scoreDelta": -5,
+  "baselineScore": 80,
+  "currentScore": 75,
+  "metricDeltas": [
+    {
+      "metricId": "metric-load-time",
+      "baselineValue": 1200,
+      "currentValue": 1500,
+      "delta": 300,
+      "deltaPercent": 25
+    },
+    {
+      "metricId": "metric-error-rate",
+      "baselineValue": 0.02,
+      "currentValue": 0.05,
+      "delta": 0.03,
+      "deltaPercent": 150
+    }
+  ],
+  "ruleDeltas": [
+    {
+      "ruleId": "rule-contrast",
+      "baselineOutcome": "PASS",
+      "currentOutcome": "PASS",
+      "changed": false
+    },
+    {
+      "ruleId": "rule-keyboard",
+      "baselineOutcome": "PASS",
+      "currentOutcome": "FAIL",
+      "changed": true
+    }
+  ],
+  "findingChanges": {
+    "new": 3,
+    "resolved": 1,
+    "persisted": 2,
+    "reopened": 0
+  },
+  "verificationStatus": "PASSED",
+  "caveats": [
+    "浏览器版本不同"
+  ],
+  "limitations": [
+    "回归比较基于可比运行条件",
+    "不可比的比较结果不能直接归因于产品变化",
+    "评分差异可能受策略版本、浏览器版本、视口等因素影响",
+    "回归报告不重新计算评分，只投影已有结果"
+  ]
+}

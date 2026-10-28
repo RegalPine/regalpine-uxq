@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://uxq.dev/schemas/common/reference/1.0.0",
+  "title": "UXQ Reference",
+  "$defs": {
+    "IdList": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/Id"
+      },
+      "uniqueItems": true,
+      "maxItems": 10000
+    },
+    "TextList": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/Text"
+      },
+      "maxItems": 10000
+    },
+    "Text": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 20000
+    },
+    "Scalar": {
+      "type": [
+        "string",
+        "number",
+        "boolean",
+        "null"
+      ]
+    },
+    "JsonValue": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Scalar"
+        },
+        {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "maxItems": 10000
+        },
+        {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "maxProperties": 1000
+        }
+      ]
+    }
+  },
+  "type": "object",
+  "description": "Container for IdList, TextList, Text, Scalar, JsonValue"
+}

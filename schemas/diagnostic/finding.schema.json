@@ -1,0 +1,176 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://uxq.dev/schemas/diagnostic/finding/1.0.0",
+  "title": "Finding",
+  "allOf": [
+    {
+      "$ref": "#/$defs/BaseRecord"
+    },
+    {
+      "$ref": "#/$defs/FindingTemplateBase"
+    }
+  ],
+  "type": "object",
+  "unevaluatedProperties": false,
+  "properties": {
+    "lifecycle": {
+      "$ref": "#/$defs/FindingLifecycleStatus"
+    },
+    "revision": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "evaluationRunIds": {
+      "$ref": "#/$defs/IdList"
+    },
+    "diagnosticSignalIds": {
+      "$ref": "#/$defs/IdList"
+    },
+    "evidenceLinks": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/EvidenceLink"
+      }
+    },
+    "affectedEntityIds": {
+      "$ref": "#/$defs/IdList"
+    },
+    "rootCauseHypothesisIds": {
+      "$ref": "#/$defs/IdList"
+    },
+    "recommendationIds": {
+      "$ref": "#/$defs/IdList"
+    },
+    "verificationResultIds": {
+      "$ref": "#/$defs/IdList"
+    },
+    "firstObservedAt": {
+      "$ref": "#/$defs/Timestamp"
+    },
+    "lastObservedAt": {
+      "$ref": "#/$defs/Timestamp"
+    },
+    "duplicateOfFindingId": {
+      "$ref": "#/$defs/Id"
+    },
+    "deduplicationKey": {
+      "$ref": "#/$defs/Digest"
+    },
+    "limitations": {
+      "$ref": "#/$defs/TextList"
+    }
+  },
+  "required": [
+    "lifecycle",
+    "revision",
+    "evaluationRunIds",
+    "diagnosticSignalIds",
+    "evidenceLinks",
+    "affectedEntityIds",
+    "rootCauseHypothesisIds",
+    "recommendationIds",
+    "verificationResultIds",
+    "firstObservedAt",
+    "lastObservedAt",
+    "deduplicationKey",
+    "limitations"
+  ],
+  "$defs": {
+    "FindingType": {
+      "enum": [
+        "CONFIRMED_DEFECT",
+        "POTENTIAL_DEFECT",
+        "USABILITY_OBSERVATION",
+        "DESIGN_INCONSISTENCY",
+        "COMPLIANCE_FINDING",
+        "IMPROVEMENT_OPPORTUNITY",
+        "INSUFFICIENT_EVIDENCE"
+      ]
+    },
+    "Severity": {
+      "enum": [
+        "S1",
+        "S2",
+        "S3",
+        "S4"
+      ]
+    },
+    "Priority": {
+      "enum": [
+        "P0",
+        "P1",
+        "P2",
+        "P3"
+      ]
+    },
+    "Confidence": {
+      "enum": [
+        "HIGH",
+        "MEDIUM",
+        "LOW"
+      ]
+    },
+    "FindingLifecycleStatus": {
+      "enum": [
+        "NEW",
+        "TRIAGED",
+        "INVESTIGATING",
+        "CONFIRMED",
+        "ACCEPTED",
+        "PLANNED",
+        "IN_PROGRESS",
+        "FIXED",
+        "VERIFIED",
+        "REOPENED",
+        "WONT_FIX",
+        "INVALID",
+        "CLOSED"
+      ]
+    },
+    "DiagnosticSignal": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/BaseRecord"
+        },
+        {
+          "$ref": "#/$defs/FindingTemplateBase"
+        }
+      ],
+      "type": "object",
+      "unevaluatedProperties": false,
+      "properties": {
+        "runId": {
+          "$ref": "#/$defs/Id"
+        },
+        "sourceResultIds": {
+          "$ref": "#/$defs/IdList"
+        },
+        "sourceType": {
+          "enum": [
+            "RULE",
+            "METRIC",
+            "EXPERT",
+            "RESEARCH"
+          ]
+        },
+        "valid": {
+          "type": "boolean"
+        },
+        "reason": {
+          "$ref": "#/$defs/Text"
+        },
+        "evidenceIds": {
+          "$ref": "#/$defs/IdList"
+        }
+      },
+      "required": [
+        "runId",
+        "sourceResultIds",
+        "sourceType",
+        "valid",
+        "reason",
+        "evidenceIds"
+      ]
+    }
+  }
+}
