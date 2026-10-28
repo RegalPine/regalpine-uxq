@@ -17,11 +17,7 @@
       "$ref": "#/$defs/Text"
     },
     "status": {
-      "enum": [
-        "HYPOTHESIS",
-        "SUPPORTED",
-        "REJECTED"
-      ]
+      "enum": ["HYPOTHESIS", "SUPPORTED", "REJECTED"]
     },
     "confidence": {
       "$ref": "#/$defs/Confidence"
@@ -36,13 +32,6 @@
       "$ref": "#/$defs/TextList"
     }
   },
-  "required": [
-    "findingIds",
-    "description",
-    "status",
-    "confidence",
-    "evidenceLinks",
-    "limitations"
-  ],
+  "required": ["findingIds", "description", "status", "confidence", "evidenceLinks", "limitations"],
   "$defs": {}
 }

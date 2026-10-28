@@ -22,23 +22,12 @@
       ]
     },
     "relation": {
-      "enum": [
-        "SUPPORTS",
-        "CONTRADICTS",
-        "CONTEXT",
-        "DERIVED_FROM"
-      ]
+      "enum": ["SUPPORTS", "CONTRADICTS", "CONTEXT", "DERIVED_FROM"]
     },
     "purpose": {
       "$ref": "#/$defs/Text"
     }
   },
-  "required": [
-    "evidenceId",
-    "subjectId",
-    "subjectType",
-    "relation",
-    "purpose"
-  ],
+  "required": ["evidenceId", "subjectId", "subjectType", "relation", "purpose"],
   "$defs": {}
 }

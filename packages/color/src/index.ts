@@ -184,9 +184,7 @@ export function hslToRgb(hsl: HSL): RGB {
  */
 export function relativeLuminance(rgb: RGB): number {
   const sRGB = [rgb.r / 255, rgb.g / 255, rgb.b / 255];
-  const linear = sRGB.map((c) =>
-    c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4)
-  );
+  const linear = sRGB.map((c) => (c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4)));
   return 0.2126 * linear[0] + 0.7152 * linear[1] + 0.0722 * linear[2];
 }
 

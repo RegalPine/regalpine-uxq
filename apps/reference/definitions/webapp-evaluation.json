@@ -257,9 +257,9 @@
     "dimensions": [
       { "dimensionId": "D01", "weight": 0.25, "minimumCoverage": 0.8 },
       { "dimensionId": "D02", "weight": 0.15, "minimumCoverage": 0.8 },
-      { "dimensionId": "D03", "weight": 0.10, "minimumCoverage": 0.5 },
+      { "dimensionId": "D03", "weight": 0.1, "minimumCoverage": 0.5 },
       { "dimensionId": "D04", "weight": 0.25, "minimumCoverage": 0.8 },
-      { "dimensionId": "D05", "weight": 0.10, "minimumCoverage": 0.5 },
+      { "dimensionId": "D05", "weight": 0.1, "minimumCoverage": 0.5 },
       { "dimensionId": "D06", "weight": 0.15, "minimumCoverage": 0.5 }
     ],
     "missingPolicy": "EXCLUDE",
@@ -286,12 +286,8 @@
         { "action": "CLICK", "selector": "#login-btn" },
         { "action": "WAIT_FOR", "selector": "#dashboard", "state": "visible" }
       ],
-      "businessConditions": [
-        { "kind": "URL", "url": "/dashboard", "equals": true }
-      ],
-      "feedbackConditions": [
-        { "kind": "VISIBLE", "selector": ".welcome-message", "equals": true }
-      ],
+      "businessConditions": [{ "kind": "URL", "url": "/dashboard", "equals": true }],
+      "feedbackConditions": [{ "kind": "VISIBLE", "selector": ".welcome-message", "equals": true }],
       "sideEffect": "NONE",
       "authorized": true,
       "limitations": []
@@ -334,7 +330,13 @@
       "inputRefs": [{ "stepId": "observe-metrics", "contract": "RawObservation" }],
       "outputContracts": ["MetricResult"],
       "requiredCapabilities": ["METRIC_CALCULATION"],
-      "metricIds": ["metric-task-completion-rate", "metric-task-time", "metric-error-rate", "metric-img-alt-missing", "metric-color-contrast-ratio"]
+      "metricIds": [
+        "metric-task-completion-rate",
+        "metric-task-time",
+        "metric-error-rate",
+        "metric-img-alt-missing",
+        "metric-color-contrast-ratio"
+      ]
     },
     {
       "stepId": "eval-rules",

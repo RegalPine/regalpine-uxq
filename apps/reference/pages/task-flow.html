@@ -1,108 +1,169 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="zh-CN">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>UXQ Reference — 任务流程</title>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: system-ui, sans-serif; line-height: 1.6; color: #333; max-width: 800px; margin: 0 auto; padding: 2rem; }
-    h1 { margin-bottom: 1rem; color: #1a1a1a; }
-    .step { padding: 1rem; margin: 0.5rem 0; border: 1px solid #ddd; border-radius: 4px; background: #f9f9f9; }
-    .step.active { border-color: #0066cc; background: #e6f0ff; }
-    .step.completed { border-color: #00994d; background: #e6fff0; }
-    .btn { padding: 0.5rem 1rem; border: none; border-radius: 4px; cursor: pointer; font-size: 1rem; }
-    .btn-primary { background: #0066cc; color: white; }
-    .btn-primary:hover { background: #0052a3; }
-    .btn-primary:disabled { background: #ccc; cursor: not-allowed; }
-    .progress { margin: 1rem 0; }
-    .progress-bar { height: 8px; background: #eee; border-radius: 4px; overflow: hidden; }
-    .progress-fill { height: 100%; background: #0066cc; transition: width 0.3s; }
-    #status { margin-top: 1rem; padding: 0.5rem; border-radius: 4px; }
-    .success { background: #e6fff0; color: #00663d; }
-    .error { background: #ffe6e6; color: #cc0000; }
-  </style>
-</head>
-<body>
-  <main>
-    <h1>任务流程演示</h1>
-    <p>完成以下 3 个步骤以验证任务流程评价能力。</p>
-
-    <div class="progress">
-      <div class="progress-bar">
-        <div class="progress-fill" id="progress" style="width: 0%"></div>
-      </div>
-    </div>
-
-    <div id="steps">
-      <div class="step active" id="step-1">
-        <h2>步骤 1：填写信息</h2>
-        <label for="name-input">姓名：</label>
-        <input type="text" id="name-input" placeholder="请输入姓名" aria-required="true">
-        <button class="btn btn-primary" id="btn-step-1" type="button">下一步</button>
-      </div>
-
-      <div class="step" id="step-2" style="display:none">
-        <h2>步骤 2：确认选择</h2>
-        <fieldset>
-          <legend>请选择评价方式：</legend>
-          <label><input type="radio" name="method" value="automated"> 自动化评价</label>
-          <label><input type="radio" name="method" value="expert"> 专家评价</label>
-          <label><input type="radio" name="method" value="user"> 用户研究</label>
-        </fieldset>
-        <button class="btn btn-primary" id="btn-step-2" type="button">下一步</button>
-      </div>
-
-      <div class="step" id="step-3" style="display:none">
-        <h2>步骤 3：提交</h2>
-        <p>请确认以上信息无误后提交。</p>
-        <button class="btn btn-primary" id="btn-submit" type="button">提交</button>
-      </div>
-    </div>
-
-    <div id="status" style="display:none"></div>
-  </main>
-
-  <script>
-    const steps = ['step-1', 'step-2', 'step-3'];
-    let currentStep = 0;
-
-    function showStep(index) {
-      steps.forEach((id, i) => {
-        const el = document.getElementById(id);
-        el.style.display = i === index ? 'block' : 'none';
-        el.classList.remove('active', 'completed');
-        if (i < index) el.classList.add('completed');
-        if (i === index) el.classList.add('active');
-      });
-      document.getElementById('progress').style.width = `${(index / steps.length) * 100}%`;
-    }
-
-    document.getElementById('btn-step-1').addEventListener('click', () => {
-      const name = document.getElementById('name-input').value.trim();
-      if (!name) {
-        document.getElementById('name-input').setAttribute('aria-invalid', 'true');
-        return;
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>UXQ Reference — 任务流程</title>
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
       }
-      currentStep = 1;
-      showStep(currentStep);
-    });
+      body {
+        font-family: system-ui, sans-serif;
+        line-height: 1.6;
+        color: #333;
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 2rem;
+      }
+      h1 {
+        margin-bottom: 1rem;
+        color: #1a1a1a;
+      }
+      .step {
+        padding: 1rem;
+        margin: 0.5rem 0;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        background: #f9f9f9;
+      }
+      .step.active {
+        border-color: #0066cc;
+        background: #e6f0ff;
+      }
+      .step.completed {
+        border-color: #00994d;
+        background: #e6fff0;
+      }
+      .btn {
+        padding: 0.5rem 1rem;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 1rem;
+      }
+      .btn-primary {
+        background: #0066cc;
+        color: white;
+      }
+      .btn-primary:hover {
+        background: #0052a3;
+      }
+      .btn-primary:disabled {
+        background: #ccc;
+        cursor: not-allowed;
+      }
+      .progress {
+        margin: 1rem 0;
+      }
+      .progress-bar {
+        height: 8px;
+        background: #eee;
+        border-radius: 4px;
+        overflow: hidden;
+      }
+      .progress-fill {
+        height: 100%;
+        background: #0066cc;
+        transition: width 0.3s;
+      }
+      #status {
+        margin-top: 1rem;
+        padding: 0.5rem;
+        border-radius: 4px;
+      }
+      .success {
+        background: #e6fff0;
+        color: #00663d;
+      }
+      .error {
+        background: #ffe6e6;
+        color: #cc0000;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>任务流程演示</h1>
+      <p>完成以下 3 个步骤以验证任务流程评价能力。</p>
 
-    document.getElementById('btn-step-2').addEventListener('click', () => {
-      const method = document.querySelector('input[name="method"]:checked');
-      if (!method) return;
-      currentStep = 2;
-      showStep(currentStep);
-    });
+      <div class="progress">
+        <div class="progress-bar">
+          <div class="progress-fill" id="progress" style="width: 0%"></div>
+        </div>
+      </div>
 
-    document.getElementById('btn-submit').addEventListener('click', () => {
-      const status = document.getElementById('status');
-      status.style.display = 'block';
-      status.className = 'success';
-      status.textContent = '✓ 任务提交成功！';
-      document.getElementById('progress').style.width = '100%';
-      document.getElementById('btn-submit').disabled = true;
-    });
-  </script>
-</body>
+      <div id="steps">
+        <div class="step active" id="step-1">
+          <h2>步骤 1：填写信息</h2>
+          <label for="name-input">姓名：</label>
+          <input type="text" id="name-input" placeholder="请输入姓名" aria-required="true" />
+          <button class="btn btn-primary" id="btn-step-1" type="button">下一步</button>
+        </div>
+
+        <div class="step" id="step-2" style="display: none">
+          <h2>步骤 2：确认选择</h2>
+          <fieldset>
+            <legend>请选择评价方式：</legend>
+            <label><input type="radio" name="method" value="automated" /> 自动化评价</label>
+            <label><input type="radio" name="method" value="expert" /> 专家评价</label>
+            <label><input type="radio" name="method" value="user" /> 用户研究</label>
+          </fieldset>
+          <button class="btn btn-primary" id="btn-step-2" type="button">下一步</button>
+        </div>
+
+        <div class="step" id="step-3" style="display: none">
+          <h2>步骤 3：提交</h2>
+          <p>请确认以上信息无误后提交。</p>
+          <button class="btn btn-primary" id="btn-submit" type="button">提交</button>
+        </div>
+      </div>
+
+      <div id="status" style="display: none"></div>
+    </main>
+
+    <script>
+      const steps = ['step-1', 'step-2', 'step-3'];
+      let currentStep = 0;
+
+      function showStep(index) {
+        steps.forEach((id, i) => {
+          const el = document.getElementById(id);
+          el.style.display = i === index ? 'block' : 'none';
+          el.classList.remove('active', 'completed');
+          if (i < index) el.classList.add('completed');
+          if (i === index) el.classList.add('active');
+        });
+        document.getElementById('progress').style.width = `${(index / steps.length) * 100}%`;
+      }
+
+      document.getElementById('btn-step-1').addEventListener('click', () => {
+        const name = document.getElementById('name-input').value.trim();
+        if (!name) {
+          document.getElementById('name-input').setAttribute('aria-invalid', 'true');
+          return;
+        }
+        currentStep = 1;
+        showStep(currentStep);
+      });
+
+      document.getElementById('btn-step-2').addEventListener('click', () => {
+        const method = document.querySelector('input[name="method"]:checked');
+        if (!method) return;
+        currentStep = 2;
+        showStep(currentStep);
+      });
+
+      document.getElementById('btn-submit').addEventListener('click', () => {
+        const status = document.getElementById('status');
+        status.style.display = 'block';
+        status.className = 'success';
+        status.textContent = '✓ 任务提交成功！';
+        document.getElementById('progress').style.width = '100%';
+        document.getElementById('btn-submit').disabled = true;
+      });
+    </script>
+  </body>
 </html>

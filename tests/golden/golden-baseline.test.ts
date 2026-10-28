@@ -14,14 +14,22 @@ import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
-import type {
-  MetricResult,
-  RuleResult,
-  ScoringPolicy,
-} from '../../packages/contracts/src/index';
-import { normalize, scoreMetric, aggregateDimension, settleEvaluation } from '../../packages/scoring/src/index';
-import { generateRegressionReport, renderRegressionMarkdown } from '../../packages/reporting/src/index';
-import { deduplicateFindings, generateSignals, createFinding } from '../../packages/diagnostic/src/index';
+import type { MetricResult, RuleResult, ScoringPolicy } from '../../packages/contracts/src/index';
+import {
+  normalize,
+  scoreMetric,
+  aggregateDimension,
+  settleEvaluation,
+} from '../../packages/scoring/src/index';
+import {
+  generateRegressionReport,
+  renderRegressionMarkdown,
+} from '../../packages/reporting/src/index';
+import {
+  deduplicateFindings,
+  generateSignals,
+  createFinding,
+} from '../../packages/diagnostic/src/index';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const SNAPSHOT_DIR = resolve(__dirname, '__snapshots__');
@@ -134,10 +142,12 @@ describe('Golden: 评分结算', () => {
     const rules: RuleResult[] = [goldenRuleResult('rr-001', 'PASS')];
 
     // 完整评分链路: metric → score → dimension → settlement
-    const scores = policy.bindings.map((binding) => {
-      const metricResult = results.find((r) => r.metricId === binding.metricId);
-      return metricResult ? scoreMetric(policy, binding, metricResult, RUN_ID, NOW) : null;
-    }).filter((s): s is NonNullable<typeof s> => s !== null);
+    const scores = policy.bindings
+      .map((binding) => {
+        const metricResult = results.find((r) => r.metricId === binding.metricId);
+        return metricResult ? scoreMetric(policy, binding, metricResult, RUN_ID, NOW) : null;
+      })
+      .filter((s): s is NonNullable<typeof s> => s !== null);
 
     const dimension = aggregateDimension(policy, 'D02', scores, RUN_ID, NOW);
     const settlement = settleEvaluation(policy, [dimension], rules, results, RUN_ID, NOW);
@@ -154,12 +164,42 @@ describe('Golden: 评分结算', () => {
   });
 
   it('标准化函数在边界值稳定', () => {
-    expect(normalize(0, { metricId: 'm', weight: 1, normalization: 'LINEAR_LOWER', min: 0, max: 1000 })).toBe(100);
-    expect(normalize(1000, { metricId: 'm', weight: 1, normalization: 'LINEAR_LOWER', min: 0, max: 1000 })).toBe(0);
-    expect(normalize(500, { metricId: 'm', weight: 1, normalization: 'LINEAR_LOWER', min: 0, max: 1000 })).toBe(50);
-    expect(normalize(0, { metricId: 'm', weight: 1, normalization: 'LINEAR_HIGHER', min: 0, max: 100 })).toBe(0);
-    expect(normalize(100, { metricId: 'm', weight: 1, normalization: 'LINEAR_HIGHER', min: 0, max: 100 })).toBe(100);
-    expect(normalize(50, { metricId: 'm', weight: 1, normalization: 'LINEAR_HIGHER', min: 0, max: 100 })).toBe(50);
+    expect(
+      normalize(0, { metricId: 'm', weight: 1, normalization: 'LINEAR_LOWER', min: 0, max: 1000 }),
+    ).toBe(100);
+    expect(
+      normalize(1000, {
+        metricId: 'm',
+        weight: 1,
+        normalization: 'LINEAR_LOWER',
+        min: 0,
+        max: 1000,
+      }),
+    ).toBe(0);
+    expect(
+      normalize(500, {
+        metricId: 'm',
+        weight: 1,
+        normalization: 'LINEAR_LOWER',
+        min: 0,
+        max: 1000,
+      }),
+    ).toBe(50);
+    expect(
+      normalize(0, { metricId: 'm', weight: 1, normalization: 'LINEAR_HIGHER', min: 0, max: 100 }),
+    ).toBe(0);
+    expect(
+      normalize(100, {
+        metricId: 'm',
+        weight: 1,
+        normalization: 'LINEAR_HIGHER',
+        min: 0,
+        max: 100,
+      }),
+    ).toBe(100);
+    expect(
+      normalize(50, { metricId: 'm', weight: 1, normalization: 'LINEAR_HIGHER', min: 0, max: 100 }),
+    ).toBe(50);
   });
 });
 
@@ -173,8 +213,20 @@ describe('Golden: 回归报告', () => {
     baselineScore: 80.0,
     currentScore: 75.0,
     metricDeltas: [
-      { metricId: 'metric-load-time', baselineValue: 1200, currentValue: 1500, delta: 300, deltaPercent: 25.0 },
-      { metricId: 'metric-error-rate', baselineValue: 0.02, currentValue: 0.05, delta: 0.03, deltaPercent: 150.0 },
+      {
+        metricId: 'metric-load-time',
+        baselineValue: 1200,
+        currentValue: 1500,
+        delta: 300,
+        deltaPercent: 25.0,
+      },
+      {
+        metricId: 'metric-error-rate',
+        baselineValue: 0.02,
+        currentValue: 0.05,
+        delta: 0.03,
+        deltaPercent: 150.0,
+      },
     ],
     ruleDeltas: [
       { ruleId: 'rule-contrast', baselineOutcome: 'PASS', currentOutcome: 'PASS', changed: false },
@@ -244,12 +296,14 @@ describe('Golden: Finding 去重', () => {
     const deduplicated = deduplicateFindings(findings);
 
     const snapshot = JSON.stringify(
-      stabilizeIds(deduplicated.map((f) => ({
-        title: f.title,
-        type: f.type,
-        deduplicationKey: f.deduplicationKey,
-        signalCount: f.diagnosticSignalIds.length,
-      }))),
+      stabilizeIds(
+        deduplicated.map((f) => ({
+          title: f.title,
+          type: f.type,
+          deduplicationKey: f.deduplicationKey,
+          signalCount: f.diagnosticSignalIds.length,
+        })),
+      ),
       null,
       2,
     );

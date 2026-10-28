@@ -20,12 +20,14 @@ uxq design-system tokens --url <target> --spec <token-file>
 ```
 
 **Parameters:**
+
 - `--url`: Target URL to evaluate
 - `--spec**: Design token specification file (JSON/YAML)
 - `--tolerance**: Color tolerance (default: 5%)
 - `--include**: Token types to check (color,spacing,typography,all)
 
 **Example:**
+
 ```bash
 uxq design-system tokens \
   --url "https://app.example.com" \
@@ -39,11 +41,13 @@ uxq design-system theme --url <target> --themes <theme-list>
 ```
 
 **Parameters:**
+
 - `--url**: Target URL
 - `--themes**: Themes to check (light,dark,custom)
 - `--metrics**: Consistency metrics (token-usage,color-consistency,spacing)
 
 **Example:**
+
 ```bash
 uxq design-system theme \
   --url "https://app.example.com" \
@@ -57,11 +61,13 @@ uxq design-system components --url <target> --library <library-name>
 ```
 
 **Parameters:**
+
 - `--url**: Target URL
 - `--library**: Component library name
 - `--coverage**: Coverage analysis (usage,coverage,gaps)
 
 **Example:**
+
 ```bash
 uxq design-system components \
   --url "https://app.example.com" \
@@ -75,11 +81,13 @@ uxq design-system compare --themes <theme-list> --metrics <metric-list>
 ```
 
 **Parameters:**
+
 - `--themes**: Themes to compare
 - `--metrics**: Comparison metrics
 - `--output**: Output file
 
 **Example:**
+
 ```bash
 uxq design-system compare \
   --themes light,dark \
@@ -183,28 +191,32 @@ uxq design-system compare \
 
 #### 违规详情
 
-| 类型 | 严重性 | 期望值 | 实际值 | 位置 | 偏差 |
-|------|--------|--------|--------|------|------|
-| 颜色不匹配 | 🟡 Moderate | #007bff | #0078ff | .btn-primary | 2.3% |
-| 间距不一致 | 🔵 Low | 16px | 18px | .card-body | 12.5% |
-| 字体大小不匹配 | 🟡 Moderate | 14px | 13px | .text-small | 7.1% |
+| 类型           | 严重性      | 期望值  | 实际值  | 位置         | 偏差  |
+| -------------- | ----------- | ------- | ------- | ------------ | ----- |
+| 颜色不匹配     | 🟡 Moderate | #007bff | #0078ff | .btn-primary | 2.3%  |
+| 间距不一致     | 🔵 Low      | 16px    | 18px    | .card-body   | 12.5% |
+| 字体大小不匹配 | 🟡 Moderate | 14px    | 13px    | .text-small  | 7.1%  |
 
 ---
 
 ### 主题一致性: 88/100
 
 #### Light 主题
+
 - Token 符合度: 95%
 - 颜色一致性: 96%
 - 间距符合度: 91%
 
 #### Dark 主题
+
 - Token 符合度: 89%
 - 颜色一致性: 91%
 - 间距符合度: 85%
 
 #### 一致性问题
+
 🟡 **主题不一致**: Dark 主题中 3 处使用了硬编码颜色值
+
 - `.card-header`
 - `.button-secondary`
 - `.text-muted`
@@ -219,12 +231,14 @@ uxq design-system compare \
 **自定义实现**: 12
 
 #### 组件覆盖率
+
 - 标准组件使用率: 84.4%
 - 自定义实现率: 26.7%
 
 #### 缺失组件
-| 组件 | 状态 | 当前实现 | 建议 |
-|------|------|----------|------|
+
+| 组件       | 状态    | 当前实现   | 建议                                   |
+| ---------- | ------- | ---------- | -------------------------------------- |
 | DatePicker | ❌ 缺失 | 自定义实现 | 使用 @example/ui-components DatePicker |
 | TimePicker | ❌ 缺失 | 自定义实现 | 使用 @example/ui-components TimePicker |
 | FileUpload | ❌ 缺失 | 自定义实现 | 使用 @example/ui-components FileUpload |
@@ -236,6 +250,7 @@ uxq design-system compare \
 #### 高优先级
 
 ##### 1. 统一 Dark 主题的颜色 Token 使用
+
 **类别**: Token 符合度
 **影响**: +3 points
 **工作量**: 低
@@ -243,6 +258,7 @@ uxq design-system compare \
 **描述**: 将 Dark 主题中的硬编码颜色值替换为对应的 Token
 
 **实施步骤**:
+
 1. 识别所有硬编码颜色值
 2. 映射到对应的 Token
 3. 替换并测试
@@ -250,6 +266,7 @@ uxq design-system compare \
 #### 中优先级
 
 ##### 2. 替换自定义 DatePicker 为标准组件
+
 **类别**: 组件使用
 **影响**: +2 points
 **工作量**: 中
@@ -257,6 +274,7 @@ uxq design-system compare \
 **描述**: 使用设计系统提供的 DatePicker 组件替换自定义实现
 
 **实施步骤**:
+
 1. 引入 @example/ui-components DatePicker
 2. 迁移现有功能
 3. 进行回归测试
@@ -265,20 +283,20 @@ uxq design-system compare \
 
 ### 设计系统健康度
 
-| 维度 | 评分 | 状态 |
-|------|------|------|
-| Token 符合度 | 92 | ✅ 良好 |
-| 主题一致性 | 88 | ⚠️ 需改进 |
-| 组件覆盖率 | 85 | ⚠️ 需改进 |
-| **总体评分** | **88** | **良好** |
+| 维度         | 评分   | 状态      |
+| ------------ | ------ | --------- |
+| Token 符合度 | 92     | ✅ 良好   |
+| 主题一致性   | 88     | ⚠️ 需改进 |
+| 组件覆盖率   | 85     | ⚠️ 需改进 |
+| **总体评分** | **88** | **良好**  |
 
 ### 趋势分析
 
-| 日期 | 评分 | 变化 |
-|------|------|------|
-| 2026-10-01 | 85 | - |
-| 2026-10-15 | 86 | +1 |
-| 2026-10-28 | 88 | +2 |
+| 日期       | 评分 | 变化 |
+| ---------- | ---- | ---- |
+| 2026-10-01 | 85   | -    |
+| 2026-10-15 | 86   | +1   |
+| 2026-10-28 | 88   | +2   |
 
 **趋势**: 📈 持续改进
 ```
@@ -385,28 +403,28 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Audit Design System
         run: |
           uxq design-system tokens \
             --url ${{ env.PREVIEW_URL }} \
             --spec tokens/design-tokens.json \
             --output audit-tokens.json
-          
+
           uxq design-system theme \
             --url ${{ env.PREVIEW_URL }} \
             --themes light,dark \
             --output audit-theme.json
-          
+
           # Check for violations
           VIOLATIONS=$(cat audit-tokens.json | jq '.tokens.violations | length')
           if [ $VIOLATIONS -gt 10 ]; then
             echo "❌ Too many token violations: $VIOLATIONS"
             exit 1
           fi
-          
+
           echo "✅ Design system audit passed"
-      
+
       - name: Upload Audit Report
         if: always()
         uses: actions/upload-artifact@v4

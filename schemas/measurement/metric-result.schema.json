@@ -23,10 +23,7 @@
           "$ref": "#/$defs/Text"
         }
       },
-      "required": [
-        "status",
-        "value"
-      ]
+      "required": ["status", "value"]
     },
     {
       "type": "object",
@@ -47,10 +44,7 @@
           "$ref": "#/$defs/ErrorRecord"
         }
       },
-      "required": [
-        "status",
-        "reason"
-      ]
+      "required": ["status", "reason"]
     }
   ],
   "$defs": {
@@ -147,12 +141,7 @@
       ]
     },
     "ValueKind": {
-      "enum": [
-        "NUMBER",
-        "BOOLEAN",
-        "CATEGORY",
-        "STRUCTURED"
-      ]
+      "enum": ["NUMBER", "BOOLEAN", "CATEGORY", "STRUCTURED"]
     }
   }
 }

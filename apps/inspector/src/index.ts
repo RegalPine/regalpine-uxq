@@ -14,10 +14,7 @@ import type { EvaluationResult, Finding, Evidence, ScoreResult } from '@uxq/cont
 
 const program = new Command();
 
-program
-  .name('uxq-inspector')
-  .description('交互式 UXQ 评价结果查看器')
-  .version('0.1.0');
+program.name('uxq-inspector').description('交互式 UXQ 评价结果查看器').version('0.1.0');
 
 /**
  * 加载评价结果
@@ -50,7 +47,9 @@ function displayOverview(result: EvaluationResult): void {
     console.log(`  适用: ${result.coverage.applicable}`);
     console.log(`  已测量: ${result.coverage.measured}`);
     console.log(`  已评分: ${result.coverage.scored}`);
-    console.log(`  覆盖率: ${result.coverage.ratio !== null ? `${(result.coverage.ratio * 100).toFixed(1)}%` : 'N/A'}`);
+    console.log(
+      `  覆盖率: ${result.coverage.ratio !== null ? `${(result.coverage.ratio * 100).toFixed(1)}%` : 'N/A'}`,
+    );
   }
 
   console.log(chalk.bold('\n统计:'));
@@ -335,7 +334,7 @@ async function mainMenu(resultPath: string): Promise<void> {
         await inquirer.prompt([{ type: 'input', message: '按回车继续...' }]);
         break;
 
-      case 'finding-detail':
+      case 'finding-detail': {
         if (findings.length === 0) {
           console.log(chalk.yellow('\n暂无 Finding 数据'));
           await inquirer.prompt([{ type: 'input', message: '按回车继续...' }]);
@@ -355,6 +354,7 @@ async function mainMenu(resultPath: string): Promise<void> {
           await inquirer.prompt([{ type: 'input', message: '按回车继续...' }]);
         }
         break;
+      }
 
       case 'evidence':
         console.log('\n' + chalk.bold.cyan('═══════════════════════════════════════════'));

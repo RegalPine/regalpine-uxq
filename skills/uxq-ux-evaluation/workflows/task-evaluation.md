@@ -20,12 +20,14 @@ uxq task evaluate --url <target> --task <task-definition>
 ```
 
 **Parameters:**
+
 - `--url`: Target URL to evaluate
 - `--task`: Task definition (name, steps, success criteria)
 - `--timeout`: Maximum task completion time (default: 30000ms)
 - `--retries`: Number of retry attempts (default: 3)
 
 **Example:**
+
 ```bash
 uxq task evaluate \
   --url "https://shop.example.com/checkout" \
@@ -39,10 +41,12 @@ uxq task measure --run-id <id> --metrics <metric-list>
 ```
 
 **Parameters:**
+
 - `--run-id`: Evaluation run ID
 - `--metrics`: Comma-separated list (time,errors,success-rate,completion-rate)
 
 **Example:**
+
 ```bash
 uxq task measure --run-id latest --metrics time,errors,success-rate
 ```
@@ -54,10 +58,12 @@ uxq task analyze --run-id <id> --focus <focus-area>
 ```
 
 **Parameters:**
+
 - `--run-id`: Evaluation run ID
 - `--focus`: Analysis focus (interactions,patterns,efficiency)
 
 **Example:**
+
 ```bash
 uxq task analyze --run-id latest --focus interactions
 ```
@@ -100,17 +106,20 @@ uxq task analyze --run-id latest --focus interactions
 **状态**: ✅ 完成
 
 #### 核心指标
+
 - 完成率: 92%
 - 平均时间: 145 秒
 - 错误率: 8%
 - 成功率: 92%
 
 #### 交互分析
+
 - 总点击数: 23
 - 总输入数: 12
 - 导航步骤: 5
 
 #### 任务难度
+
 - 难度指数: 6.5/10
 - 分类: 中等
 ```
@@ -125,9 +134,9 @@ import { UXQClient } from '@uxq/cli-client';
 
 test('task evaluation', async ({ page }) => {
   const uxq = new UXQClient();
-  
+
   await page.goto('https://shop.example.com/checkout');
-  
+
   const run = await uxq.task.evaluate({
     url: page.url(),
     task: {
@@ -139,7 +148,7 @@ test('task evaluation', async ({ page }) => {
       },
     },
   });
-  
+
   expect(run.metrics.completionRate).toBeGreaterThanOrEqual(0.9);
 });
 ```

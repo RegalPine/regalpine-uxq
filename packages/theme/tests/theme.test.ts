@@ -13,9 +13,7 @@ describe('@uxq/theme', () => {
       const config: ThemeConfig = {
         id: 'light',
         name: 'light',
-        tokens: [
-          { name: 'color-primary', value: '#007bff', type: 'color' },
-        ],
+        tokens: [{ name: 'color-primary', value: '#007bff', type: 'color' }],
       };
 
       const theme = manager.defineTheme(config);
@@ -58,10 +56,7 @@ describe('@uxq/theme', () => {
     });
 
     it('应该生成测试矩阵', () => {
-      const matrix = manager.generateMatrix(
-        ['light', 'dark'],
-        ['chromium', 'firefox', 'webkit'],
-      );
+      const matrix = manager.generateMatrix(['light', 'dark'], ['chromium', 'firefox', 'webkit']);
 
       expect(matrix.total).toBe(6);
       expect(matrix.enabled).toBe(6);
@@ -72,16 +67,12 @@ describe('@uxq/theme', () => {
       const baseConfig: ThemeConfig = {
         id: 'base',
         name: 'light',
-        tokens: [
-          { name: 'color-primary', value: '#007bff', type: 'color' },
-        ],
+        tokens: [{ name: 'color-primary', value: '#007bff', type: 'color' }],
       };
       const childConfig: ThemeConfig = {
         id: 'child',
         name: 'dark',
-        tokens: [
-          { name: 'color-secondary', value: '#6c757d', type: 'color' },
-        ],
+        tokens: [{ name: 'color-secondary', value: '#6c757d', type: 'color' }],
         extends: 'base',
       };
 

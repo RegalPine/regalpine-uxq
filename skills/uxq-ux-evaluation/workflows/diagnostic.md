@@ -20,11 +20,13 @@ uxq diagnostic analyze --run-id <id> --severity <severity-list>
 ```
 
 **Parameters:**
+
 - `--run-id`: Evaluation run ID
 - `--severity`: Severity levels (critical,high,moderate,low,info)
 - `--category`: Issue categories (task,cognition,a11y,color,geometry)
 
 **Example:**
+
 ```bash
 uxq diagnostic analyze \
   --run-id latest \
@@ -38,11 +40,13 @@ uxq diagnostic recommend --finding-ids <ids> --prioritize <strategy>
 ```
 
 **Parameters:**
+
 - `--finding-ids`: Comma-separated finding IDs (or "all")
 - `--prioritize`: Prioritization strategy (impact,effort,impact-effort)
 - `--limit`: Maximum recommendations (default: 10)
 
 **Example:**
+
 ```bash
 uxq diagnostic recommend \
   --finding-ids all \
@@ -57,11 +61,13 @@ uxq diagnostic plan --recommendations <ids> --timeline <timeline>
 ```
 
 **Parameters:**
+
 - `--recommendations`: Recommendation IDs
 - `--timeline**: Timeline phases (short,mid,long)
 - `--resources**: Available resources (team-size, budget)
 
 **Example:**
+
 ```bash
 uxq diagnostic plan \
   --recommendations rec-001,rec-002,rec-003 \
@@ -159,6 +165,7 @@ uxq diagnostic plan \
 ### 问题概览
 
 **总 Findings**: 15
+
 - 🔴 Critical: 0
 - 🟠 High: 2
 - 🟡 Moderate: 5
@@ -167,6 +174,7 @@ uxq diagnostic plan \
 ### 关键问题
 
 #### 1. 按钮对比度不足 (f-001)
+
 **严重性**: 🔴 Error
 **类别**: 可访问性
 **位置**: checkout 页面 - `.btn-secondary`
@@ -174,6 +182,7 @@ uxq diagnostic plan \
 **描述**: 次要按钮的对比度为 3.2:1，低于 WCAG AA 要求的 4.5:1
 
 **影响**:
+
 - 影响约 8% 的视力障碍用户
 - 影响结账流程的完成
 - 可能导致 2-3% 的转化率损失
@@ -187,22 +196,26 @@ uxq diagnostic plan \
 #### 高优先级
 
 ##### 1. 调整次要按钮颜色 (rec-001)
+
 **关联问题**: f-001
 **优先级**: 🔴 High
 
 **描述**: 将次要按钮颜色从 #999 改为 #666，使对比度达到 4.8:1
 
 **影响评估**:
+
 - 影响评分: 8.5/10
 - 用户影响: 改善 8% 用户的体验
 - 业务影响: 预期提升 1-2% 转化率
 
 **实施成本**:
+
 - 成本评分: 2/10
 - 预计时间: 2 小时
 - 复杂度: 低
 
 **实施步骤**:
+
 1. 修改 `design-tokens.json` 中的 `button-secondary-color`
 2. 更新组件库中的 Button 组件
 3. 运行视觉回归测试
@@ -215,16 +228,19 @@ uxq diagnostic plan \
 ### 改进路线图
 
 #### 短期 (2 周)
+
 - **建议**: rec-001, rec-002
 - **预期影响**: +5 points
 - **工作量**: 20 小时
 
 #### 中期 (8 周)
+
 - **建议**: rec-003, rec-004
 - **预期影响**: +12 points
 - **工作量**: 80 小时
 
 #### 长期 (16 周)
+
 - **建议**: rec-005
 - **预期影响**: +8 points
 - **工作量**: 120 小时
@@ -281,7 +297,7 @@ console.log(`Found ${diagnosis.findings.length} issues`);
 
 // Generate recommendations
 const recommendations = await uxq.diagnostic.recommend({
-  findingIds: diagnosis.findings.map(f => f.id),
+  findingIds: diagnosis.findings.map((f) => f.id),
   prioritize: 'impact-effort',
   limit: 5,
 });
@@ -291,7 +307,7 @@ console.log(`Expected impact: ${recommendations[0].impact.score}/10`);
 
 // Create improvement plan
 const plan = await uxq.diagnostic.plan({
-  recommendations: recommendations.map(r => r.id),
+  recommendations: recommendations.map((r) => r.id),
   timeline: 'short,mid',
 });
 

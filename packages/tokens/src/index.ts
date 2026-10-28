@@ -12,7 +12,8 @@
 /**
  * Design Token 类型
  */
-export type TokenType = 'color' | 'spacing' | 'typography' | 'border' | 'shadow' | 'opacity' | 'size' | 'time';
+export type TokenType =
+  'color' | 'spacing' | 'typography' | 'border' | 'shadow' | 'opacity' | 'size' | 'time';
 
 /**
  * Design Token 定义
@@ -300,7 +301,11 @@ export class TokenValidator {
 
     // 检查引用
     for (const token of tokens) {
-      if (typeof token.value === 'string' && token.value.startsWith('{') && token.value.endsWith('}')) {
+      if (
+        typeof token.value === 'string' &&
+        token.value.startsWith('{') &&
+        token.value.endsWith('}')
+      ) {
         const ref = token.value.slice(1, -1);
         if (!names.has(ref)) {
           result.warnings.push({
@@ -434,7 +439,10 @@ export class TokenRegistry {
           type: 'added',
           current: currentToken,
         });
-      } else if (baselineToken.value !== currentToken.value || baselineToken.type !== currentToken.type) {
+      } else if (
+        baselineToken.value !== currentToken.value ||
+        baselineToken.type !== currentToken.type
+      ) {
         diffs.push({
           name,
           type: 'modified',

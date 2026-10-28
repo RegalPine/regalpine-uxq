@@ -20,12 +20,14 @@ uxq research import --source <file> --format <format>
 ```
 
 **Parameters:**
+
 - `--source`: Data source file path
 - `--format`: File format (csv, json, excel)
 - `--study`: Study identifier
 - `--metadata`: Study metadata (JSON)
 
 **Example:**
+
 ```bash
 uxq research import \
   --source data/usability-test.csv \
@@ -40,11 +42,13 @@ uxq research code --data <file> --method <coding-method>
 ```
 
 **Parameters:**
+
 - `--data`: Data file to code
 - `--method`: Coding method (thematic,grounded,affinity)
 - `--codes`: Predefined codes (comma-separated)
 
 **Example:**
+
 ```bash
 uxq research code \
   --data data/interviews.csv \
@@ -59,11 +63,13 @@ uxq research synthesize --studies <study-ids> --output <file>
 ```
 
 **Parameters:**
+
 - `--studies`: Comma-separated study IDs
 - `--output`: Output file path
 - `--format`: Output format (markdown, pdf, html)
 
 **Example:**
+
 ```bash
 uxq research synthesize \
   --studies usability-oct-2026,survey-q3,interviews-2026 \
@@ -77,11 +83,13 @@ uxq research link --study <study-id> --evaluation-run <run-id>
 ```
 
 **Parameters:**
+
 - `--study`: Research study ID
 - `--evaluation-run`: UXQ evaluation run ID
 - `--correlation`: Correlation type (supports,contradicts,context)
 
 **Example:**
+
 ```bash
 uxq research link \
   --study usability-oct-2026 \
@@ -122,10 +130,7 @@ uxq research link \
         "codes": ["frustration", "confusion"],
         "frequency": 8,
         "impact": "high",
-        "recommendations": [
-          "简化表单字段",
-          "提供进度指示"
-        ]
+        "recommendations": ["简化表单字段", "提供进度指示"]
       }
     ],
     "synthesis": {
@@ -144,12 +149,14 @@ uxq research link \
 # 用户研究综合报告
 
 ## 研究概览
+
 - **研究数量**: 3
 - **总参与者**: 25
 - **关键发现**: 12
 - **可操作洞察**: 8
 
 ## 量化发现
+
 - 任务完成率: 92%
 - 平均任务时间: 145 秒
 - 用户满意度: 4.2/5
@@ -158,6 +165,7 @@ uxq research link \
 ## 定性主题
 
 ### 主题 1: 支付流程复杂
+
 - **提及频率**: 8/10 用户
 - **情感倾向**: 负面
 - **相关指标**: 认知负担 +15%
@@ -166,6 +174,7 @@ uxq research link \
   > "我担心填错了"
 
 ### 主题 2: 表单字段过多
+
 - **提及频率**: 6/10 用户
 - **情感倾向**: 负面
 - **相关指标**: 任务时间 +20s
@@ -174,6 +183,7 @@ uxq research link \
   > "有些字段我不知道怎么填"
 
 ### 主题 3: 进度指示清晰
+
 - **提及频率**: 7/10 用户
 - **情感倾向**: 正面
 - **相关指标**: 认知负担 -10%
@@ -183,15 +193,16 @@ uxq research link \
 
 ## 定量-定性关联
 
-| 定性主题 | 量化指标 | 关联性 |
-|---------|---------|--------|
-| 支付流程复杂 | 认知负担 +15% | 强相关 |
+| 定性主题     | 量化指标      | 关联性   |
+| ------------ | ------------- | -------- |
+| 支付流程复杂 | 认知负担 +15% | 强相关   |
 | 表单字段过多 | 任务时间 +20s | 中等相关 |
-| 进度指示清晰 | 认知负担 -10% | 强相关 |
+| 进度指示清晰 | 认知负担 -10% | 强相关   |
 
 ## 改进建议
 
 ### 高优先级
+
 1. **简化支付表单**
    - 减少必填字段从 12 个到 6 个
    - 提供地址自动填充
@@ -203,12 +214,14 @@ uxq research link \
    - 预期影响: 错误率 -30%
 
 ### 中优先级
+
 3. **增加帮助提示**
    - 为复杂字段提供说明
    - 使用图标和提示文字
    - 预期影响: 用户满意度 +0.5
 
 ### 低优先级
+
 4. **个性化流程**
    - 根据用户类型调整流程
    - 保存常用信息
@@ -218,24 +231,28 @@ uxq research link \
 ## Research Methods
 
 ### Usability Testing
+
 - Task-based evaluation
 - Think-aloud protocol
 - Observation and note-taking
 - Metrics: completion rate, time-on-task, errors
 
 ### User Interviews
+
 - Semi-structured interviews
 - Open-ended questions
 - Qualitative coding
 - Themes and patterns
 
 ### Surveys
+
 - Likert scales
 - Net Promoter Score (NPS)
 - System Usability Scale (SUS)
 - Quantitative analysis
 
 ### Field Studies
+
 - Contextual inquiry
 - Ethnographic observation
 - Real-world usage

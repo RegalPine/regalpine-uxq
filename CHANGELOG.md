@@ -8,6 +8,7 @@
 ## [Unreleased]
 
 ### 新增
+
 - 完整的 16 维度 UX 评价能力
 - pnpm monorepo 架构支持
 - 21 个核心领域包
@@ -26,6 +27,7 @@
 - CONTRIBUTING.md 贡献指南
 
 ### 技术栈
+
 - Node.js 24.x
 - TypeScript 5.9.x
 - pnpm 10.x

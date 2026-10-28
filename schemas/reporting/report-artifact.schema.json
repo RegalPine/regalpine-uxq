@@ -233,12 +233,7 @@
           "$ref": "#/$defs/Text"
         }
       },
-      "required": [
-        "path",
-        "digest",
-        "bytes",
-        "mediaType"
-      ]
+      "required": ["path", "digest", "bytes", "mediaType"]
     }
   }
 }

@@ -91,10 +91,7 @@
           ]
         }
       },
-      "required": [
-        "stepId",
-        "contract"
-      ]
+      "required": ["stepId", "contract"]
     },
     "PlannedStep": {
       "type": "object",
@@ -245,10 +242,7 @@
           "default": 2000
         },
         "backoff": {
-          "enum": [
-            "FIXED",
-            "EXPONENTIAL"
-          ],
+          "enum": ["FIXED", "EXPONENTIAL"],
           "default": "FIXED"
         },
         "failureMode": {
@@ -256,11 +250,7 @@
           "default": "CONTINUE_INDEPENDENT_STEPS"
         },
         "browser": {
-          "enum": [
-            "chromium",
-            "firefox",
-            "webkit"
-          ],
+          "enum": ["chromium", "firefox", "webkit"],
           "default": "chromium"
         },
         "viewport": {
@@ -276,10 +266,7 @@
           "default": "zh-CN"
         },
         "colorScheme": {
-          "enum": [
-            "light",
-            "dark"
-          ],
+          "enum": ["light", "dark"],
           "default": "light"
         },
         "allowedOrigins": {
@@ -445,19 +432,10 @@
           "$ref": "#/$defs/ExecutionProfile/properties/maxDelayMs"
         },
         "backoff": {
-          "enum": [
-            "FIXED",
-            "EXPONENTIAL"
-          ]
+          "enum": ["FIXED", "EXPONENTIAL"]
         }
       },
-      "required": [
-        "maxAttempts",
-        "retryableErrorCodes",
-        "initialDelayMs",
-        "maxDelayMs",
-        "backoff"
-      ]
+      "required": ["maxAttempts", "retryableErrorCodes", "initialDelayMs", "maxDelayMs", "backoff"]
     },
     "Viewport": {
       "type": "object",
@@ -474,10 +452,7 @@
           "maximum": 4320
         }
       },
-      "required": [
-        "width",
-        "height"
-      ]
+      "required": ["width", "height"]
     }
   }
 }

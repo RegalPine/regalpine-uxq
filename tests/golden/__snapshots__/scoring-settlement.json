@@ -16,20 +16,10 @@
     "scored": 1,
     "ratio": 1
   },
-  "metricResultIds": [
-    "mr-001",
-    "mr-002"
-  ],
-  "ruleResultIds": [
-    "rr-001"
-  ],
-  "scoreResultIds": [
-    "score-<UUID>",
-    "score-<UUID>"
-  ],
-  "dimensionResultIds": [
-    "dimension-<UUID>"
-  ],
+  "metricResultIds": ["mr-001", "mr-002"],
+  "ruleResultIds": ["rr-001"],
+  "scoreResultIds": ["score-<UUID>", "score-<UUID>"],
+  "dimensionResultIds": ["dimension-<UUID>"],
   "findingIds": [],
   "evidenceIds": [],
   "constraints": [

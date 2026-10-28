@@ -57,43 +57,43 @@ UXQ 采用 pnpm monorepo 架构，包含以下组件：
 
 ### 核心包 (`packages/`)
 
-| 包名 | 说明 |
-|------|------|
-| `@uxq/core` | 核心标识符和基础工具 |
-| `@uxq/contracts` | 领域契约和类型定义 |
-| `@uxq/execution` | 评价执行引擎 |
-| `@uxq/measurement` | 指标测量 |
-| `@uxq/scoring` | 评分计算 |
-| `@uxq/rules` | 规则引擎 |
-| `@uxq/evidence` | 证据管理 |
-| `@uxq/diagnostic` | 诊断和 Finding 生成 |
-| `@uxq/regression` | 回归分析 |
-| `@uxq/reporting` | 报告生成 |
-| `@uxq/tasks` | 任务定义和执行 |
-| `@uxq/cognition` | 认知负荷测量 |
-| `@uxq/accessibility` | 可访问性评估 |
-| `@uxq/research` | 用户研究集成 |
-| `@uxq/theme` | 主题评价 |
-| `@uxq/tokens` | 设计令牌检查 |
-| `@uxq/metrics` | UX 指标 |
-| `@uxq/geometry` | 几何测量 |
-| `@uxq/color` | 色彩分析 |
-| `@uxq/browser` | 浏览器自动化 |
-| `@uxq/conformance` | 符合性检查 |
+| 包名                 | 说明                 |
+| -------------------- | -------------------- |
+| `@uxq/core`          | 核心标识符和基础工具 |
+| `@uxq/contracts`     | 领域契约和类型定义   |
+| `@uxq/execution`     | 评价执行引擎         |
+| `@uxq/measurement`   | 指标测量             |
+| `@uxq/scoring`       | 评分计算             |
+| `@uxq/rules`         | 规则引擎             |
+| `@uxq/evidence`      | 证据管理             |
+| `@uxq/diagnostic`    | 诊断和 Finding 生成  |
+| `@uxq/regression`    | 回归分析             |
+| `@uxq/reporting`     | 报告生成             |
+| `@uxq/tasks`         | 任务定义和执行       |
+| `@uxq/cognition`     | 认知负荷测量         |
+| `@uxq/accessibility` | 可访问性评估         |
+| `@uxq/research`      | 用户研究集成         |
+| `@uxq/theme`         | 主题评价             |
+| `@uxq/tokens`        | 设计令牌检查         |
+| `@uxq/metrics`       | UX 指标              |
+| `@uxq/geometry`      | 几何测量             |
+| `@uxq/color`         | 色彩分析             |
+| `@uxq/browser`       | 浏览器自动化         |
+| `@uxq/conformance`   | 符合性检查           |
 
 ### 应用 (`apps/`)
 
-| 应用 | 说明 |
-|------|------|
-| `apps/cli` | 命令行评价工具 |
-| `apps/inspector` | 交互式结果查看器 |
+| 应用              | 说明             |
+| ----------------- | ---------------- |
+| `apps/cli`        | 命令行评价工具   |
+| `apps/inspector`  | 交互式结果查看器 |
 | `apps/playground` | 评价策略演示环境 |
-| `apps/reference` | 参考实现和示例 |
+| `apps/reference`  | 参考实现和示例   |
 
 ### 集成 (`integrations/`)
 
-| 集成 | 说明 |
-|------|------|
+| 集成                 | 说明                |
+| -------------------- | ------------------- |
 | `integrations/radix` | Radix UI 组件库集成 |
 
 ## 🛠️ 开发

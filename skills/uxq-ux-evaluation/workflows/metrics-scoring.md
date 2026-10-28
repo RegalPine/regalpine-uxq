@@ -20,11 +20,13 @@ uxq metrics calculate --run-id <id> --metrics <metric-list>
 ```
 
 **Parameters:**
+
 - `--run-id`: Evaluation run ID
 - `--metrics`: Metrics to calculate (all,task,cognition,a11y,color,geometry)
 - `--confidence`: Confidence level (default: 0.95)
 
 **Example:**
+
 ```bash
 uxq metrics calculate --run-id latest --metrics all
 ```
@@ -36,11 +38,13 @@ uxq scoring compute --run-id <id> --weights <weight-config>
 ```
 
 **Parameters:**
+
 - `--run-id`: Evaluation run ID
 - `--weights`: Dimension weights (format: task:0.4,cognition:0.3,a11y:0.3)
 - `--normalize`: Normalize scores to 0-100 (default: true)
 
 **Example:**
+
 ```bash
 uxq scoring compute \
   --run-id latest \
@@ -54,11 +58,13 @@ uxq scoring benchmark --run-id <id> --industry <sector>
 ```
 
 **Parameters:**
+
 - `--run-id`: Evaluation run ID
 - `--industry`: Industry sector (ecommerce,saas,finance,healthcare)
 - `--percentile`: Target percentile (50, 75, 90)
 
 **Example:**
+
 ```bash
 uxq scoring benchmark \
   --run-id latest \
@@ -151,20 +157,22 @@ uxq scoring benchmark \
 ## UX 指标与评分报告
 
 ### 总体评分: 78/100
+
 **置信区间**: [74.2, 81.8] (95% 置信度)
 
 #### 维度分解
 
-| 维度 | 得分 | 权重 | 加权得分 |
-|------|------|------|---------|
-| 任务完成 | 85 | 40% | 34.0 |
-| 认知负担 | 72 | 30% | 21.6 |
-| 可访问性 | 76 | 30% | 22.8 |
-| **总计** | - | 100% | **78.4** |
+| 维度     | 得分 | 权重 | 加权得分 |
+| -------- | ---- | ---- | -------- |
+| 任务完成 | 85   | 40%  | 34.0     |
+| 认知负担 | 72   | 30%  | 21.6     |
+| 可访问性 | 76   | 30%  | 22.8     |
+| **总计** | -    | 100% | **78.4** |
 
 ### 详细指标
 
 #### 任务指标
+
 - 完成率: 92%
 - 平均时间: 145 秒
 - 错误率: 8%
@@ -172,12 +180,14 @@ uxq scoring benchmark \
 - 效率: 85%
 
 #### 认知负担指标
+
 - NASA-TLX: 33.6/54
 - 信息复杂度: 68%
 - 清晰度: 82%
 - 认知需求: 6.2/10
 
 #### 可访问性指标
+
 - WCAG 符合度: 89%
 - 屏幕阅读器兼容性: 82%
 - 键盘可导航性: 91%
@@ -188,9 +198,9 @@ uxq scoring benchmark \
 **行业**: 电商
 **百分位**: 75th
 
-| 指标 | 你的得分 | 行业中位数 | 行业 P75 | 行业 P90 |
-|------|---------|-----------|---------|---------|
-| UX 评分 | 78 | 72 | 76 | 85 |
+| 指标    | 你的得分 | 行业中位数 | 行业 P75 | 行业 P90 |
+| ------- | -------- | ---------- | -------- | -------- |
+| UX 评分 | 78       | 72         | 76       | 85       |
 
 **排名**: 高于平均 (68th 百分位)
 ```
@@ -210,6 +220,7 @@ CI = Score ± Z × (σ / √n)
 ```
 
 Where:
+
 - Z = Z-score for confidence level (1.96 for 95%)
 - σ = Standard deviation
 - n = Sample size
@@ -239,7 +250,7 @@ const metrics = await uxq.metrics.calculate({
 const score = await uxq.scoring.compute({
   runId: 'latest',
   weights: {
-    task: 0.5,      // Prioritize task completion
+    task: 0.5, // Prioritize task completion
     cognition: 0.2, // Lower weight for cognition
     accessibility: 0.3, // Standard accessibility weight
   },

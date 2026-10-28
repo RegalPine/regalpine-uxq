@@ -85,16 +85,43 @@ describe('可访问性检查', () => {
 
     const result = validateAccessibilityCheck(check);
     expect(result.valid).toBe(false);
-    expect(result.issues.some(i => i.includes('辅助技术'))).toBe(true);
+    expect(result.issues.some((i) => i.includes('辅助技术'))).toBe(true);
   });
 });
 
 describe('可访问性报告', () => {
   it('创建合规报告', () => {
     const checks = [
-      createAccessibilityCheck(newId('run') as Id<'run'>, 'page-1', '1.1.1', 'AUTOMATED', 'PASS', 'MINOR', '通过', fixedTime),
-      createAccessibilityCheck(newId('run') as Id<'run'>, 'page-1', '1.3.1', 'MANUAL', 'PASS', 'MINOR', '通过', fixedTime),
-      createAccessibilityCheck(newId('run') as Id<'run'>, 'page-1', '2.1.1', 'AUTOMATED', 'PASS', 'MINOR', '通过', fixedTime),
+      createAccessibilityCheck(
+        newId('run') as Id<'run'>,
+        'page-1',
+        '1.1.1',
+        'AUTOMATED',
+        'PASS',
+        'MINOR',
+        '通过',
+        fixedTime,
+      ),
+      createAccessibilityCheck(
+        newId('run') as Id<'run'>,
+        'page-1',
+        '1.3.1',
+        'MANUAL',
+        'PASS',
+        'MINOR',
+        '通过',
+        fixedTime,
+      ),
+      createAccessibilityCheck(
+        newId('run') as Id<'run'>,
+        'page-1',
+        '2.1.1',
+        'AUTOMATED',
+        'PASS',
+        'MINOR',
+        '通过',
+        fixedTime,
+      ),
     ];
 
     const report = createAccessibilityReport(
@@ -118,8 +145,29 @@ describe('可访问性报告', () => {
 
   it('创建不合规报告', () => {
     const checks = [
-      createAccessibilityCheck(newId('run') as Id<'run'>, 'page-1', '1.1.1', 'AUTOMATED', 'PASS', 'MINOR', '通过', fixedTime),
-      createAccessibilityCheck(newId('run') as Id<'run'>, 'page-1', '1.3.1', 'MANUAL', 'FAIL', 'SERIOUS', '失败', fixedTime, undefined, undefined, '添加替代文本'),
+      createAccessibilityCheck(
+        newId('run') as Id<'run'>,
+        'page-1',
+        '1.1.1',
+        'AUTOMATED',
+        'PASS',
+        'MINOR',
+        '通过',
+        fixedTime,
+      ),
+      createAccessibilityCheck(
+        newId('run') as Id<'run'>,
+        'page-1',
+        '1.3.1',
+        'MANUAL',
+        'FAIL',
+        'SERIOUS',
+        '失败',
+        fixedTime,
+        undefined,
+        undefined,
+        '添加替代文本',
+      ),
     ];
 
     const report = createAccessibilityReport(
@@ -138,7 +186,16 @@ describe('可访问性报告', () => {
 
   it('生成摘要', () => {
     const checks = [
-      createAccessibilityCheck(newId('run') as Id<'run'>, 'page-1', '1.1.1', 'AUTOMATED', 'PASS', 'MINOR', '通过', fixedTime),
+      createAccessibilityCheck(
+        newId('run') as Id<'run'>,
+        'page-1',
+        '1.1.1',
+        'AUTOMATED',
+        'PASS',
+        'MINOR',
+        '通过',
+        fixedTime,
+      ),
     ];
 
     const report = createAccessibilityReport(
@@ -161,11 +218,11 @@ describe('可访问性报告', () => {
 describe('WCAG 准则', () => {
   it('WCAG 2.1 AA 准则列表', () => {
     expect(WCAG_21_AA_CRITERIA.length).toBeGreaterThan(0);
-    expect(WCAG_21_AA_CRITERIA.every(c => c.id && c.level && c.name)).toBe(true);
-    
-    const aLevelCriteria = WCAG_21_AA_CRITERIA.filter(c => c.level === 'A');
-    const aaLevelCriteria = WCAG_21_AA_CRITERIA.filter(c => c.level === 'AA');
-    
+    expect(WCAG_21_AA_CRITERIA.every((c) => c.id && c.level && c.name)).toBe(true);
+
+    const aLevelCriteria = WCAG_21_AA_CRITERIA.filter((c) => c.level === 'A');
+    const aaLevelCriteria = WCAG_21_AA_CRITERIA.filter((c) => c.level === 'AA');
+
     expect(aLevelCriteria.length).toBeGreaterThan(0);
     expect(aaLevelCriteria.length).toBeGreaterThan(0);
   });

@@ -28,7 +28,12 @@ import {
   createVerificationResult,
   createFindingHistory,
 } from '@uxq/diagnostic';
-import type { Finding, FindingLifecycleStatus, VerificationPlan, VerificationResult } from '@uxq/contracts';
+import type {
+  Finding,
+  FindingLifecycleStatus,
+  VerificationPlan,
+  VerificationResult,
+} from '@uxq/contracts';
 import type { Comparability, EvaluationPlan, EvaluationResult } from '@uxq/contracts';
 import { runConformanceCheck, renderConformanceMarkdown } from '@uxq/conformance';
 
@@ -515,107 +520,126 @@ async function cmdInspect(positional: string[], options: CliOptions): Promise<nu
   }
 
   if (subCommand === 'evidence') {
-    output({
-      runId,
-      evidence: stored.evidence.map((e) => ({
-        id: e.id,
-        sourceCategory: e.sourceCategory,
-        materialType: e.materialType,
-        sourceMethod: e.sourceMethod,
-        lifecycle: e.lifecycle,
-        validity: e.validity,
-        summary: e.summary,
-        observedAt: e.observedAt,
-        privacy: e.privacy,
-        limitations: e.limitations,
-      })),
-      count: stored.evidence.length,
-    }, options.json);
+    output(
+      {
+        runId,
+        evidence: stored.evidence.map((e) => ({
+          id: e.id,
+          sourceCategory: e.sourceCategory,
+          materialType: e.materialType,
+          sourceMethod: e.sourceMethod,
+          lifecycle: e.lifecycle,
+          validity: e.validity,
+          summary: e.summary,
+          observedAt: e.observedAt,
+          privacy: e.privacy,
+          limitations: e.limitations,
+        })),
+        count: stored.evidence.length,
+      },
+      options.json,
+    );
     return 0;
   }
 
   if (subCommand === 'metrics') {
-    output({
-      runId,
-      metrics: stored.metrics.map((m) => ({
-        id: m.id,
-        metricId: m.metricId,
-        status: m.status,
-        ...(m.status === 'MEASURED' ? { value: m.value } : { reason: m.reason }),
-        sampleCount: m.sampleCount,
-        excludedSampleIds: m.excludedSampleIds,
-        evidenceIds: m.evidenceIds,
-        limitations: m.limitations,
-      })),
-      count: stored.metrics.length,
-    }, options.json);
+    output(
+      {
+        runId,
+        metrics: stored.metrics.map((m) => ({
+          id: m.id,
+          metricId: m.metricId,
+          status: m.status,
+          ...(m.status === 'MEASURED' ? { value: m.value } : { reason: m.reason }),
+          sampleCount: m.sampleCount,
+          excludedSampleIds: m.excludedSampleIds,
+          evidenceIds: m.evidenceIds,
+          limitations: m.limitations,
+        })),
+        count: stored.metrics.length,
+      },
+      options.json,
+    );
     return 0;
   }
 
   if (subCommand === 'rules') {
-    output({
-      runId,
-      rules: stored.rules.map((r) => ({
-        id: r.id,
-        ruleId: r.ruleId,
-        executionStatus: r.executionStatus,
-        outcome: r.outcome,
-        evidenceIds: r.evidenceIds,
-        reason: r.reason,
-      })),
-      count: stored.rules.length,
-    }, options.json);
+    output(
+      {
+        runId,
+        rules: stored.rules.map((r) => ({
+          id: r.id,
+          ruleId: r.ruleId,
+          executionStatus: r.executionStatus,
+          outcome: r.outcome,
+          evidenceIds: r.evidenceIds,
+          reason: r.reason,
+        })),
+        count: stored.rules.length,
+      },
+      options.json,
+    );
     return 0;
   }
 
   if (subCommand === 'steps') {
-    output({
-      runId,
-      steps: stored.steps.map((s) => ({
-        stepId: s.stepId,
-        status: s.status,
-        attemptIds: s.attemptIds,
-        startedAt: s.startedAt,
-        endedAt: s.endedAt,
-        outputIds: s.outputIds,
-      })),
-      attempts: stored.attempts.map((a) => ({
-        stepId: a.stepId,
-        number: a.number,
-        status: a.status,
-        startedAt: a.startedAt,
-        endedAt: a.endedAt,
-        durationMs: a.durationMs,
-      })),
-      count: stored.steps.length,
-    }, options.json);
+    output(
+      {
+        runId,
+        steps: stored.steps.map((s) => ({
+          stepId: s.stepId,
+          status: s.status,
+          attemptIds: s.attemptIds,
+          startedAt: s.startedAt,
+          endedAt: s.endedAt,
+          outputIds: s.outputIds,
+        })),
+        attempts: stored.attempts.map((a) => ({
+          stepId: a.stepId,
+          number: a.number,
+          status: a.status,
+          startedAt: a.startedAt,
+          endedAt: a.endedAt,
+          durationMs: a.durationMs,
+        })),
+        count: stored.steps.length,
+      },
+      options.json,
+    );
     return 0;
   }
 
   if (subCommand === 'evaluation') {
-    output({
-      runId,
-      evaluations: stored.evaluations,
-      definition: {
-        id: stored.definition.id,
-        name: stored.definition.name,
-        version: stored.definition.definitionVersion,
-        dimensions: stored.definition.dimensions,
-        methods: stored.definition.methods,
-        metricCount: stored.definition.metrics.length,
-        ruleCount: stored.definition.rules.length,
+    output(
+      {
+        runId,
+        evaluations: stored.evaluations,
+        definition: {
+          id: stored.definition.id,
+          name: stored.definition.name,
+          version: stored.definition.definitionVersion,
+          dimensions: stored.definition.dimensions,
+          methods: stored.definition.methods,
+          metricCount: stored.definition.metrics.length,
+          ruleCount: stored.definition.rules.length,
+        },
+        policy: {
+          id: stored.definition.policy.id,
+          name: stored.definition.policy.name,
+          version: stored.definition.policy.version,
+          mode: stored.definition.policy.mode,
+        },
       },
-      policy: {
-        id: stored.definition.policy.id,
-        name: stored.definition.policy.name,
-        version: stored.definition.policy.version,
-        mode: stored.definition.policy.mode,
-      },
-    }, options.json);
+      options.json,
+    );
     return 0;
   }
 
-  throw new UxqError('INVALID_SUBCOMMAND', `未知检查子命令：${subCommand}，可用：evidence|metrics|rules|steps|evaluation`, 'INPUT');
+  throw new UxqError(
+    'INVALID_SUBCOMMAND',
+    `未知检查子命令：${subCommand}，可用：evidence|metrics|rules|steps|evaluation`,
+    'INPUT',
+  );
 }
 
 async function cmdCancel(positional: string[], options: CliOptions): Promise<number> {
@@ -687,7 +711,8 @@ async function cmdReport(positional: string[], options: CliOptions): Promise<num
 
 async function cmdBaseline(positional: string[], options: CliOptions): Promise<number> {
   const action = positional[0];
-  if (!action) throw new UxqError('MISSING_ACTION', '请指定基线操作：create|update|list|delete', 'INPUT');
+  if (!action)
+    throw new UxqError('MISSING_ACTION', '请指定基线操作：create|update|list|delete', 'INPUT');
 
   const store = createInMemoryBaselineStore(systemClock);
 
@@ -700,15 +725,23 @@ async function cmdBaseline(positional: string[], options: CliOptions): Promise<n
   if (action === 'create') {
     const name = positional[1];
     const runId = positional[2];
-    if (!name || !runId) throw new UxqError('MISSING_ARGS', '用法：baseline create <name> <run-id>', 'INPUT');
-    
+    if (!name || !runId)
+      throw new UxqError('MISSING_ARGS', '用法：baseline create <name> <run-id>', 'INPUT');
+
     const runStore = await openLocalStore(options.root, systemClock);
     const stored = await runStore.loadRun(runId);
     const plan = compilePlan({ definition: stored.definition });
     const evaluation = stored.evaluations[0];
     if (!evaluation) throw new UxqError('NO_EVALUATION', '运行尚未产生评价结果', 'EXECUTION');
-    const baseline = store.createBaseline(name, runId, stored.run, plan, stored.context, evaluation);
-    
+    const baseline = store.createBaseline(
+      name,
+      runId,
+      stored.run,
+      plan,
+      stored.context,
+      evaluation,
+    );
+
     output({ baseline, message: `基线 ${name} 已创建` }, options.json);
     return 0;
   }
@@ -716,7 +749,7 @@ async function cmdBaseline(positional: string[], options: CliOptions): Promise<n
   if (action === 'delete') {
     const name = positional[1];
     if (!name) throw new UxqError('MISSING_NAME', '用法：baseline delete <name>', 'INPUT');
-    
+
     store.deleteBaseline(name);
     output({ message: `基线 ${name} 已删除` }, options.json);
     return 0;
@@ -728,14 +761,20 @@ async function cmdBaseline(positional: string[], options: CliOptions): Promise<n
 async function cmdCompare(positional: string[], options: CliOptions): Promise<number> {
   const runId = positional[0];
   const baselineName = positional[1] ?? 'default';
-  
+
   if (!runId) throw new UxqError('MISSING_RUN', '用法：compare <run-id> [baseline-name]', 'INPUT');
 
   const store = createInMemoryBaselineStore(systemClock);
   const baseline = store.getBaseline(baselineName);
-  
+
   if (!baseline) {
-    output({ error: `基线 ${baselineName} 不存在`, message: '请先创建基线：uxq baseline create <name> <run-id>' }, options.json);
+    output(
+      {
+        error: `基线 ${baselineName} 不存在`,
+        message: '请先创建基线：uxq baseline create <name> <run-id>',
+      },
+      options.json,
+    );
     return 2;
   }
 
@@ -768,21 +807,25 @@ async function cmdCompare(positional: string[], options: CliOptions): Promise<nu
   };
   const comparison = compareRuns(baselineInput, currentInput);
 
-  output({
-    baseline: baselineName,
-    currentRun: runId,
-    comparability: comparison.comparability,
-    dimensions: comparison.dimensions,
-    scoreDelta: comparison.scoreDelta,
-    caveats: comparison.caveats,
-  }, options.json);
-  
+  output(
+    {
+      baseline: baselineName,
+      currentRun: runId,
+      comparability: comparison.comparability,
+      dimensions: comparison.dimensions,
+      scoreDelta: comparison.scoreDelta,
+      caveats: comparison.caveats,
+    },
+    options.json,
+  );
+
   return 0;
 }
 
 async function cmdFinding(positional: string[], options: CliOptions): Promise<number> {
   const action = positional[0];
-  if (!action) throw new UxqError('MISSING_ACTION', '请指定 Finding 操作：list|transition', 'INPUT');
+  if (!action)
+    throw new UxqError('MISSING_ACTION', '请指定 Finding 操作：list|transition', 'INPUT');
 
   if (action === 'list') {
     const runId = positional[1];
@@ -790,13 +833,16 @@ async function cmdFinding(positional: string[], options: CliOptions): Promise<nu
 
     const runStore = await openLocalStore(options.root, systemClock);
     const stored = await runStore.loadRun(runId);
-    
+
     const findingIds = stored.evaluations.flatMap((e) => e.findingIds);
-    output({
-      runId,
-      findingIds,
-      count: findingIds.length,
-    }, options.json);
+    output(
+      {
+        runId,
+        findingIds,
+        count: findingIds.length,
+      },
+      options.json,
+    );
     return 0;
   }
 
@@ -805,8 +851,10 @@ async function cmdFinding(positional: string[], options: CliOptions): Promise<nu
 
 async function cmdSettle(positional: string[], options: CliOptions): Promise<number> {
   const runId = positional[0];
-  if (!runId) throw new UxqError('MISSING_RUN', '用法：settle <run-id> --policy <policy-file>', 'INPUT');
-  if (!options.policy) throw new UxqError('MISSING_POLICY', 'settle 需要 --policy 指定评分策略文件', 'INPUT');
+  if (!runId)
+    throw new UxqError('MISSING_RUN', '用法：settle <run-id> --policy <policy-file>', 'INPUT');
+  if (!options.policy)
+    throw new UxqError('MISSING_POLICY', 'settle 需要 --policy 指定评分策略文件', 'INPUT');
 
   const runStore = await openLocalStore(options.root, systemClock);
   const stored = await runStore.loadRun(runId);
@@ -819,22 +867,23 @@ async function cmdSettle(positional: string[], options: CliOptions): Promise<num
   const ruleResults = stored.rules;
 
   // Aggregate dimensions from existing scores
-  const dimensions: DimensionResult[] = stored.evaluations.length > 0
-    ? policy.dimensions.map((dim) => ({
-        id: newId('dim') as import('@uxq/contracts').Id,
-        schemaVersion: '1.0.0' as const,
-        createdAt: systemClock.now(),
-        status: 'SCORED' as const,
-        value: 75,
-        runId: runId as import('@uxq/contracts').Id,
-        dimensionId: dim.dimensionId,
-        scoreResultIds: [] as import('@uxq/contracts').IdList,
-        excludedMetricIds: [] as import('@uxq/contracts').IdList,
-        coverage: { planned: 1, applicable: 1, measured: 1, scored: 1, ratio: 1 },
-        weight: dim.weight,
-        limitations: ['重结算近似值'] as import('@uxq/contracts').TextList,
-      }))
-    : [];
+  const dimensions: DimensionResult[] =
+    stored.evaluations.length > 0
+      ? policy.dimensions.map((dim) => ({
+          id: newId('dim') as import('@uxq/contracts').Id,
+          schemaVersion: '1.0.0' as const,
+          createdAt: systemClock.now(),
+          status: 'SCORED' as const,
+          value: 75,
+          runId: runId as import('@uxq/contracts').Id,
+          dimensionId: dim.dimensionId,
+          scoreResultIds: [] as import('@uxq/contracts').IdList,
+          excludedMetricIds: [] as import('@uxq/contracts').IdList,
+          coverage: { planned: 1, applicable: 1, measured: 1, scored: 1, ratio: 1 },
+          weight: dim.weight,
+          limitations: ['重结算近似值'] as import('@uxq/contracts').TextList,
+        }))
+      : [];
 
   const evaluation = settleEvaluation(
     policy,
@@ -845,26 +894,30 @@ async function cmdSettle(positional: string[], options: CliOptions): Promise<num
     systemClock.now(),
   );
 
-  output({
-    runId,
-    evaluation: {
-      id: evaluation.id,
-      evaluationStatus: evaluation.evaluationStatus,
-      overallOutcome: evaluation.overallOutcome,
-      overallScore: evaluation.overallScore,
-      coverage: evaluation.coverage,
-      constraints: evaluation.constraints,
-      limitations: evaluation.limitations,
+  output(
+    {
+      runId,
+      evaluation: {
+        id: evaluation.id,
+        evaluationStatus: evaluation.evaluationStatus,
+        overallOutcome: evaluation.overallOutcome,
+        overallScore: evaluation.overallScore,
+        coverage: evaluation.coverage,
+        constraints: evaluation.constraints,
+        limitations: evaluation.limitations,
+      },
+      message: '重新结算完成，新评价结果已生成（未写入存储）',
     },
-    message: '重新结算完成，新评价结果已生成（未写入存储）',
-  }, options.json);
+    options.json,
+  );
 
   return 0;
 }
 
 async function cmdQualityGate(positional: string[], options: CliOptions): Promise<number> {
   const runId = positional[0];
-  if (!runId) throw new UxqError('MISSING_RUN', '用法：quality-gate <run-id> [--gate <file>]', 'INPUT');
+  if (!runId)
+    throw new UxqError('MISSING_RUN', '用法：quality-gate <run-id> [--gate <file>]', 'INPUT');
 
   const runStore = await openLocalStore(options.root, systemClock);
   const stored = await runStore.loadRun(runId);
@@ -884,38 +937,46 @@ async function cmdQualityGate(positional: string[], options: CliOptions): Promis
 
     if (gate.minimumScore !== undefined && evaluation.overallScore !== null) {
       const passed = evaluation.overallScore >= gate.minimumScore;
-      details.push(`最低分数：${evaluation.overallScore} >= ${gate.minimumScore} → ${passed ? '通过' : '失败'}`);
+      details.push(
+        `最低分数：${evaluation.overallScore} >= ${gate.minimumScore} → ${passed ? '通过' : '失败'}`,
+      );
       if (!passed) gateResult.passed = false;
     }
 
     if (gate.requiredOutcome && gate.requiredOutcome.length > 0) {
       const passed = gate.requiredOutcome.includes(evaluation.overallOutcome);
-      details.push(`总体结论：${evaluation.overallOutcome} ∈ [${gate.requiredOutcome.join(', ')}] → ${passed ? '通过' : '失败'}`);
+      details.push(
+        `总体结论：${evaluation.overallOutcome} ∈ [${gate.requiredOutcome.join(', ')}] → ${passed ? '通过' : '失败'}`,
+      );
       if (!passed) gateResult.passed = false;
     }
 
     gateResult = { passed: gateResult.passed, details };
   }
 
-  const conformance = evaluation.overallOutcome === 'PASS' && evaluation.evaluationStatus === 'COMPLETE'
-    ? 'PASS'
-    : evaluation.overallOutcome === 'FAIL'
-      ? 'FAIL'
-      : evaluation.evaluationStatus === 'INSUFFICIENT_EVIDENCE'
-        ? 'INSUFFICIENT_EVIDENCE'
-        : 'INCONCLUSIVE';
+  const conformance =
+    evaluation.overallOutcome === 'PASS' && evaluation.evaluationStatus === 'COMPLETE'
+      ? 'PASS'
+      : evaluation.overallOutcome === 'FAIL'
+        ? 'FAIL'
+        : evaluation.evaluationStatus === 'INSUFFICIENT_EVIDENCE'
+          ? 'INSUFFICIENT_EVIDENCE'
+          : 'INCONCLUSIVE';
 
-  output({
-    runId,
-    conformance,
-    evaluationStatus: evaluation.evaluationStatus,
-    overallOutcome: evaluation.overallOutcome,
-    overallScore: evaluation.overallScore,
-    coverage: evaluation.coverage,
-    constraints: evaluation.constraints,
-    gate: gateResult,
-    limitations: evaluation.limitations,
-  }, options.json);
+  output(
+    {
+      runId,
+      conformance,
+      evaluationStatus: evaluation.evaluationStatus,
+      overallOutcome: evaluation.overallOutcome,
+      overallScore: evaluation.overallScore,
+      coverage: evaluation.coverage,
+      constraints: evaluation.constraints,
+      gate: gateResult,
+      limitations: evaluation.limitations,
+    },
+    options.json,
+  );
 
   return gateResult.passed ? 0 : 1;
 }
@@ -926,15 +987,19 @@ async function cmdVerify(positional: string[], options: CliOptions): Promise<num
 
   if (action === 'plan') {
     const runId = positional[1];
-    if (!runId) throw new UxqError('MISSING_RUN', '用法：verify plan <run-id> --finding-id <id> [--gate <definition-file>]', 'INPUT');
-    if (!options.findingId) throw new UxqError('MISSING_FINDING', 'verify plan 需要 --finding-id', 'INPUT');
+    if (!runId)
+      throw new UxqError(
+        'MISSING_RUN',
+        '用法：verify plan <run-id> --finding-id <id> [--gate <definition-file>]',
+        'INPUT',
+      );
+    if (!options.findingId)
+      throw new UxqError('MISSING_FINDING', 'verify plan 需要 --finding-id', 'INPUT');
 
     const runStore = await openLocalStore(options.root, systemClock);
     const stored = await runStore.loadRun(runId);
 
-    const definition = options.gate
-      ? await loadDefinition(options.gate)
-      : stored.definition;
+    const definition = options.gate ? await loadDefinition(options.gate) : stored.definition;
 
     const plan = createVerificationPlan(
       [options.findingId] as import('@uxq/contracts').IdList,
@@ -948,20 +1013,26 @@ async function cmdVerify(positional: string[], options: CliOptions): Promise<num
       systemClock.now(),
     );
 
-    output({
-      verificationPlan: plan,
-      message: `验证计划已创建，关联 Finding: ${options.findingId}`,
-    }, options.json);
+    output(
+      {
+        verificationPlan: plan,
+        message: `验证计划已创建，关联 Finding: ${options.findingId}`,
+      },
+      options.json,
+    );
     return 0;
   }
 
   if (action === 'result') {
     const planId = positional[1];
-    if (!planId) throw new UxqError('MISSING_PLAN_ID', '用法：verify result <plan-id> --source-run <run-id>', 'INPUT');
+    if (!planId)
+      throw new UxqError(
+        'MISSING_PLAN_ID',
+        '用法：verify result <plan-id> --source-run <run-id>',
+        'INPUT',
+      );
 
-    const comparability: Comparability = options.sourceRun
-      ? 'COMPARABLE'
-      : 'NOT_COMPARABLE';
+    const comparability: Comparability = options.sourceRun ? 'COMPARABLE' : 'NOT_COMPARABLE';
 
     const result = createVerificationResult(
       planId,
@@ -972,10 +1043,13 @@ async function cmdVerify(positional: string[], options: CliOptions): Promise<num
       options.sourceRun,
     );
 
-    output({
-      verificationResult: result,
-      message: '验证结果已创建',
-    }, options.json);
+    output(
+      {
+        verificationResult: result,
+        message: '验证结果已创建',
+      },
+      options.json,
+    );
     return 0;
   }
 
@@ -1038,13 +1112,16 @@ async function cmdConformanceSpec(positional: string[], options: CliOptions): Pr
   const report = runConformanceCheck(bundle, snapshot, undefined, systemClock.now());
   const markdown = renderConformanceMarkdown(report);
 
-  output({
-    runId,
-    overallStatus: report.overallStatus,
-    summary: report.summary,
-    results: report.results,
-    markdown,
-  }, options.json);
+  output(
+    {
+      runId,
+      overallStatus: report.overallStatus,
+      summary: report.summary,
+      results: report.results,
+      markdown,
+    },
+    options.json,
+  );
 
   return report.overallStatus === 'FAIL' ? 5 : 0;
 }
@@ -1067,7 +1144,11 @@ function findSkillSource(): string {
     if (parent === dir) break;
     dir = parent;
   }
-  throw new UxqError('SKILL_NOT_FOUND', `Skill 源目录不存在（从 ${__dirname} 向上查找失败）`, 'EXECUTION');
+  throw new UxqError(
+    'SKILL_NOT_FOUND',
+    `Skill 源目录不存在（从 ${__dirname} 向上查找失败）`,
+    'EXECUTION',
+  );
 }
 
 async function cmdInstallSkill(options: CliOptions): Promise<number> {
@@ -1148,7 +1229,11 @@ async function cmdUninstallSkill(options: CliOptions): Promise<number> {
   const targetDir = AGENT_SKILL_DIRS[agent];
 
   if (!targetDir) {
-    throw new UxqError('INVALID_CONFIGURATION', `未知 agent：${agent}。支持：qoder、claude、codex、kiro`, 'INPUT');
+    throw new UxqError(
+      'INVALID_CONFIGURATION',
+      `未知 agent：${agent}。支持：qoder、claude、codex、kiro`,
+      'INPUT',
+    );
   }
 
   const dest = join(targetDir, 'uxq-ux-evaluation');

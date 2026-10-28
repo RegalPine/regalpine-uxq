@@ -10,11 +10,7 @@ import type {
   ExecutionProfile,
 } from '@uxq/contracts';
 import { defaultProfile } from '@uxq/contracts';
-import {
-  createInMemoryBaselineStore,
-  checkComparability,
-  compareRuns,
-} from '@uxq/regression';
+import { createInMemoryBaselineStore, checkComparability, compareRuns } from '@uxq/regression';
 
 const fixedTime = '2025-01-01T00:00:00Z' as Timestamp;
 const clock: Clock = { now: () => fixedTime, monotonic: () => 0 };
@@ -48,15 +44,17 @@ function makePlan(overrides?: Partial<EvaluationPlan>): EvaluationPlan {
     definitionVersion: '1.0.0',
     definitionDigest: 'def-digest',
     compilerVersion: '0.1.0',
-    steps: [{
-      stepId: 'step-1',
-      kind: 'SCORING',
-      dependsOn: [],
-      required: true,
-      inputRefs: [],
-      outputContracts: ['ScoreResult'],
-      requiredCapabilities: [],
-    }],
+    steps: [
+      {
+        stepId: 'step-1',
+        kind: 'SCORING',
+        dependsOn: [],
+        required: true,
+        inputRefs: [],
+        outputContracts: ['ScoreResult'],
+        requiredCapabilities: [],
+      },
+    ],
     profile: defaultProfile(),
     metricVersions: [{ id: 'm1', version: '1.0.0' }],
     ruleVersions: [{ id: 'r1', version: '1.0.0' }],
@@ -153,7 +151,14 @@ function makeRule(id: string, outcome: 'PASS' | 'FAIL'): RuleResult {
 describe('基线管理', () => {
   it('创建基线', () => {
     const store = createInMemoryBaselineStore(clock);
-    const baseline = store.createBaseline('v1', 'run-1', makeRun(), makePlan(), makeContext(), makeEvaluation());
+    const baseline = store.createBaseline(
+      'v1',
+      'run-1',
+      makeRun(),
+      makePlan(),
+      makeContext(),
+      makeEvaluation(),
+    );
     expect(baseline.name).toBe('v1');
     expect(baseline.runId).toBe('run-1');
     expect(baseline.planDigest).toBe('plan-digest');
@@ -163,7 +168,14 @@ describe('基线管理', () => {
     const store = createInMemoryBaselineStore(clock);
     store.createBaseline('v1', 'run-1', makeRun(), makePlan(), makeContext(), makeEvaluation());
     expect(() =>
-      store.createBaseline('v1', 'run-2', makeRun({ id: 'run-2' }), makePlan(), makeContext(), makeEvaluation()),
+      store.createBaseline(
+        'v1',
+        'run-2',
+        makeRun({ id: 'run-2' }),
+        makePlan(),
+        makeContext(),
+        makeEvaluation(),
+      ),
     ).toThrow('基线已存在');
   });
 
@@ -171,8 +183,13 @@ describe('基线管理', () => {
     const store = createInMemoryBaselineStore(clock);
     store.createBaseline('v1', 'run-1', makeRun(), makePlan(), makeContext(), makeEvaluation());
     const updated = store.updateBaseline(
-      'v1', 'run-2', '修复了性能问题',
-      makeRun({ id: 'run-2' }), makePlan(), makeContext(), makeEvaluation({ id: 'eval-2', overallScore: 90 }),
+      'v1',
+      'run-2',
+      '修复了性能问题',
+      makeRun({ id: 'run-2' }),
+      makePlan(),
+      makeContext(),
+      makeEvaluation({ id: 'eval-2', overallScore: 90 }),
     );
     expect(updated.runId).toBe('run-2');
     expect(updated.updateReason).toBe('修复了性能问题');
@@ -182,7 +199,15 @@ describe('基线管理', () => {
   it('更新不存在基线拒绝', () => {
     const store = createInMemoryBaselineStore(clock);
     expect(() =>
-      store.updateBaseline('nope', 'run-1', 'reason', makeRun(), makePlan(), makeContext(), makeEvaluation()),
+      store.updateBaseline(
+        'nope',
+        'run-1',
+        'reason',
+        makeRun(),
+        makePlan(),
+        makeContext(),
+        makeEvaluation(),
+      ),
     ).toThrow('基线不存在');
   });
 
@@ -190,14 +215,29 @@ describe('基线管理', () => {
     const store = createInMemoryBaselineStore(clock);
     store.createBaseline('v1', 'run-1', makeRun(), makePlan(), makeContext(), makeEvaluation());
     expect(() =>
-      store.updateBaseline('v1', 'run-2', '', makeRun(), makePlan(), makeContext(), makeEvaluation()),
+      store.updateBaseline(
+        'v1',
+        'run-2',
+        '',
+        makeRun(),
+        makePlan(),
+        makeContext(),
+        makeEvaluation(),
+      ),
     ).toThrow('更新基线必须提供原因');
   });
 
   it('列出和删除基线', () => {
     const store = createInMemoryBaselineStore(clock);
     store.createBaseline('a', 'run-1', makeRun(), makePlan(), makeContext(), makeEvaluation());
-    store.createBaseline('b', 'run-2', makeRun({ id: 'run-2' }), makePlan(), makeContext(), makeEvaluation());
+    store.createBaseline(
+      'b',
+      'run-2',
+      makeRun({ id: 'run-2' }),
+      makePlan(),
+      makeContext(),
+      makeEvaluation(),
+    );
     expect(store.listBaselines().length).toBe(2);
     store.deleteBaseline('a');
     expect(store.listBaselines().length).toBe(1);
@@ -207,27 +247,51 @@ describe('基线管理', () => {
 
 describe('可比性判定', () => {
   it('完全相同配置为 COMPARABLE', () => {
-    const base = { planDigest: 'p', definitionId: 'd', definitionVersion: '1', policyId: 'sp', policyVersion: '1' };
+    const base = {
+      planDigest: 'p',
+      definitionId: 'd',
+      definitionVersion: '1',
+      policyId: 'sp',
+      policyVersion: '1',
+    };
     const result = checkComparability(base, { ...base });
     expect(result.comparability).toBe('COMPARABLE');
   });
 
   it('不同定义 ID 为 NOT_COMPARABLE', () => {
-    const base = { planDigest: 'p', definitionId: 'd1', definitionVersion: '1', policyId: 'sp', policyVersion: '1' };
+    const base = {
+      planDigest: 'p',
+      definitionId: 'd1',
+      definitionVersion: '1',
+      policyId: 'sp',
+      policyVersion: '1',
+    };
     const current = { ...base, definitionId: 'd2' };
     const result = checkComparability(base, current);
     expect(result.comparability).toBe('NOT_COMPARABLE');
   });
 
   it('不同评分策略为 NOT_COMPARABLE', () => {
-    const base = { planDigest: 'p', definitionId: 'd', definitionVersion: '1', policyId: 'sp1', policyVersion: '1' };
+    const base = {
+      planDigest: 'p',
+      definitionId: 'd',
+      definitionVersion: '1',
+      policyId: 'sp1',
+      policyVersion: '1',
+    };
     const current = { ...base, policyId: 'sp2' };
     const result = checkComparability(base, current);
     expect(result.comparability).toBe('NOT_COMPARABLE');
   });
 
   it('不同定义版本为 COMPARABLE_WITH_CAVEATS', () => {
-    const base = { planDigest: 'p', definitionId: 'd', definitionVersion: '1', policyId: 'sp', policyVersion: '1' };
+    const base = {
+      planDigest: 'p',
+      definitionId: 'd',
+      definitionVersion: '1',
+      policyId: 'sp',
+      policyVersion: '1',
+    };
     const current = { ...base, definitionVersion: '2' };
     const result = checkComparability(base, current);
     expect(result.comparability).toBe('COMPARABLE_WITH_CAVEATS');
@@ -235,7 +299,14 @@ describe('可比性判定', () => {
   });
 
   it('不同浏览器版本为 COMPARABLE_WITH_CAVEATS', () => {
-    const base = { planDigest: 'p', definitionId: 'd', definitionVersion: '1', policyId: 'sp', policyVersion: '1', browserVersion: 'chrome-120' };
+    const base = {
+      planDigest: 'p',
+      definitionId: 'd',
+      definitionVersion: '1',
+      policyId: 'sp',
+      policyVersion: '1',
+      browserVersion: 'chrome-120',
+    };
     const current = { ...base, browserVersion: 'chrome-121' };
     const result = checkComparability(base, current);
     expect(result.comparability).toBe('COMPARABLE_WITH_CAVEATS');
@@ -245,7 +316,11 @@ describe('可比性判定', () => {
 describe('运行比较', () => {
   it('比较指标变化', () => {
     const base = {
-      planDigest: 'p', definitionId: 'd', definitionVersion: '1', policyId: 'sp', policyVersion: '1',
+      planDigest: 'p',
+      definitionId: 'd',
+      definitionVersion: '1',
+      policyId: 'sp',
+      policyVersion: '1',
       metrics: [makeMetric('m1', 100)],
       rules: [makeRule('r1', 'PASS')],
       evaluation: makeEvaluation({ overallScore: 80 }),
@@ -265,7 +340,11 @@ describe('运行比较', () => {
 
   it('比较规则变化', () => {
     const base = {
-      planDigest: 'p', definitionId: 'd', definitionVersion: '1', policyId: 'sp', policyVersion: '1',
+      planDigest: 'p',
+      definitionId: 'd',
+      definitionVersion: '1',
+      policyId: 'sp',
+      policyVersion: '1',
       metrics: [],
       rules: [makeRule('r1', 'PASS')],
       evaluation: makeEvaluation(),
@@ -283,7 +362,11 @@ describe('运行比较', () => {
 
   it('缺失指标处理', () => {
     const base = {
-      planDigest: 'p', definitionId: 'd', definitionVersion: '1', policyId: 'sp', policyVersion: '1',
+      planDigest: 'p',
+      definitionId: 'd',
+      definitionVersion: '1',
+      policyId: 'sp',
+      policyVersion: '1',
       metrics: [makeMetric('m1', 100)],
       rules: [],
       evaluation: makeEvaluation(),

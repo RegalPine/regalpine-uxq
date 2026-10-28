@@ -55,9 +55,7 @@ test.describe('E2E-04: 关键规则失败与 Finding 生成', () => {
     const imageCount = await images.count();
     expect(imageCount).toBeGreaterThan(0);
 
-    const missingAltCount = await images
-      .filter('img:not([alt])')
-      .count();
+    const missingAltCount = await images.filter('img:not([alt])').count();
 
     // 规则 2: 检查按钮是否有可访问名称
     const buttons = page.locator('button');
@@ -131,19 +129,14 @@ test.describe('E2E-04: 关键规则失败与 Finding 生成', () => {
     ];
 
     // 计算加权总分
-    const weightedSum = dimensionScores.reduce(
-      (sum, d) => sum + d.score * d.weight,
-      0,
-    );
+    const weightedSum = dimensionScores.reduce((sum, d) => sum + d.score * d.weight, 0);
     const totalScore = weightedSum;
 
     // 验证：即使总分看起来不错，但关键规则失败必须单独处理
     expect(totalScore).toBeGreaterThan(50); // 总分可能看起来还行
 
     // 检查是否有 S1 级别的失败
-    const criticalFailures = dimensionScores.filter(
-      (d) => d.score < 30 && d.weight >= 0.3,
-    );
+    const criticalFailures = dimensionScores.filter((d) => d.score < 30 && d.weight >= 0.3);
 
     // 验证：关键规则失败阻止合格判定
     const hasCriticalFailure = criticalFailures.length > 0;
@@ -263,12 +256,9 @@ test.describe('E2E-04: 关键规则失败与 Finding 生成', () => {
     });
 
     // 验证合格判定
-    const allRequiredPassed = conformanceResults
-      .filter((r) => r.required)
-      .every((r) => r.passed);
+    const allRequiredPassed = conformanceResults.filter((r) => r.required).every((r) => r.passed);
 
-    const overallPassed =
-      allRequiredPassed && scores.overall >= conformancePolicy.overallThreshold;
+    const overallPassed = allRequiredPassed && scores.overall >= conformancePolicy.overallThreshold;
 
     expect(allRequiredPassed).toBe(false); // D04 未通过
     expect(overallPassed).toBe(false); // 总体不合格

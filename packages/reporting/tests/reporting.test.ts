@@ -1,8 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import {
-  generateRegressionReport,
-  renderRegressionMarkdown,
-} from '@uxq/reporting';
+import { generateRegressionReport, renderRegressionMarkdown } from '@uxq/reporting';
 import type { RegressionReport } from '@uxq/reporting';
 
 describe('M3.5: 回归报告生成', () => {
@@ -15,8 +12,20 @@ describe('M3.5: 回归报告生成', () => {
     baselineScore: 85.0,
     currentScore: 82.5,
     metricDeltas: [
-      { metricId: 'metric-load-time', baselineValue: 1500, currentValue: 1650, delta: 150, deltaPercent: 10.0 },
-      { metricId: 'metric-error-rate', baselineValue: 0.05, currentValue: 0.08, delta: 0.03, deltaPercent: 60.0 },
+      {
+        metricId: 'metric-load-time',
+        baselineValue: 1500,
+        currentValue: 1650,
+        delta: 150,
+        deltaPercent: 10.0,
+      },
+      {
+        metricId: 'metric-error-rate',
+        baselineValue: 0.05,
+        currentValue: 0.08,
+        delta: 0.03,
+        deltaPercent: 60.0,
+      },
     ],
     ruleDeltas: [
       { ruleId: 'rule-contrast', baselineOutcome: 'PASS', currentOutcome: 'PASS', changed: false },
@@ -74,7 +83,7 @@ describe('M3.5: 回归报告生成', () => {
     const markdown = renderRegressionMarkdown(report);
 
     expect(markdown).toContain('# UXQ 回归报告');
-    expect(markdown).toContain('v1');  // v1.0-baseline (escaped)
+    expect(markdown).toContain('v1'); // v1.0-baseline (escaped)
     expect(markdown).toContain('baseline');
     expect(markdown).toContain('COMPARABLE');
     expect(markdown).toContain('85');

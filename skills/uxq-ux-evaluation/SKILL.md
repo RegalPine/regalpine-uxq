@@ -60,6 +60,7 @@ Use for analyzing user task completion and interaction quality.
 📖 [Detailed Documentation](./workflows/task-evaluation.md)
 
 **Commands:**
+
 ```bash
 # Evaluate task flow
 uxq task evaluate --url <target> --task <task-definition>
@@ -72,6 +73,7 @@ uxq task analyze --run-id <id> --focus interactions
 ```
 
 **Outputs:**
+
 - Task completion rate
 - Time-on-task metrics
 - Error frequency & severity
@@ -85,6 +87,7 @@ Use for measuring user cognitive burden and mental effort.
 📖 [Detailed Documentation](./workflows/cognitive-load.md)
 
 **Commands:**
+
 ```bash
 # Measure cognitive load
 uxq cognition measure --url <target> --methods nasa-tlx,secondary-task
@@ -97,6 +100,7 @@ uxq cognition compare --baseline <a> --candidate <b>
 ```
 
 **Outputs:**
+
 - NASA-TLX scores (6 dimensions)
 - Information complexity index
 - Cognitive demand breakdown
@@ -110,6 +114,7 @@ Use for assessing accessibility compliance and inclusivity.
 📖 [Detailed Documentation](./workflows/accessibility.md)
 
 **Commands:**
+
 ```bash
 # WCAG compliance check
 uxq accessibility audit --url <target> --standard WCAG21-AA
@@ -122,6 +127,7 @@ uxq accessibility keyboard --url <target> --test tab-order,shortcuts
 ```
 
 **Outputs:**
+
 - WCAG success criteria compliance
 - Accessibility violations (by severity)
 - Screen reader compatibility score
@@ -135,6 +141,7 @@ Use for collecting, linking, and tracing evaluation evidence.
 📖 [Detailed Documentation](./workflows/evidence.md)
 
 **Commands:**
+
 ```bash
 # Collect evidence
 uxq evidence collect --run-id <id> --type screenshot,video,metrics
@@ -147,6 +154,7 @@ uxq evidence trace --run-id <id> --format matrix
 ```
 
 **Outputs:**
+
 - Evidence catalog with metadata
 - Finding-evidence linkages
 - Traceability matrix
@@ -160,6 +168,7 @@ Use for integrating qualitative user research data.
 📖 [Detailed Documentation](./workflows/research.md)
 
 **Commands:**
+
 ```bash
 # Import research data
 uxq research import --source <file> --format csv,json
@@ -172,6 +181,7 @@ uxq research synthesize --studies <ids> --output report
 ```
 
 **Outputs:**
+
 - Coded themes & patterns
 - User persona insights
 - Qualitative-quantitative correlation
@@ -185,6 +195,7 @@ Use for computing UX metrics and overall scores.
 📖 [Detailed Documentation](./workflows/metrics-scoring.md)
 
 **Commands:**
+
 ```bash
 # Calculate metrics
 uxq metrics calculate --run-id <id> --metrics all
@@ -197,6 +208,7 @@ uxq scoring benchmark --run-id <id> --industry <sector>
 ```
 
 **Outputs:**
+
 - Metric values with confidence intervals
 - Weighted UX score (0-100)
 - Dimension breakdown
@@ -210,6 +222,7 @@ Use for diagnosing issues and generating improvement suggestions.
 📖 [Detailed Documentation](./workflows/diagnostic.md)
 
 **Commands:**
+
 ```bash
 # Diagnose problems
 uxq diagnostic analyze --run-id <id> --severity critical,high
@@ -222,6 +235,7 @@ uxq diagnostic plan --recommendations <ids> --timeline short,mid,long
 ```
 
 **Outputs:**
+
 - Root cause hypotheses
 - Issue severity classification
 - Prioritized recommendations
@@ -235,6 +249,7 @@ Use for comparing current UX against baselines.
 📖 [Detailed Documentation](./workflows/regression.md)
 
 **Commands:**
+
 ```bash
 # Create baseline
 uxq regression baseline --run-id <id> --label <version>
@@ -247,6 +262,7 @@ uxq regression detect --comparison <id> --thresholds score:-5,metrics:+10%
 ```
 
 **Outputs:**
+
 - Baseline snapshot
 - Comparison matrix
 - Regression alerts (by severity)
@@ -260,6 +276,7 @@ Use for generating comprehensive UX evaluation reports.
 📖 [Detailed Documentation](./workflows/report.md)
 
 **Commands:**
+
 ```bash
 # Generate full report
 uxq report generate --run-id <id> --format markdown,pdf
@@ -272,6 +289,7 @@ uxq report export --run-id <id> --format json,csv
 ```
 
 **Outputs:**
+
 - Comprehensive evaluation report
 - Executive summary
 - Technical findings document
@@ -285,6 +303,7 @@ Use for evaluating design system conformance and consistency.
 📖 [Detailed Documentation](./workflows/design-system.md)
 
 **Commands:**
+
 ```bash
 # Token compliance
 uxq design-system tokens --url <target> --spec <token-file>
@@ -297,6 +316,7 @@ uxq design-system components --url <target> --library <name>
 ```
 
 **Outputs:**
+
 - Token conformance score
 - Theme consistency index
 - Component usage coverage

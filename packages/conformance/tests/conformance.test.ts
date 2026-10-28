@@ -117,6 +117,7 @@ describe('M4: 符合性检查', () => {
     });
 
     it('无维度失败', () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const results = checkDefinition(makeDefinition({ dimensions: [] as any }));
       const dimCheck = results.find((r) => r.checkId === 'DEF-004');
       expect(dimCheck?.status).toBe('FAIL');
@@ -330,6 +331,7 @@ describe('M4: 符合性检查', () => {
           definitionDigest: 'abc' as Digest,
           compilerVersion: '0.1.0',
           steps: [],
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           profile: {} as any,
           metricVersions: [],
           ruleVersions: [],
@@ -351,14 +353,17 @@ describe('M4: 符合性检查', () => {
           environmentFingerprint: 'fp' as Digest,
           sampleDescription: '测试',
           limitations: [],
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } as any,
         context: {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           profile: {} as any,
           configSources: {},
           environmentFingerprint: 'fp' as Digest,
           sampleDescription: '测试',
           engineVersion: '0.1.0',
           limitations: [],
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } as any,
         steps: [],
         attempts: [],
@@ -404,7 +409,7 @@ describe('M4: 符合性检查', () => {
       const report = runConformanceCheck(bundle, snapshot);
 
       expect(report.schemaVersion).toBe('1.0.0');
-      expect(report.overallStatus).toBe('WARN');  // 缺少指标/规则结果导致 WARN
+      expect(report.overallStatus).toBe('WARN'); // 缺少指标/规则结果导致 WARN
       expect(report.summary.total).toBeGreaterThan(0);
       expect(report.summary.passed).toBeGreaterThan(0);
       expect(report.limitations.length).toBeGreaterThan(0);

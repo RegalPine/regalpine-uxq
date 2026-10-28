@@ -1,70 +1,91 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="zh-CN">
-<head>
-  <meta charset="utf-8">
-  <title>UXQ Reference — 可访问性问题</title>
-  <style>
-    body { font-family: system-ui, sans-serif; padding: 2rem; }
-    .low-contrast { color: #ccc; background: #fff; }
-    .small-text { font-size: 10px; }
-    .no-focus-indicator *:focus { outline: none; }
-    img { margin: 0.5rem 0; }
-    .form-group { margin: 1rem 0; }
-    button { margin: 0.25rem; }
-  </style>
-</head>
-<body>
-  <main>
-    <h1>可访问性问题测试页</h1>
-    <p>此页面故意包含多种可访问性问题，用于验证自动检测能力。</p>
+  <head>
+    <meta charset="utf-8" />
+    <title>UXQ Reference — 可访问性问题</title>
+    <style>
+      body {
+        font-family: system-ui, sans-serif;
+        padding: 2rem;
+      }
+      .low-contrast {
+        color: #ccc;
+        background: #fff;
+      }
+      .small-text {
+        font-size: 10px;
+      }
+      .no-focus-indicator *:focus {
+        outline: none;
+      }
+      img {
+        margin: 0.5rem 0;
+      }
+      .form-group {
+        margin: 1rem 0;
+      }
+      button {
+        margin: 0.25rem;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>可访问性问题测试页</h1>
+      <p>此页面故意包含多种可访问性问题，用于验证自动检测能力。</p>
 
-    <section>
-      <h2>问题 1：缺少 alt 属性</h2>
-      <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='50'%3E%3Crect width='100' height='50' fill='%23ddd'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' dy='.3em' fill='%23999'%3E无alt%3C/text%3E%3C/svg%3E">
-      <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='50'%3E%3Crect width='100' height='50' fill='%23ddd'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' dy='.3em' fill='%23999'%3E空alt%3C/text%3E%3C/svg%3E" alt="">
-    </section>
+      <section>
+        <h2>问题 1：缺少 alt 属性</h2>
+        <img
+          src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='50'%3E%3Crect width='100' height='50' fill='%23ddd'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' dy='.3em' fill='%23999'%3E无alt%3C/text%3E%3C/svg%3E"
+        />
+        <img
+          src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='50'%3E%3Crect width='100' height='50' fill='%23ddd'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' dy='.3em' fill='%23999'%3E空alt%3C/text%3E%3C/svg%3E"
+          alt=""
+        />
+      </section>
 
-    <section>
-      <h2>问题 2：颜色对比度不足</h2>
-      <p class="low-contrast">这段文字颜色对比度低于 4.5:1，不满足 WCAG AA 要求。</p>
-    </section>
+      <section>
+        <h2>问题 2：颜色对比度不足</h2>
+        <p class="low-contrast">这段文字颜色对比度低于 4.5:1，不满足 WCAG AA 要求。</p>
+      </section>
 
-    <section>
-      <h2>问题 3：字号过小</h2>
-      <p class="small-text">这段文字字号为 10px，可能对视力不佳的用户造成阅读困难。</p>
-    </section>
+      <section>
+        <h2>问题 3：字号过小</h2>
+        <p class="small-text">这段文字字号为 10px，可能对视力不佳的用户造成阅读困难。</p>
+      </section>
 
-    <section>
-      <h2>问题 4：表单缺少 label 关联</h2>
-      <div class="form-group">
-        <input type="text" placeholder="无关联label的输入框">
-        <input type="email" placeholder="另一个无label的输入框">
-      </div>
-    </section>
+      <section>
+        <h2>问题 4：表单缺少 label 关联</h2>
+        <div class="form-group">
+          <input type="text" placeholder="无关联label的输入框" />
+          <input type="email" placeholder="另一个无label的输入框" />
+        </div>
+      </section>
 
-    <section>
-      <h2>问题 5：无 ARIA  landmark</h2>
-      <div>这个区域没有使用 nav/main/aside 等语义化标签或 ARIA role。</div>
-    </section>
+      <section>
+        <h2>问题 5：无 ARIA landmark</h2>
+        <div>这个区域没有使用 nav/main/aside 等语义化标签或 ARIA role。</div>
+      </section>
 
-    <section>
-      <h2>问题 6：键盘陷阱</h2>
-      <div id="trap-area">
-        <button onclick="document.getElementById('trap-input').focus()">聚焦到输入</button>
-        <input id="trap-input" type="text" placeholder="聚焦后无法用Tab离开">
-      </div>
-    </section>
+      <section>
+        <h2>问题 6：键盘陷阱</h2>
+        <div id="trap-area">
+          <button onclick="document.getElementById('trap-input').focus()">聚焦到输入</button>
+          <input id="trap-input" type="text" placeholder="聚焦后无法用Tab离开" />
+        </div>
+      </section>
 
-    <section>
-      <h2>问题 7：无跳过导航链接</h2>
-      <nav>
-        <a href="#section1">导航项 1</a>
-        <a href="#section2">导航项 2</a>
-        <a href="#section3">导航项 3</a>
-        <a href="#section4">导航项 4</a>
-        <a href="#section5">导航项 5</a>
-      </nav>
-    </section>
-  </main>
-</body>
+      <section>
+        <h2>问题 7：无跳过导航链接</h2>
+        <nav>
+          <a href="#section1">导航项 1</a>
+          <a href="#section2">导航项 2</a>
+          <a href="#section3">导航项 3</a>
+          <a href="#section4">导航项 4</a>
+          <a href="#section5">导航项 5</a>
+        </nav>
+      </section>
+    </main>
+  </body>
 </html>

@@ -26,12 +26,7 @@
       "$ref": "#/$defs/IdList"
     }
   },
-  "required": [
-    "runId",
-    "stepId",
-    "attemptId",
-    "evidenceIds"
-  ],
+  "required": ["runId", "stepId", "attemptId", "evidenceIds"],
   "$defs": {
     "ObservationInput": {
       "type": "object",
@@ -56,12 +51,7 @@
           "$ref": "#/$defs/EvidenceSource"
         },
         "method": {
-          "enum": [
-            "AUTOMATED",
-            "EXPERT_REVIEW",
-            "USER_RESEARCH",
-            "PROXY"
-          ]
+          "enum": ["AUTOMATED", "EXPERT_REVIEW", "USER_RESEARCH", "PROXY"]
         },
         "observedAt": {
           "$ref": "#/$defs/Timestamp"
@@ -110,12 +100,7 @@
           "$ref": "#/$defs/EvidenceSource"
         },
         "method": {
-          "enum": [
-            "AUTOMATED",
-            "EXPERT_REVIEW",
-            "USER_RESEARCH",
-            "PROXY"
-          ]
+          "enum": ["AUTOMATED", "EXPERT_REVIEW", "USER_RESEARCH", "PROXY"]
         },
         "observedAt": {
           "$ref": "#/$defs/Timestamp"

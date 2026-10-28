@@ -364,7 +364,9 @@ export function createFindingHistory(initial: Finding[] = []): FindingHistory {
   const findings = [...initial];
 
   return {
-    get findings() { return findings; },
+    get findings() {
+      return findings;
+    },
 
     addRunFindings(runId, newFindings) {
       for (const finding of newFindings) {
@@ -395,10 +397,17 @@ export function createFindingHistory(initial: Finding[] = []): FindingHistory {
         } else {
           const merged: Finding = {
             ...existing,
-            diagnosticSignalIds: [...new Set([...existing.diagnosticSignalIds, ...finding.diagnosticSignalIds])],
+            diagnosticSignalIds: [
+              ...new Set([...existing.diagnosticSignalIds, ...finding.diagnosticSignalIds]),
+            ],
             evidenceLinks: [...existing.evidenceLinks, ...finding.evidenceLinks],
-            evaluationRunIds: [...new Set([...existing.evaluationRunIds, ...finding.evaluationRunIds])],
-            lastObservedAt: finding.lastObservedAt > existing.lastObservedAt ? finding.lastObservedAt : existing.lastObservedAt,
+            evaluationRunIds: [
+              ...new Set([...existing.evaluationRunIds, ...finding.evaluationRunIds]),
+            ],
+            lastObservedAt:
+              finding.lastObservedAt > existing.lastObservedAt
+                ? finding.lastObservedAt
+                : existing.lastObservedAt,
             revision: existing.revision + 1,
           };
           byKey.set(finding.deduplicationKey, merged);

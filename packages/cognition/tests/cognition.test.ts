@@ -32,8 +32,8 @@ describe('认知负荷评估', () => {
     expect(assessment.metrics.TASK_TIME).toBe(120);
     expect(assessment.metrics.ERROR_RATE).toBe(0.1);
     expect(assessment.metrics.BACK_TRACKS).toBe(2);
-    expect(assessment.overallLoad).toBe('LOW');  // 0.1 和 2 都不超过 MEDIUM 阈值
-    expect(assessment.confidence).toBe('MEDIUM');  // 3/6 = 0.5
+    expect(assessment.overallLoad).toBe('LOW'); // 0.1 和 2 都不超过 MEDIUM 阈值
+    expect(assessment.confidence).toBe('MEDIUM'); // 3/6 = 0.5
     expect(assessment.limitations).toContain('代理指标不冒充真实理解或心理测量');
   });
 
@@ -85,13 +85,7 @@ describe('认知负荷评估', () => {
   });
 
   it('验证完整性检查', () => {
-    const assessment = createCognitiveLoadAssessment(
-      runId,
-      '',
-      'scenario-1',
-      {},
-      fixedTime,
-    );
+    const assessment = createCognitiveLoadAssessment(runId, '', 'scenario-1', {}, fixedTime);
 
     const result = validateCognitiveAssessment(assessment);
     expect(result.valid).toBe(false);
@@ -151,22 +145,14 @@ describe('人工评审输入', () => {
     const result = validateHumanReview(review);
     expect(result.valid).toBe(false);
     expect(result.issues).toContain('评审者 ID 不能为空');
-    expect(result.issues.some(i => i.includes('描述不能为空'))).toBe(true);
+    expect(result.issues.some((i) => i.includes('描述不能为空'))).toBe(true);
   });
 
   it('批准的评审必须有发现', () => {
-    const review = createHumanReviewInput(
-      runId,
-      'reviewer-1',
-      'USER',
-      [],
-      [],
-      true,
-      fixedTime,
-    );
+    const review = createHumanReviewInput(runId, 'reviewer-1', 'USER', [], [], true, fixedTime);
 
     const result = validateHumanReview(review);
     expect(result.valid).toBe(false);
-    expect(result.issues.some(i => i.includes('批准的评审'))).toBe(true);
+    expect(result.issues.some((i) => i.includes('批准的评审'))).toBe(true);
   });
 });

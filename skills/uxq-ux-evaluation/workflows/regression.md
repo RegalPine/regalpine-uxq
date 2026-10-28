@@ -20,12 +20,14 @@ uxq regression baseline --run-id <id> --label <version-label>
 ```
 
 **Parameters:**
+
 - `--run-id`: Evaluation run ID to use as baseline
 - `--label**: Version label (e.g., "v1.0", "production-baseline")
 - `--description**: Baseline description
 - `--snapshot**: Include full data snapshot (default: true)
 
 **Example:**
+
 ```bash
 uxq regression baseline \
   --run-id latest \
@@ -40,11 +42,13 @@ uxq regression compare --baseline <id> --current <id>
 ```
 
 **Parameters:**
+
 - `--baseline`: Baseline run ID or label
 - `--current**: Current run ID
 - `--metrics**: Metrics to compare (all,task,cognition,a11y,color,geometry)
 
 **Example:**
+
 ```bash
 uxq regression compare \
   --baseline "v2.0-baseline" \
@@ -58,11 +62,13 @@ uxq regression detect --comparison <id> --thresholds <threshold-config>
 ```
 
 **Parameters:**
+
 - `--comparison**: Comparison ID from `compare` command
 - `--thresholds**: Threshold config (format: score:-5,metrics:+10%)
 - `--severity**: Minimum severity to report (critical,high,moderate,low)
 
 **Example:**
+
 ```bash
 uxq regression detect \
   --comparison latest \
@@ -131,15 +137,8 @@ uxq regression detect \
         "change": +4.6,
         "percentChange": +13.69,
         "description": "认知负担显著增加",
-        "possibleCauses": [
-          "新增的表单字段增加了复杂性",
-          "页面布局变化导致信息查找困难"
-        ],
-        "recommendations": [
-          "简化新增表单字段",
-          "优化页面布局",
-          "进行用户测试验证改进效果"
-        ]
+        "possibleCauses": ["新增的表单字段增加了复杂性", "页面布局变化导致信息查找困难"],
+        "recommendations": ["简化新增表单字段", "优化页面布局", "进行用户测试验证改进效果"]
       }
     ],
     "improvements": [
@@ -172,12 +171,12 @@ uxq regression detect \
 
 ### 对比概览
 
-| 项目 | 基线 (v2.0) | 当前 (latest) | 变化 |
-|------|-----------|-------------|------|
-| **总体评分** | 78 | 75 | -3 ⚠️ |
-| **任务完成** | 85 | 88 | +3 ✅ |
-| **认知负担** | 72 | 68 | -4 🔴 |
-| **可访问性** | 76 | 74 | -2 ⚠️ |
+| 项目         | 基线 (v2.0) | 当前 (latest) | 变化  |
+| ------------ | ----------- | ------------- | ----- |
+| **总体评分** | 78          | 75            | -3 ⚠️ |
+| **任务完成** | 85          | 88            | +3 ✅ |
+| **认知负担** | 72          | 68            | -4 🔴 |
+| **可访问性** | 76          | 74            | -2 ⚠️ |
 
 ### 回归警报
 
@@ -191,10 +190,12 @@ uxq regression detect \
 **描述**: 认知负担显著增加
 
 **可能原因**:
+
 1. 新增的表单字段增加了复杂性
 2. 页面布局变化导致信息查找困难
 
 **建议**:
+
 1. 简化新增表单字段
 2. 优化页面布局
 3. 进行用户测试验证改进效果
@@ -217,16 +218,19 @@ uxq regression detect \
 ### 建议行动
 
 #### 发布前必须处理
+
 - [ ] 调查认知负担增加的原因
 - [ ] 优化复杂表单
 - [ ] 重新测试并验证改进
 
 #### 发布后持续监控
+
 - [ ] 跟踪认知负担指标趋势
 - [ ] 收集用户反馈
 - [ ] 持续优化页面布局
 
 #### 质量门禁判断
+
 **状态**: ⚠️ 警告
 **决策**: 建议优化后发布
 **理由**: 总体评分下降 3 分，接近阈值 -5；认知负担显著增加
@@ -279,32 +283,32 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Run UX Evaluation
         run: |
           uxq task evaluate --url ${{ env.PREVIEW_URL }} --task smoke-test
           uxq scoring compute --run-id latest
-      
+
       - name: Compare with Baseline
         run: |
           uxq regression compare \
             --baseline main \
             --current pr-${{ github.event.pull_request.number }}
-      
+
       - name: Detect Regressions
         run: |
           RESULT=$(uxq regression detect \
             --comparison latest \
             --thresholds score:-5,metrics:-10% \
             --format json)
-          
+
           REGRESSIONS=$(echo $RESULT | jq '.regressions | length')
           if [ $REGRESSIONS -gt 0 ]; then
             echo "❌ Detected $REGRESSIONS regressions"
             echo "$RESULT" | jq '.regressions'
             exit 1
           fi
-          
+
           echo "✅ No regressions detected"
 ```
 
@@ -323,7 +327,7 @@ if (release.successful) {
     label: `v${release.version}`,
     description: `${release.version} production baseline`,
   });
-  
+
   console.log(`Baseline created for v${release.version}`);
 }
 ```

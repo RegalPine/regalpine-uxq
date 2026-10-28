@@ -161,7 +161,9 @@ describe('checkSharingCompliance', () => {
   });
 
   it('敏感证据未脱敏不合规', () => {
-    const ev = validEvidence({ privacy: privacy({ classification: 'SENSITIVE', redacted: false }) });
+    const ev = validEvidence({
+      privacy: privacy({ classification: 'SENSITIVE', redacted: false }),
+    });
     const result = checkSharingCompliance(ev, NOW);
     expect(result.compliant).toBe(false);
     expect(result.issues).toContain('敏感证据未脱敏，不得直接分享');
@@ -206,7 +208,10 @@ describe('checkSharingCompliance', () => {
       privacy: privacy({ consentRef: 'consent-001' }),
     });
     // 删除 consentRef 模拟未授权
-    const evNoConsent = { ...ev, privacy: { ...ev.privacy, consentRef: undefined } } as unknown as Evidence;
+    const evNoConsent = {
+      ...ev,
+      privacy: { ...ev.privacy, consentRef: undefined },
+    } as unknown as Evidence;
     const result = checkSharingCompliance(evNoConsent, NOW);
     expect(result.compliant).toBe(false);
     expect(result.issues).toContain('用户研究证据缺少授权引用');

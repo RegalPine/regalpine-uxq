@@ -29,10 +29,7 @@
       "$ref": "#/$defs/OverallOutcome"
     },
     "overallScore": {
-      "type": [
-        "number",
-        "null"
-      ],
+      "type": ["number", "null"],
       "minimum": 0,
       "maximum": 100
     },
@@ -87,21 +84,10 @@
   ],
   "$defs": {
     "EvaluationStatus": {
-      "enum": [
-        "COMPLETE",
-        "PARTIAL",
-        "INSUFFICIENT_EVIDENCE",
-        "CONSTRAINED",
-        "EXECUTION_FAILED"
-      ]
+      "enum": ["COMPLETE", "PARTIAL", "INSUFFICIENT_EVIDENCE", "CONSTRAINED", "EXECUTION_FAILED"]
     },
     "OverallOutcome": {
-      "enum": [
-        "PASS",
-        "FAIL",
-        "INCONCLUSIVE",
-        "NOT_RATED"
-      ]
+      "enum": ["PASS", "FAIL", "INCONCLUSIVE", "NOT_RATED"]
     },
     "Coverage": {
       "type": "object",
@@ -124,21 +110,12 @@
           "minimum": 0
         },
         "ratio": {
-          "type": [
-            "number",
-            "null"
-          ],
+          "type": ["number", "null"],
           "minimum": 0,
           "maximum": 1
         }
       },
-      "required": [
-        "planned",
-        "applicable",
-        "measured",
-        "scored",
-        "ratio"
-      ]
+      "required": ["planned", "applicable", "measured", "scored", "ratio"]
     },
     "DimensionResult": {
       "allOf": [
@@ -190,12 +167,7 @@
       "additionalProperties": false,
       "properties": {
         "kind": {
-          "enum": [
-            "CRITICAL_RULE",
-            "FINDING_SEVERITY",
-            "COVERAGE",
-            "EXECUTION"
-          ]
+          "enum": ["CRITICAL_RULE", "FINDING_SEVERITY", "COVERAGE", "EXECUTION"]
         },
         "sourceIds": {
           "$ref": "#/$defs/IdList"
@@ -204,11 +176,7 @@
           "$ref": "#/$defs/Text"
         }
       },
-      "required": [
-        "kind",
-        "sourceIds",
-        "reason"
-      ]
+      "required": ["kind", "sourceIds", "reason"]
     }
   }
 }

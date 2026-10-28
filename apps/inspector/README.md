@@ -31,6 +31,7 @@ uxq-inspector inspect <result-file.json>
 ```
 
 这将启动交互式菜单，提供以下选项：
+
 - 查看维度评分
 - 查看发现的问题
 - 查看详细 Finding
@@ -44,6 +45,7 @@ uxq-inspector overview <result-file.json>
 ```
 
 快速显示评价结果的总体信息，包括：
+
 - 运行标识
 - 评价状态
 - 总体结论
@@ -63,6 +65,7 @@ uxq-inspector compare <baseline-file.json> <current-file.json>
 ```
 
 对比基线版本和当前版本的评价结果，显示：
+
 - 评价状态变化
 - 总体结论变化
 - Finding 数量变化

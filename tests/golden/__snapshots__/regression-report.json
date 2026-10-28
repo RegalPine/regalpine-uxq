@@ -47,9 +47,7 @@
     "reopened": 0
   },
   "verificationStatus": "PASSED",
-  "caveats": [
-    "浏览器版本不同"
-  ],
+  "caveats": ["浏览器版本不同"],
   "limitations": [
     "回归比较基于可比运行条件",
     "不可比的比较结果不能直接归因于产品变化",

@@ -72,24 +72,15 @@ describe('@uxq/color', () => {
     });
 
     it('应该计算对比度比值', () => {
-      const blackWhite = contrastRatio(
-        { r: 0, g: 0, b: 0 },
-        { r: 255, g: 255, b: 255 }
-      );
+      const blackWhite = contrastRatio({ r: 0, g: 0, b: 0 }, { r: 255, g: 255, b: 255 });
       expect(blackWhite).toBeCloseTo(21);
 
-      const same = contrastRatio(
-        { r: 128, g: 128, b: 128 },
-        { r: 128, g: 128, b: 128 }
-      );
+      const same = contrastRatio({ r: 128, g: 128, b: 128 }, { r: 128, g: 128, b: 128 });
       expect(same).toBeCloseTo(1);
     });
 
     it('应该计算完整对比度结果', () => {
-      const result = calculateContrast(
-        { r: 0, g: 0, b: 0 },
-        { r: 255, g: 255, b: 255 }
-      );
+      const result = calculateContrast({ r: 0, g: 0, b: 0 }, { r: 255, g: 255, b: 255 });
       expect(result.ratio).toBeCloseTo(21);
       expect(result.aa).toBe(true);
       expect(result.aaa).toBe(true);
@@ -98,10 +89,7 @@ describe('@uxq/color', () => {
     });
 
     it('应该识别低对比度', () => {
-      const result = calculateContrast(
-        { r: 200, g: 200, b: 200 },
-        { r: 255, g: 255, b: 255 }
-      );
+      const result = calculateContrast({ r: 200, g: 200, b: 200 }, { r: 255, g: 255, b: 255 });
       expect(result.ratio).toBeLessThan(4.5);
       expect(result.aa).toBe(false);
       expect(result.aaa).toBe(false);
@@ -110,33 +98,21 @@ describe('@uxq/color', () => {
 
   describe('颜色混合', () => {
     it('应该混合两种颜色', () => {
-      const result = blendColors(
-        { r: 255, g: 0, b: 0 },
-        { r: 0, g: 0, b: 255 },
-        0.5
-      );
+      const result = blendColors({ r: 255, g: 0, b: 0 }, { r: 0, g: 0, b: 255 }, 0.5);
       expect(result.color.r).toBeCloseTo(128);
       expect(result.color.g).toBeCloseTo(0);
       expect(result.color.b).toBeCloseTo(128);
     });
 
     it('应该按比例混合', () => {
-      const result = blendColors(
-        { r: 255, g: 0, b: 0 },
-        { r: 0, g: 0, b: 255 },
-        0.75
-      );
+      const result = blendColors({ r: 255, g: 0, b: 0 }, { r: 0, g: 0, b: 255 }, 0.75);
       expect(result.color.r).toBeCloseTo(191);
       expect(result.color.b).toBeCloseTo(64);
     });
 
     it('应该拒绝无效比例', () => {
-      expect(() =>
-        blendColors({ r: 255, g: 0, b: 0 }, { r: 0, g: 0, b: 255 }, -0.1)
-      ).toThrow();
-      expect(() =>
-        blendColors({ r: 255, g: 0, b: 0 }, { r: 0, g: 0, b: 255 }, 1.1)
-      ).toThrow();
+      expect(() => blendColors({ r: 255, g: 0, b: 0 }, { r: 0, g: 0, b: 255 }, -0.1)).toThrow();
+      expect(() => blendColors({ r: 255, g: 0, b: 0 }, { r: 0, g: 0, b: 255 }, 1.1)).toThrow();
     });
   });
 
@@ -150,9 +126,7 @@ describe('@uxq/color', () => {
     it('应该调整饱和度', () => {
       const moreSaturated = adjustSaturation({ r: 128, g: 64, b: 64 }, 20);
       const lessSaturated = adjustSaturation({ r: 128, g: 64, b: 64 }, -20);
-      expect(rgbToHsl(moreSaturated).s).toBeGreaterThanOrEqual(
-        rgbToHsl(lessSaturated).s
-      );
+      expect(rgbToHsl(moreSaturated).s).toBeGreaterThanOrEqual(rgbToHsl(lessSaturated).s);
     });
   });
 
@@ -164,19 +138,13 @@ describe('@uxq/color', () => {
     });
 
     it('应该验证高对比度颜色对', () => {
-      const results = validator.validate(
-        { r: 0, g: 0, b: 0 },
-        { r: 255, g: 255, b: 255 }
-      );
+      const results = validator.validate({ r: 0, g: 0, b: 0 }, { r: 255, g: 255, b: 255 });
       expect(validator.isAllPassed(results)).toBe(true);
       expect(validator.getErrors(results)).toHaveLength(0);
     });
 
     it('应该检测低对比度颜色对', () => {
-      const results = validator.validate(
-        { r: 200, g: 200, b: 200 },
-        { r: 255, g: 255, b: 255 }
-      );
+      const results = validator.validate({ r: 200, g: 200, b: 200 }, { r: 255, g: 255, b: 255 });
       expect(validator.isAllPassed(results)).toBe(false);
       expect(validator.getErrors(results).length).toBeGreaterThan(0);
     });

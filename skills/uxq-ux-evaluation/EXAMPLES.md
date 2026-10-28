@@ -123,22 +123,27 @@ uxq regression detect \
 ## 回归测试报告
 
 ### 总体变化
+
 - UX 评分：78 → 85 (+7 ✅)
 - 任务完成率：92% → 95% (+3% ✅)
 - 平均任务时间：145s → 120s (-25s ✅)
 
 ### 维度对比
-| 维度 | 基线 | 当前 | 变化 |
-|------|------|------|------|
-| 任务完成 | 85 | 90 | +5 ✅ |
-| 认知负担 | 72 | 80 | +8 ✅ |
-| 可访问性 | 76 | 75 | -1 ⚠️ |
+
+| 维度     | 基线 | 当前 | 变化  |
+| -------- | ---- | ---- | ----- |
+| 任务完成 | 85   | 90   | +5 ✅ |
+| 认知负担 | 72   | 80   | +8 ✅ |
+| 可访问性 | 76   | 75   | -1 ⚠️ |
 
 ### 回归警报
+
 ⚠️ 可访问性轻微下降（-1 分）
+
 - 新增问题：焦点指示器对比度不足
 
 ### 改进亮点
+
 ✅ 表单步骤从 5 步减少到 3 步
 ✅ 认知负担显著降低
 ✅ 用户满意度提升 15%
@@ -160,10 +165,10 @@ import { UXQClient } from '@uxq/cli-client';
 
 test('结账流程 UX 评价', async ({ page }) => {
   const uxq = new UXQClient();
-  
+
   // 1. 导航到目标页面
   await page.goto('https://shop.example.com/checkout');
-  
+
   // 2. 启动 UXQ 评价
   const run = await uxq.startEvaluation({
     url: page.url(),
@@ -173,15 +178,15 @@ test('结账流程 UX 评价', async ({ page }) => {
       steps: ['添加商品', '填写地址', '支付'],
     },
   });
-  
+
   // 3. 执行用户任务
   await page.click('[data-testid="add-to-cart"]');
   await page.fill('[name="address"]', '测试地址');
   await page.click('[data-testid="submit-order"]');
-  
+
   // 4. 等待任务完成
   await page.waitForSelector('[data-testid="success"]');
-  
+
   // 5. 收集证据
   const screenshot = await page.screenshot();
   await uxq.collectEvidence({
@@ -190,10 +195,10 @@ test('结账流程 UX 评价', async ({ page }) => {
     data: screenshot,
     metadata: { timestamp: new Date().toISOString() },
   });
-  
+
   // 6. 结束评价并获取结果
   const result = await uxq.completeEvaluation(run.id);
-  
+
   // 7. 断言 UX 指标
   expect(result.taskCompletion.score).toBeGreaterThanOrEqual(80);
   expect(result.cognitiveLoad.score).toBeGreaterThanOrEqual(70);
@@ -239,6 +244,7 @@ uxq research synthesize \
 # 用户研究综合报告
 
 ## 量化发现
+
 - 任务完成率：92%
 - 平均任务时间：145 秒
 - 用户满意度：4.2/5
@@ -246,21 +252,25 @@ uxq research synthesize \
 ## 定性主题
 
 ### 主题 1：支付流程复杂
+
 - 提及频率：8/10 用户
 - 情感倾向：负面
 - 关联指标：认知负担 +15%
 
 ### 主题 2：表单字段过多
+
 - 提及频率：6/10 用户
 - 情感倾向：负面
 - 关联指标：任务时间 +20s
 
 ### 主题 3：进度指示清晰
+
 - 提及频率：7/10 用户
 - 情感倾向：正面
 - 关联指标：认知负担 -10%
 
 ## 改进建议
+
 1. [高优先级] 简化支付表单，减少必填字段
 2. [中优先级] 提供地址自动填充
 3. [低优先级] 增加表单帮助提示
@@ -289,19 +299,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Setup UXQ
         run: pnpm install
-      
+
       - name: Start Preview Server
         run: pnpm preview &
-      
+
       - name: Run UX Evaluation
         run: |
           uxq task evaluate \
             --url http://localhost:3000 \
             --task "核心用户旅程"
-      
+
       - name: Check Quality Gate
         run: |
           SCORE=$(uxq scoring compute --run-id latest --format json | jq '.overallScore')
@@ -310,19 +320,19 @@ jobs:
             exit 1
           fi
           echo "✅ UX 评分 $SCORE 通过门禁"
-      
+
       - name: Detect Regressions
         run: |
           uxq regression compare \
             --baseline main \
             --current pr-${{ github.event.pull_request.number }}
-          
+
           REGRESSIONS=$(uxq regression detect --thresholds score:-5 --format json | jq '.regressions | length')
           if [ $REGRESSIONS -gt 0 ]; then
             echo "⚠️ 检测到 $REGRESSIONS 个回归"
             exit 1
           fi
-      
+
       - name: Upload Report
         if: always()
         run: |
@@ -330,7 +340,7 @@ jobs:
             --run-id latest \
             --format markdown \
             --output ux-report.md
-      
+
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -395,11 +405,7 @@ uxq report generate \
       "type": "token-mismatch",
       "severity": "moderate",
       "description": "Dark 主题中 3 处使用了硬编码颜色值",
-      "locations": [
-        ".card-header",
-        ".button-secondary",
-        ".text-muted"
-      ]
+      "locations": [".card-header", ".button-secondary", ".text-muted"]
     }
   ],
   "recommendations": [
@@ -417,11 +423,13 @@ uxq report generate \
 ### 1. 任务定义要具体
 
 ❌ **不推荐**：
+
 ```bash
 uxq task evaluate --url "https://example.com" --task "浏览网站"
 ```
 
 ✅ **推荐**：
+
 ```bash
 uxq task evaluate \
   --url "https://example.com/products" \
@@ -431,11 +439,13 @@ uxq task evaluate \
 ### 2. 多维度评价
 
 ❌ **不推荐**：只评价任务完成
+
 ```bash
 uxq task evaluate --url <url> --task <task>
 ```
 
 ✅ **推荐**：综合任务、认知、可访问性
+
 ```bash
 uxq task evaluate --url <url> --task <task>
 uxq cognition measure --url <url>
@@ -475,6 +485,7 @@ uxq research synthesize --studies interviews,evaluation
 ### Q: 如何自定义评分权重？
 
 A: 使用 `--weights` 参数：
+
 ```bash
 uxq scoring compute \
   --weights task:0.5,cognition:0.3,a11y:0.2
@@ -483,6 +494,7 @@ uxq scoring compute \
 ### Q: 如何导出原始数据？
 
 A: 使用 `--format json` 或 `--format csv`：
+
 ```bash
 uxq report export --run-id latest --format json --output raw-data.json
 ```
@@ -490,6 +502,7 @@ uxq report export --run-id latest --format json --output raw-data.json
 ### Q: 如何只评价特定维度？
 
 A: 使用对应的专用命令：
+
 ```bash
 # 只评价认知负担
 uxq cognition measure --url <url>
@@ -501,6 +514,7 @@ uxq accessibility audit --url <url>
 ### Q: 如何处理需要登录的页面？
 
 A: 使用 Playwright MCP 先完成登录，再传递 storageState：
+
 ```typescript
 const storageState = await page.context().storageState();
 await uxq.evaluate({ url, storageState });

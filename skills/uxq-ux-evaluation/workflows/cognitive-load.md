@@ -20,11 +20,13 @@ uxq cognition measure --url <target> --methods <method-list>
 ```
 
 **Parameters:**
+
 - `--url`: Target URL to evaluate
 - `--methods`: Measurement methods (nasa-tlx,secondary-task,reaction-time)
 - `--participants`: Number of participants (default: 5)
 
 **Example:**
+
 ```bash
 uxq cognition measure \
   --url "https://app.example.com/dashboard" \
@@ -38,10 +40,12 @@ uxq cognition analyze --page <url> --metrics <metric-list>
 ```
 
 **Parameters:**
+
 - `--page`: Page URL to analyze
 - `--metrics`: Complexity metrics (complexity,clarity,density)
 
 **Example:**
+
 ```bash
 uxq cognition analyze --page https://app.example.com --metrics complexity,clarity
 ```
@@ -53,11 +57,13 @@ uxq cognition compare --baseline <url-a> --candidate <url-b>
 ```
 
 **Parameters:**
+
 - `--baseline`: Baseline design URL
 - `--candidate`: Candidate design URL
 - `--metrics`: Comparison metrics
 
 **Example:**
+
 ```bash
 uxq cognition compare \
   --baseline "https://app.example.com/v1" \
@@ -103,6 +109,7 @@ uxq cognition compare \
 ### 总体评分: 72/100
 
 #### NASA-TLX 评分
+
 - 心理需求: 6.5/9
 - 身体需求: 3.2/9
 - 时间需求: 5.8/9
@@ -112,11 +119,13 @@ uxq cognition compare \
 - **总分: 33.6/54**
 
 #### 信息复杂度
+
 - 信息密度: 68%
 - 视觉混乱: 45%
 - 认知需求: 6.2/10
 
 #### 设计对比
+
 - 基线版本: 33.6
 - 候选版本: 28.4
 - **改进: 15.5%** ✅

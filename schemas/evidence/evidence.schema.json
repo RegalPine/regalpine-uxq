@@ -81,40 +81,20 @@
   ],
   "$defs": {
     "EvidenceSource": {
-      "enum": [
-        "E1",
-        "E2",
-        "E3",
-        "E4",
-        "E5"
-      ]
+      "enum": ["E1", "E2", "E3", "E4", "E5"]
     },
     "EvidenceLifecycle": {
-      "enum": [
-        "CAPTURED",
-        "VALIDATED",
-        "DERIVED",
-        "RETIRED"
-      ]
+      "enum": ["CAPTURED", "VALIDATED", "DERIVED", "RETIRED"]
     },
     "EvidenceValidity": {
-      "enum": [
-        "UNVERIFIED",
-        "VALID",
-        "DISPUTED",
-        "INVALID"
-      ]
+      "enum": ["UNVERIFIED", "VALID", "DISPUTED", "INVALID"]
     },
     "EvidencePrivacy": {
       "type": "object",
       "additionalProperties": false,
       "properties": {
         "classification": {
-          "enum": [
-            "PUBLIC",
-            "INTERNAL",
-            "SENSITIVE"
-          ]
+          "enum": ["PUBLIC", "INTERNAL", "SENSITIVE"]
         },
         "redacted": {
           "type": "boolean"
@@ -122,12 +102,7 @@
         "allowedPurposes": {
           "type": "array",
           "items": {
-            "enum": [
-              "EVALUATION",
-              "VERIFICATION",
-              "SHARING",
-              "RESEARCH"
-            ]
+            "enum": ["EVALUATION", "VERIFICATION", "SHARING", "RESEARCH"]
           },
           "minItems": 1,
           "uniqueItems": true
@@ -139,12 +114,7 @@
           "$ref": "#/$defs/Id"
         }
       },
-      "required": [
-        "classification",
-        "redacted",
-        "allowedPurposes",
-        "retentionUntil"
-      ]
+      "required": ["classification", "redacted", "allowedPurposes", "retentionUntil"]
     }
   }
 }

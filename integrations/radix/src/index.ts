@@ -194,8 +194,7 @@ export class RadixDomAdapter implements DesignSystemAdapter {
       if (themeId !== null && themeId.trim() !== '') {
         return {
           themeId: themeId.trim(),
-          declaredBy:
-            current.getAttribute('data-uxq-id')?.trim() ?? current.tagName.toLowerCase(),
+          declaredBy: current.getAttribute('data-uxq-id')?.trim() ?? current.tagName.toLowerCase(),
         };
       }
       current = current.parentElement;

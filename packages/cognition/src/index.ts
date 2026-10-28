@@ -3,19 +3,19 @@ import type { Timestamp, Id } from '@uxq/core';
 
 /**
  * M4.1: 认知与信息理解模块
- * 
+ *
  * 提供认知负荷代理指标和结构化人工评审输入。
  * 明确适用情境与限制：代理指标不冒充真实理解或心理测量。
  */
 
 /** 认知负荷代理指标类型 */
 export type CognitiveLoadMetric =
-  | 'TASK_TIME'           // 任务完成时间
-  | 'ERROR_RATE'          // 错误率
-  | 'NAVIGATION_DEPTH'    // 导航深度
-  | 'BACK_TRACKS'         // 回溯次数
-  | 'PAUSE_DURATION'      // 暂停时长
-  | 'INTERACTION_COUNT';  // 交互次数
+  | 'TASK_TIME' // 任务完成时间
+  | 'ERROR_RATE' // 错误率
+  | 'NAVIGATION_DEPTH' // 导航深度
+  | 'BACK_TRACKS' // 回溯次数
+  | 'PAUSE_DURATION' // 暂停时长
+  | 'INTERACTION_COUNT'; // 交互次数
 
 /** 认知负荷评估结果 */
 export interface CognitiveLoadAssessment {
@@ -93,9 +93,9 @@ export function createCognitiveLoadAssessment(
       '不适用于临床或诊断用途',
     ],
   };
-  
+
   if (notes) base.notes = notes;
-  
+
   return base;
 }
 
@@ -132,7 +132,7 @@ function calculateOverallLoad(
   metrics: Record<CognitiveLoadMetric, number | null>,
 ): 'LOW' | 'MEDIUM' | 'HIGH' | 'UNKNOWN' {
   const values = Object.values(metrics).filter((v): v is number => v !== null);
-  
+
   if (values.length === 0) return 'UNKNOWN';
 
   // 简化的启发式规则
@@ -144,7 +144,7 @@ function calculateOverallLoad(
   if (backTracks !== null && backTracks > 5) return 'HIGH';
   if (errorRate !== null && errorRate > 0.1) return 'MEDIUM';
   if (backTracks !== null && backTracks > 2) return 'MEDIUM';
-  
+
   return 'LOW';
 }
 

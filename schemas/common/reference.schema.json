@@ -24,12 +24,7 @@
       "maxLength": 20000
     },
     "Scalar": {
-      "type": [
-        "string",
-        "number",
-        "boolean",
-        "null"
-      ]
+      "type": ["string", "number", "boolean", "null"]
     },
     "JsonValue": {
       "anyOf": [

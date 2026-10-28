@@ -25,17 +25,20 @@
 #### 开发流程
 
 1. Fork 仓库并克隆到本地
+
    ```bash
    git clone https://github.com/YOUR-USERNAME/uxq.git
    cd uxq
    ```
 
 2. 安装依赖
+
    ```bash
    pnpm install
    ```
 
 3. 创建分支
+
    ```bash
    git checkout -b feat/your-feature-name
    # 或
@@ -46,6 +49,7 @@
    - 遵循项目的代码风格（已有 ESLint 和 Prettier 配置）
    - 添加必要的测试
    - 确保所有检查通过
+
    ```bash
    pnpm check  # 完整检查
    ```
@@ -56,6 +60,7 @@
    - 例如：`feat(cli): add interactive mode`
 
 6. 推送到你的 Fork
+
    ```bash
    git push origin your-branch-name
    ```

@@ -19,10 +19,7 @@ const DEFINITIONS_DIR = join(ROOT, 'definitions');
 
 const program = new Command();
 
-program
-  .name('uxq-reference')
-  .description('UXQ 参考实现与示例库')
-  .version('0.1.0');
+program.name('uxq-reference').description('UXQ 参考实现与示例库').version('0.1.0');
 
 function header(title: string): void {
   const line = '═'.repeat(50);
@@ -131,8 +128,12 @@ program
     if (data.dimensions) {
       subheader('评价维度');
       const dimNames: Record<string, string> = {
-        D01: '任务效率', D02: '交互质量', D03: '认知负担',
-        D04: '可访问性', D05: '包容性', D06: '主观体验',
+        D01: '任务效率',
+        D02: '交互质量',
+        D03: '认知负担',
+        D04: '可访问性',
+        D05: '包容性',
+        D06: '主观体验',
       };
       for (const dim of data.dimensions) {
         console.log(`  ${chalk.cyan(dim)} — ${dimNames[dim] ?? '未知'}`);
@@ -142,9 +143,16 @@ program
     if (data.metrics?.length > 0) {
       subheader(`指标 (${data.metrics.length})`);
       for (const metric of data.metrics) {
-        const dirSymbol = metric.direction === 'HIGHER_IS_BETTER' ? '↑' : metric.direction === 'LOWER_IS_BETTER' ? '↓' : '→';
+        const dirSymbol =
+          metric.direction === 'HIGHER_IS_BETTER'
+            ? '↑'
+            : metric.direction === 'LOWER_IS_BETTER'
+              ? '↓'
+              : '→';
         console.log(`  ${chalk.cyan(dirSymbol)} ${metric.name} (${metric.id})`);
-        console.log(`    维度: ${metric.dimensionId}  类型: ${metric.metricType}  单位: ${metric.unit ?? 'N/A'}`);
+        console.log(
+          `    维度: ${metric.dimensionId}  类型: ${metric.metricType}  单位: ${metric.unit ?? 'N/A'}`,
+        );
         if (metric.required) console.log(chalk.red(`    ⚠ 必需指标`));
       }
     }
@@ -169,7 +177,9 @@ program
       if (data.policy.bindings?.length > 0) {
         console.log(chalk.gray('\n  评分绑定:'));
         for (const binding of data.policy.bindings) {
-          console.log(`    ${binding.metricId}: 权重=${binding.weight} 标准化=${binding.normalization}`);
+          console.log(
+            `    ${binding.metricId}: 权重=${binding.weight} 标准化=${binding.normalization}`,
+          );
         }
       }
 
@@ -177,7 +187,9 @@ program
         console.log(chalk.gray('\n  维度权重:'));
         for (const dim of data.policy.dimensions) {
           const bar = '█'.repeat(Math.round(dim.weight * 20));
-          console.log(`    ${dim.dimensionId}: ${(dim.weight * 100).toFixed(0).padStart(3)}% ${chalk.cyan(bar)}`);
+          console.log(
+            `    ${dim.dimensionId}: ${(dim.weight * 100).toFixed(0).padStart(3)}% ${chalk.cyan(bar)}`,
+          );
         }
       }
     }
@@ -212,7 +224,9 @@ program
     try {
       data = JSON.parse(readFileSync(filePath, 'utf-8'));
     } catch (error) {
-      console.log(chalk.red(`✗ JSON 解析失败: ${error instanceof Error ? error.message : '未知错误'}`));
+      console.log(
+        chalk.red(`✗ JSON 解析失败: ${error instanceof Error ? error.message : '未知错误'}`),
+      );
       return;
     }
 
@@ -293,8 +307,12 @@ program
     }
 
     console.log(`\n  文件: ${chalk.gray(relative(ROOT, filePath))}`);
-    console.log(`  错误: ${errors.length === 0 ? chalk.green('0') : chalk.red(String(errors.length))}`);
-    console.log(`  警告: ${warnings.length === 0 ? chalk.green('0') : chalk.yellow(String(warnings.length))}`);
+    console.log(
+      `  错误: ${errors.length === 0 ? chalk.green('0') : chalk.red(String(errors.length))}`,
+    );
+    console.log(
+      `  警告: ${warnings.length === 0 ? chalk.green('0') : chalk.yellow(String(warnings.length))}`,
+    );
   });
 
 // ─── path 命令 ──────────────────────────────────────────
@@ -319,6 +337,7 @@ interface PageInfo {
 
 interface DefinitionInfo {
   path: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   data: Record<string, any>;
 }
 

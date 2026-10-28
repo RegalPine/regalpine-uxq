@@ -30,7 +30,10 @@ const bundle = makeBundle();
 describe('Legacy Fixture: MetricDefinition', () => {
   it('v0.2.0 MetricDefinition 完整迁移到 v1.0.0', () => {
     const original = bundle.definition.metrics[0]!;
-    const legacy = toLegacy({ ...original, direction: 'HIGHER_IS_BETTER' } as unknown as Record<string, unknown>);
+    const legacy = toLegacy({ ...original, direction: 'HIGHER_IS_BETTER' } as unknown as Record<
+      string,
+      unknown
+    >);
     const originalDigest = digest(legacy);
 
     const result = migrateLegacy('MetricDefinition', legacy);
@@ -47,7 +50,10 @@ describe('Legacy Fixture: MetricDefinition', () => {
 
   it('DESCRIPTIVE 方向正确映射为 DESCRIPTIVE_ONLY', () => {
     const original = bundle.definition.metrics[0]!;
-    const legacy = toLegacy({ ...original, direction: 'DESCRIPTIVE' } as unknown as Record<string, unknown>);
+    const legacy = toLegacy({ ...original, direction: 'DESCRIPTIVE' } as unknown as Record<
+      string,
+      unknown
+    >);
 
     const result = migrateLegacy('MetricDefinition', legacy);
 
@@ -57,7 +63,10 @@ describe('Legacy Fixture: MetricDefinition', () => {
 
   it('原始数据不被修改', () => {
     const original = bundle.definition.metrics[0]!;
-    const legacy = toLegacy({ ...original, direction: 'DESCRIPTIVE' } as unknown as Record<string, unknown>);
+    const legacy = toLegacy({ ...original, direction: 'DESCRIPTIVE' } as unknown as Record<
+      string,
+      unknown
+    >);
     const before = digest(legacy);
 
     migrateLegacy('MetricDefinition', legacy);
@@ -120,7 +129,11 @@ describe('Legacy Fixture: RuleResult', () => {
 
   it('保留规则失败原因', () => {
     const original = bundle.rules[0]!;
-    const legacy = toLegacy({ ...original, outcome: 'FAIL', reason: '超出阈值' } as unknown as Record<string, unknown>);
+    const legacy = toLegacy({
+      ...original,
+      outcome: 'FAIL',
+      reason: '超出阈值',
+    } as unknown as Record<string, unknown>);
 
     const result = migrateLegacy('RuleResult', legacy);
 
@@ -170,19 +183,34 @@ describe('Legacy: 跨类型迁移完整性', () => {
     }> = [
       {
         name: 'MetricDefinition',
-        fixture: { ...toLegacy({ ...bundle.definition.metrics[0], direction: 'LOWER_IS_BETTER' } as unknown as Record<string, unknown>), schema_version: '0.2.0' },
+        fixture: {
+          ...toLegacy({
+            ...bundle.definition.metrics[0],
+            direction: 'LOWER_IS_BETTER',
+          } as unknown as Record<string, unknown>),
+          schema_version: '0.2.0',
+        },
       },
       {
         name: 'MetricResult',
-        fixture: { ...toLegacy(bundle.metrics[0] as unknown as Record<string, unknown>), schema_version: '0.2.0' },
+        fixture: {
+          ...toLegacy(bundle.metrics[0] as unknown as Record<string, unknown>),
+          schema_version: '0.2.0',
+        },
       },
       {
         name: 'RuleResult',
-        fixture: { ...toLegacy(bundle.rules[0] as unknown as Record<string, unknown>), schema_version: '0.2.0' },
+        fixture: {
+          ...toLegacy(bundle.rules[0] as unknown as Record<string, unknown>),
+          schema_version: '0.2.0',
+        },
       },
       {
         name: 'Evidence',
-        fixture: { ...toLegacy(bundle.evidence[0] as unknown as Record<string, unknown>), schema_version: '0.2.0' },
+        fixture: {
+          ...toLegacy(bundle.evidence[0] as unknown as Record<string, unknown>),
+          schema_version: '0.2.0',
+        },
       },
     ];
 

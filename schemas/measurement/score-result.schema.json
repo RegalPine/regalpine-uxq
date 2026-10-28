@@ -60,39 +60,24 @@
               "maximum": 100
             }
           },
-          "required": [
-            "status",
-            "value"
-          ]
+          "required": ["status", "value"]
         },
         {
           "type": "object",
           "properties": {
             "status": {
-              "enum": [
-                "NOT_SCORED",
-                "INSUFFICIENT_INPUTS",
-                "CALCULATION_FAILED"
-              ]
+              "enum": ["NOT_SCORED", "INSUFFICIENT_INPUTS", "CALCULATION_FAILED"]
             },
             "reason": {
               "$ref": "#/$defs/Text"
             }
           },
-          "required": [
-            "status",
-            "reason"
-          ]
+          "required": ["status", "reason"]
         }
       ]
     },
     "ScoreStatus": {
-      "enum": [
-        "SCORED",
-        "NOT_SCORED",
-        "INSUFFICIENT_INPUTS",
-        "CALCULATION_FAILED"
-      ]
+      "enum": ["SCORED", "NOT_SCORED", "INSUFFICIENT_INPUTS", "CALCULATION_FAILED"]
     }
   }
 }

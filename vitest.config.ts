@@ -3,7 +3,11 @@ import { defineConfig } from 'vitest/config';
 export default defineConfig({
   resolve: { conditions: ['development'] },
   test: {
-    include: ['packages/*/tests/**/*.test.ts', 'integrations/*/tests/**/*.test.ts', 'tests/**/*.test.ts'],
+    include: [
+      'packages/*/tests/**/*.test.ts',
+      'integrations/*/tests/**/*.test.ts',
+      'tests/**/*.test.ts',
+    ],
     exclude: [
       '**/node_modules/**',
       '**/dist/**',

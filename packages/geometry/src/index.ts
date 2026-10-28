@@ -194,7 +194,7 @@ export function spacingToContainer(element: Rect, container: Rect): Spacing {
  */
 export function checkHorizontalAlignment(
   elements: LayoutElement[],
-  tolerance: number = 1
+  tolerance: number = 1,
 ): AlignmentResult {
   if (elements.length < 2) {
     return { aligned: true, axis: 'horizontal', tolerance, deviation: 0 };
@@ -229,7 +229,7 @@ export function checkHorizontalAlignment(
  */
 export function checkVerticalAlignment(
   elements: LayoutElement[],
-  tolerance: number = 1
+  tolerance: number = 1,
 ): AlignmentResult {
   if (elements.length < 2) {
     return { aligned: true, axis: 'vertical', tolerance, deviation: 0 };
@@ -262,16 +262,18 @@ export function checkVerticalAlignment(
 /**
  * 检测双向对齐
  */
-export function checkAlignment(
-  elements: LayoutElement[],
-  tolerance: number = 1
-): AlignmentResult {
+export function checkAlignment(elements: LayoutElement[], tolerance: number = 1): AlignmentResult {
   const horizontal = checkHorizontalAlignment(elements, tolerance);
   const vertical = checkVerticalAlignment(elements, tolerance);
 
   return {
     aligned: horizontal.aligned && vertical.aligned,
-    axis: horizontal.aligned && vertical.aligned ? 'both' : horizontal.aligned ? 'horizontal' : 'vertical',
+    axis:
+      horizontal.aligned && vertical.aligned
+        ? 'both'
+        : horizontal.aligned
+          ? 'horizontal'
+          : 'vertical',
     tolerance,
     deviation: Math.max(horizontal.deviation, vertical.deviation),
   };
@@ -293,8 +295,7 @@ export function sizeConsistency(elements: LayoutElement[]): number {
   const avgWidth = widths.reduce((a, b) => a + b, 0) / widths.length;
   const avgHeight = heights.reduce((a, b) => a + b, 0) / heights.length;
 
-  const widthVariance =
-    widths.reduce((sum, w) => sum + Math.abs(w - avgWidth), 0) / widths.length;
+  const widthVariance = widths.reduce((sum, w) => sum + Math.abs(w - avgWidth), 0) / widths.length;
   const heightVariance =
     heights.reduce((sum, h) => sum + Math.abs(h - avgHeight), 0) / heights.length;
 
@@ -365,7 +366,7 @@ export function createGrid(container: Rect, config: GridConfig): GridCell[] {
 export function checkGridConformance(
   elements: LayoutElement[],
   grid: GridCell[],
-  tolerance: number = 5
+  tolerance: number = 5,
 ): number {
   let conformingCount = 0;
 
@@ -408,7 +409,8 @@ export function createSpacingConsistencyRule(expectedSpacing?: number): Geometry
       }
 
       const avgSpacing = spacings.reduce((a, b) => a + b, 0) / spacings.length;
-      const variance = spacings.reduce((sum, s) => sum + Math.abs(s - avgSpacing), 0) / spacings.length;
+      const variance =
+        spacings.reduce((sum, s) => sum + Math.abs(s - avgSpacing), 0) / spacings.length;
 
       const consistent = variance <= 2;
 
@@ -598,7 +600,7 @@ export class LayoutAnalyzer {
     for (const element of analysis.elements) {
       const name = element.name || element.id;
       lines.push(
-        `- ${name}: (${element.rect.x}, ${element.rect.y}) ${element.rect.width}×${element.rect.height}`
+        `- ${name}: (${element.rect.x}, ${element.rect.y}) ${element.rect.width}×${element.rect.height}`,
       );
     }
 

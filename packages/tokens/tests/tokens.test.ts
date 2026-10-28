@@ -189,9 +189,7 @@ describe('@uxq/tokens', () => {
     });
 
     it('应该转换 Token 列表', () => {
-      const tokens: DesignToken[] = [
-        { name: 'color-primary', value: '#007bff', type: 'color' },
-      ];
+      const tokens: DesignToken[] = [{ name: 'color-primary', value: '#007bff', type: 'color' }];
 
       const result = transformer.transform(tokens, 'light');
 
@@ -205,9 +203,7 @@ describe('@uxq/tokens', () => {
     });
 
     it('应该保留原始值', () => {
-      const tokens: DesignToken[] = [
-        { name: 'spacing-small', value: 8, type: 'spacing' },
-      ];
+      const tokens: DesignToken[] = [{ name: 'spacing-small', value: 8, type: 'spacing' }];
 
       const result = transformer.transform(tokens);
 
@@ -224,9 +220,7 @@ describe('@uxq/tokens', () => {
     });
 
     it('应该注册 Token', () => {
-      const tokens: DesignToken[] = [
-        { name: 'color-primary', value: '#007bff', type: 'color' },
-      ];
+      const tokens: DesignToken[] = [{ name: 'color-primary', value: '#007bff', type: 'color' }];
 
       const result = registry.register(tokens);
 
@@ -235,9 +229,7 @@ describe('@uxq/tokens', () => {
     });
 
     it('应该解析已注册的 Token', () => {
-      const tokens: DesignToken[] = [
-        { name: 'color-primary', value: '#007bff', type: 'color' },
-      ];
+      const tokens: DesignToken[] = [{ name: 'color-primary', value: '#007bff', type: 'color' }];
 
       registry.register(tokens);
       const resolved = registry.resolve('color-primary');
@@ -247,12 +239,8 @@ describe('@uxq/tokens', () => {
     });
 
     it('应该拒绝重复的 Token 名称', () => {
-      const tokens1: DesignToken[] = [
-        { name: 'color-primary', value: '#007bff', type: 'color' },
-      ];
-      const tokens2: DesignToken[] = [
-        { name: 'color-primary', value: '#ff0000', type: 'color' },
-      ];
+      const tokens1: DesignToken[] = [{ name: 'color-primary', value: '#007bff', type: 'color' }];
+      const tokens2: DesignToken[] = [{ name: 'color-primary', value: '#ff0000', type: 'color' }];
 
       registry.register(tokens1);
       const result = registry.register(tokens2);
@@ -280,9 +268,7 @@ describe('@uxq/tokens', () => {
     });
 
     it('应该清空注册表', () => {
-      const tokens: DesignToken[] = [
-        { name: 'color-primary', value: '#007bff', type: 'color' },
-      ];
+      const tokens: DesignToken[] = [{ name: 'color-primary', value: '#007bff', type: 'color' }];
 
       registry.register(tokens);
       registry.clear();

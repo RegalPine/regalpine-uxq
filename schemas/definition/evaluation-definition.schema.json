@@ -36,12 +36,7 @@
     "methods": {
       "type": "array",
       "items": {
-        "enum": [
-          "AUTOMATED",
-          "EXPERT_REVIEW",
-          "USER_RESEARCH",
-          "PROXY"
-        ]
+        "enum": ["AUTOMATED", "EXPERT_REVIEW", "USER_RESEARCH", "PROXY"]
       },
       "minItems": 1,
       "uniqueItems": true
@@ -112,14 +107,7 @@
           "$ref": "#/$defs/Text"
         },
         "type": {
-          "enum": [
-            "WEB_APP",
-            "PAGE",
-            "COMPONENT",
-            "TASK",
-            "JOURNEY",
-            "OFFLINE"
-          ]
+          "enum": ["WEB_APP", "PAGE", "COMPONENT", "TASK", "JOURNEY", "OFFLINE"]
         },
         "url": {
           "type": "string",
@@ -132,13 +120,7 @@
           "$ref": "#/$defs/Text"
         }
       },
-      "required": [
-        "id",
-        "name",
-        "type",
-        "version",
-        "environment"
-      ]
+      "required": ["id", "name", "type", "version", "environment"]
     },
     "Scope": {
       "type": "object",
@@ -160,23 +142,10 @@
           "$ref": "#/$defs/TextList"
         }
       },
-      "required": [
-        "entityIds",
-        "routes",
-        "taskIds",
-        "exclusions",
-        "limitations"
-      ]
+      "required": ["entityIds", "routes", "taskIds", "exclusions", "limitations"]
     },
     "DimensionId": {
-      "enum": [
-        "D01",
-        "D02",
-        "D03",
-        "D04",
-        "D05",
-        "D06"
-      ]
+      "enum": ["D01", "D02", "D03", "D04", "D05", "D06"]
     },
     "VersionRef": {
       "type": "object",
@@ -192,10 +161,7 @@
           "$ref": "#/$defs/Version"
         }
       },
-      "required": [
-        "id",
-        "version"
-      ]
+      "required": ["id", "version"]
     },
     "MetricField": {
       "type": "object",
@@ -205,11 +171,7 @@
           "$ref": "#/$defs/Id"
         },
         "kind": {
-          "enum": [
-            "NUMBER",
-            "BOOLEAN",
-            "CATEGORY"
-          ]
+          "enum": ["NUMBER", "BOOLEAN", "CATEGORY"]
         },
         "required": {
           "type": "boolean"
@@ -218,11 +180,7 @@
           "$ref": "#/$defs/TextList"
         }
       },
-      "required": [
-        "key",
-        "kind",
-        "required"
-      ]
+      "required": ["key", "kind", "required"]
     },
     "MetricDefinition": {
       "allOf": [
@@ -249,14 +207,7 @@
           "$ref": "#/$defs/DimensionId"
         },
         "metricType": {
-          "enum": [
-            "OBS",
-            "CALC",
-            "STRUCT",
-            "PROXY",
-            "SUBJECTIVE",
-            "EXPERT"
-          ]
+          "enum": ["OBS", "CALC", "STRUCT", "PROXY", "SUBJECTIVE", "EXPERT"]
         },
         "valueKind": {
           "$ref": "#/$defs/ValueKind"
@@ -271,16 +222,7 @@
           "$ref": "#/$defs/Text"
         },
         "aggregation": {
-          "enum": [
-            "LATEST",
-            "MEAN",
-            "MEDIAN",
-            "P95",
-            "SUM",
-            "COUNT",
-            "RATIO",
-            "SUCCESS_RATE"
-          ]
+          "enum": ["LATEST", "MEAN", "MEDIAN", "P95", "SUM", "COUNT", "RATIO", "SUCCESS_RATE"]
         },
         "minimumSamples": {
           "type": "integer",
@@ -347,10 +289,7 @@
           "additionalProperties": false,
           "properties": {
             "op": {
-              "enum": [
-                "ALL",
-                "ANY"
-              ]
+              "enum": ["ALL", "ANY"]
             },
             "children": {
               "type": "array",
@@ -361,10 +300,7 @@
               "maxItems": 128
             }
           },
-          "required": [
-            "op",
-            "children"
-          ]
+          "required": ["op", "children"]
         },
         {
           "type": "object",
@@ -377,22 +313,14 @@
               "$ref": "#/$defs/RuleExpression"
             }
           },
-          "required": [
-            "op",
-            "child"
-          ]
+          "required": ["op", "child"]
         },
         {
           "type": "object",
           "additionalProperties": false,
           "properties": {
             "op": {
-              "enum": [
-                "LT",
-                "LTE",
-                "GT",
-                "GTE"
-              ]
+              "enum": ["LT", "LTE", "GT", "GTE"]
             },
             "metricId": {
               "$ref": "#/$defs/Id"
@@ -401,21 +329,14 @@
               "type": "number"
             }
           },
-          "required": [
-            "op",
-            "metricId",
-            "expected"
-          ]
+          "required": ["op", "metricId", "expected"]
         },
         {
           "type": "object",
           "additionalProperties": false,
           "properties": {
             "op": {
-              "enum": [
-                "EQ",
-                "NE"
-              ]
+              "enum": ["EQ", "NE"]
             },
             "metricId": {
               "$ref": "#/$defs/Id"
@@ -424,11 +345,7 @@
               "$ref": "#/$defs/Scalar"
             }
           },
-          "required": [
-            "op",
-            "metricId",
-            "expected"
-          ]
+          "required": ["op", "metricId", "expected"]
         },
         {
           "type": "object",
@@ -447,12 +364,7 @@
               "type": "number"
             }
           },
-          "required": [
-            "op",
-            "metricId",
-            "lower",
-            "upper"
-          ]
+          "required": ["op", "metricId", "lower", "upper"]
         },
         {
           "type": "object",
@@ -474,11 +386,7 @@
               "uniqueItems": true
             }
           },
-          "required": [
-            "op",
-            "metricId",
-            "expected"
-          ]
+          "required": ["op", "metricId", "expected"]
         }
       ]
     },
@@ -510,13 +418,7 @@
           "$ref": "#/$defs/FindingTemplate"
         }
       },
-      "required": [
-        "version",
-        "name",
-        "expression",
-        "required",
-        "critical"
-      ]
+      "required": ["version", "name", "expression", "required", "critical"]
     },
     "FindingTemplate": {
       "type": "object",
@@ -617,12 +519,7 @@
           "exclusiveMinimum": 0
         },
         "normalization": {
-          "enum": [
-            "LINEAR_HIGHER",
-            "LINEAR_LOWER",
-            "TARGET_RANGE",
-            "BOOLEAN"
-          ]
+          "enum": ["LINEAR_HIGHER", "LINEAR_LOWER", "TARGET_RANGE", "BOOLEAN"]
         },
         "min": {
           "type": "number"
@@ -643,11 +540,7 @@
           "$ref": "#/$defs/Id"
         }
       },
-      "required": [
-        "metricId",
-        "weight",
-        "normalization"
-      ]
+      "required": ["metricId", "weight", "normalization"]
     },
     "DimensionWeight": {
       "type": "object",
@@ -666,11 +559,7 @@
           "maximum": 1
         }
       },
-      "required": [
-        "dimensionId",
-        "weight",
-        "minimumCoverage"
-      ]
+      "required": ["dimensionId", "weight", "minimumCoverage"]
     },
     "ScoringPolicy": {
       "allOf": [
@@ -688,10 +577,7 @@
           "$ref": "#/$defs/Text"
         },
         "mode": {
-          "enum": [
-            "DESCRIPTIVE",
-            "SCORE"
-          ]
+          "enum": ["DESCRIPTIVE", "SCORE"]
         },
         "bindings": {
           "type": "array",
@@ -708,10 +594,7 @@
           "maxItems": 6
         },
         "missingPolicy": {
-          "enum": [
-            "BLOCK",
-            "EXCLUDE"
-          ]
+          "enum": ["BLOCK", "EXCLUDE"]
         },
         "minimumCoverage": {
           "type": "number",
@@ -772,10 +655,7 @@
               "format": "uri"
             }
           },
-          "required": [
-            "action",
-            "url"
-          ]
+          "required": ["action", "url"]
         },
         {
           "type": "object",
@@ -788,10 +668,7 @@
               "$ref": "#/$defs/Text"
             }
           },
-          "required": [
-            "action",
-            "selector"
-          ]
+          "required": ["action", "selector"]
         },
         {
           "type": "object",
@@ -808,11 +685,7 @@
               "maxLength": 10000
             }
           },
-          "required": [
-            "action",
-            "selector",
-            "value"
-          ]
+          "required": ["action", "selector", "value"]
         },
         {
           "type": "object",
@@ -828,11 +701,7 @@
               "$ref": "#/$defs/Id"
             }
           },
-          "required": [
-            "action",
-            "selector",
-            "secretRef"
-          ]
+          "required": ["action", "selector", "secretRef"]
         },
         {
           "type": "object",
@@ -855,10 +724,7 @@
               ]
             }
           },
-          "required": [
-            "action",
-            "key"
-          ]
+          "required": ["action", "key"]
         },
         {
           "type": "object",
@@ -871,19 +737,10 @@
               "$ref": "#/$defs/Text"
             },
             "state": {
-              "enum": [
-                "visible",
-                "hidden",
-                "attached",
-                "detached"
-              ]
+              "enum": ["visible", "hidden", "attached", "detached"]
             }
           },
-          "required": [
-            "action",
-            "selector",
-            "state"
-          ]
+          "required": ["action", "selector", "state"]
         },
         {
           "type": "object",
@@ -899,24 +756,13 @@
               "$ref": "#/$defs/Id"
             },
             "extractor": {
-              "enum": [
-                "COUNT",
-                "VISIBLE",
-                "TEXT",
-                "VALUE",
-                "ACCESSIBLE_NAME"
-              ]
+              "enum": ["COUNT", "VISIBLE", "TEXT", "VALUE", "ACCESSIBLE_NAME"]
             },
             "unit": {
               "$ref": "#/$defs/Text"
             }
           },
-          "required": [
-            "action",
-            "selector",
-            "key",
-            "extractor"
-          ]
+          "required": ["action", "selector", "key", "extractor"]
         },
         {
           "type": "object",
@@ -929,10 +775,7 @@
               "$ref": "#/$defs/Id"
             }
           },
-          "required": [
-            "action",
-            "name"
-          ]
+          "required": ["action", "name"]
         }
       ]
     },
@@ -941,13 +784,7 @@
       "additionalProperties": false,
       "properties": {
         "kind": {
-          "enum": [
-            "TEXT",
-            "VISIBLE",
-            "ATTRIBUTE",
-            "URL",
-            "BUSINESS_JSON"
-          ]
+          "enum": ["TEXT", "VISIBLE", "ATTRIBUTE", "URL", "BUSINESS_JSON"]
         },
         "selector": {
           "$ref": "#/$defs/Text"
@@ -966,10 +803,7 @@
           "$ref": "#/$defs/Scalar"
         }
       },
-      "required": [
-        "kind",
-        "equals"
-      ]
+      "required": ["kind", "equals"]
     },
     "TaskDefinition": {
       "allOf": [
@@ -1012,10 +846,7 @@
           "minItems": 1
         },
         "sideEffect": {
-          "enum": [
-            "NONE",
-            "WRITE"
-          ]
+          "enum": ["NONE", "WRITE"]
         },
         "authorized": {
           "type": "boolean"
@@ -1059,10 +890,7 @@
       ]
     },
     "FailureMode": {
-      "enum": [
-        "CONTINUE_INDEPENDENT_STEPS",
-        "STOP_ON_REQUIRED_FAILURE"
-      ]
+      "enum": ["CONTINUE_INDEPENDENT_STEPS", "STOP_ON_REQUIRED_FAILURE"]
     }
   }
 }

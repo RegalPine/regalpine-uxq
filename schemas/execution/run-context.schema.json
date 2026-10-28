@@ -31,12 +31,7 @@
     "configSources": {
       "type": "object",
       "additionalProperties": {
-        "enum": [
-          "DEFAULT",
-          "CONFIG",
-          "DEFINITION",
-          "CLI"
-        ]
+        "enum": ["DEFAULT", "CONFIG", "DEFINITION", "CLI"]
       }
     },
     "environmentFingerprint": {

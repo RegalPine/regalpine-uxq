@@ -136,9 +136,7 @@ test.describe('E2E-03: 指标证据不足与缺失处理', () => {
 
     // 验证必需指标都已采集
     const requiredMetrics = metrics.filter((m) => m.required);
-    const requiredResults = results.filter((r) =>
-      requiredMetrics.some((m) => m.id === r.metricId),
-    );
+    const requiredResults = results.filter((r) => requiredMetrics.some((m) => m.id === r.metricId));
     expect(requiredResults.every((r) => r.status === 'MEASURED')).toBe(true);
   });
 

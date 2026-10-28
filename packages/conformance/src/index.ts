@@ -33,14 +33,14 @@ export interface ConformanceResult {
 
 /** 符合性检查类别 */
 export type ConformanceCategory =
-  | 'DEFINITION'     // 评价定义完整性
-  | 'METRIC'         // 指标定义与结果
-  | 'RULE'           // 规则引用与执行
-  | 'POLICY'         // 评分策略
-  | 'EVALUATION'     // 评价结果
-  | 'FINDING'        // 问题发现
-  | 'REPORT'         // 报告披露
-  | 'EVIDENCE';      // 证据链
+  | 'DEFINITION' // 评价定义完整性
+  | 'METRIC' // 指标定义与结果
+  | 'RULE' // 规则引用与执行
+  | 'POLICY' // 评分策略
+  | 'EVALUATION' // 评价结果
+  | 'FINDING' // 问题发现
+  | 'REPORT' // 报告披露
+  | 'EVIDENCE'; // 证据链
 
 /** 检查状态 */
 export type ConformanceStatus = 'PASS' | 'FAIL' | 'WARN' | 'SKIP';
@@ -200,7 +200,9 @@ export function checkRules(
     results.push({
       checkId: `RULE-002-${rule.ruleId}`,
       category: 'RULE',
-      status: validStatuses.includes(rule.executionStatus as 'COMPLETED' | 'ERROR') ? 'PASS' : 'FAIL',
+      status: validStatuses.includes(rule.executionStatus as 'COMPLETED' | 'ERROR')
+        ? 'PASS'
+        : 'FAIL',
       description: `规则 ${rule.ruleId} 执行状态必须为 COMPLETED 或 ERROR`,
     });
   }
@@ -286,7 +288,13 @@ export function checkEvaluation(
   });
 
   // EVAL-002: 评价状态必须合法
-  const validStatuses = ['COMPLETE', 'PARTIAL', 'INSUFFICIENT_EVIDENCE', 'CONSTRAINED', 'EXECUTION_FAILED'];
+  const validStatuses = [
+    'COMPLETE',
+    'PARTIAL',
+    'INSUFFICIENT_EVIDENCE',
+    'CONSTRAINED',
+    'EXECUTION_FAILED',
+  ];
   results.push({
     checkId: 'EVAL-002',
     category: 'EVALUATION',
@@ -484,7 +492,14 @@ export function renderConformanceMarkdown(report: ConformanceReport): string {
   for (const [category, results] of categories) {
     lines.push(`## ${category}`);
     for (const result of results) {
-      const icon = result.status === 'PASS' ? '✅' : result.status === 'FAIL' ? '❌' : result.status === 'WARN' ? '⚠️' : '⏭️';
+      const icon =
+        result.status === 'PASS'
+          ? '✅'
+          : result.status === 'FAIL'
+            ? '❌'
+            : result.status === 'WARN'
+              ? '⚠️'
+              : '⏭️';
       lines.push(`- ${icon} **${result.checkId}**: ${result.description}`);
       if (result.details) {
         for (const detail of result.details) {

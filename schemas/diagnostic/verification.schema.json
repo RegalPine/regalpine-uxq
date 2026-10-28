@@ -103,15 +103,7 @@
       ]
     },
     "VerificationStatus": {
-      "enum": [
-        "PENDING",
-        "RUNNING",
-        "PASSED",
-        "FAILED",
-        "INCONCLUSIVE",
-        "BLOCKED",
-        "CANCELLED"
-      ]
+      "enum": ["PENDING", "RUNNING", "PASSED", "FAILED", "INCONCLUSIVE", "BLOCKED", "CANCELLED"]
     }
   },
   "type": "object",

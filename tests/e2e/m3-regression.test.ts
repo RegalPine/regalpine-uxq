@@ -83,7 +83,7 @@ describe('E2E-05: 多信号同问题可去重', () => {
 
     const finding1 = createFinding(signals[0]!, 'run-1', fixedTime);
     const finding2 = createFinding(signals[0]!, 'run-1', fixedTime);
-    
+
     // 相同问题键生成相同去重键
     expect(finding1.deduplicationKey).toBe(finding2.deduplicationKey);
 
@@ -95,16 +95,16 @@ describe('E2E-05: 多信号同问题可去重', () => {
   it('不同场景的相似标题不合并', () => {
     const rules1 = [makeRule('r1', 'FAIL', '按钮不可见')];
     const rules2 = [makeRule('r2', 'FAIL', '按钮不可见')]; // 相同标题但不同规则
-    
+
     const signals1 = generateSignals(rules1, [], 'run-1', fixedTime);
     const signals2 = generateSignals(rules2, [], 'run-1', fixedTime);
-    
+
     const finding1 = createFinding(signals1[0]!, 'run-1', fixedTime);
     const finding2 = createFinding(signals2[0]!, 'run-1', fixedTime);
-    
+
     // 不同场景 ID 生成不同去重键
     expect(finding1.deduplicationKey).not.toBe(finding2.deduplicationKey);
-    
+
     const deduplicated = deduplicateFindings([finding1, finding2]);
     expect(deduplicated).toHaveLength(2);
   });
@@ -112,10 +112,10 @@ describe('E2E-05: 多信号同问题可去重', () => {
   it('合并保留所有证据和运行 ID', () => {
     const rules = [makeRule('r1', 'FAIL')];
     const signals = generateSignals(rules, [], 'run-1', fixedTime);
-    
+
     const finding1 = createFinding(signals[0]!, 'run-1', fixedTime);
     const finding2 = { ...createFinding(signals[0]!, 'run-2', fixedTime), id: 'finding-2' };
-    
+
     const deduplicated = deduplicateFindings([finding1, finding2]);
     expect(deduplicated).toHaveLength(1);
     expect(deduplicated[0]!.evaluationRunIds).toContain('run-1');
@@ -128,7 +128,7 @@ describe('E2E-06: FIXED 后验证失败处理', () => {
     const rules = [makeRule('r1', 'FAIL')];
     const signals = generateSignals(rules, [], 'run-1', fixedTime);
     const finding = createFinding(signals[0]!, 'run-1', fixedTime);
-    
+
     // NEW → TRIAGED → INVESTIGATING → CONFIRMED → PLANNED → IN_PROGRESS → FIXED
     const triaged = transitionFinding(finding, 'TRIAGED', '已确认', fixedTime);
     const investigating = transitionFinding(triaged, 'INVESTIGATING', '调查中', fixedTime);
@@ -137,7 +137,7 @@ describe('E2E-06: FIXED 后验证失败处理', () => {
     const inProgress = transitionFinding(planned, 'IN_PROGRESS', '修复中', fixedTime);
     const fixed = transitionFinding(inProgress, 'FIXED', '已修复', fixedTime);
     expect(fixed.lifecycle).toBe('FIXED');
-    
+
     // 创建验证计划
     const plan = createVerificationPlan(
       [fixed.id],
@@ -153,40 +153,44 @@ describe('E2E-06: FIXED 后验证失败处理', () => {
         scope: { entityIds: [], routes: [], taskIds: [], exclusions: [], limitations: [] },
         dimensions: ['D01'],
         methods: ['AUTOMATED'],
-        metrics: [{
-          id: 'm1',
-          schemaVersion: '1.0.0',
-          createdAt: fixedTime,
-          version: '1.0.0',
-          implementationVersion: '1.0.0',
-          name: '测试指标',
-          description: '测试用指标',
-          dimensionId: 'D01',
-          metricType: 'OBS',
-          valueKind: 'NUMBER',
-          direction: 'HIGHER_IS_BETTER',
-          sourceKey: 'test',
-          unit: 'count',
-          aggregation: 'LATEST',
-          minimumSamples: 1,
-          minimum: 0,
-          maximum: 100,
-          required: true,
-          applicable: true,
-          evidenceRequired: false,
-          limitations: [],
-        }],
+        metrics: [
+          {
+            id: 'm1',
+            schemaVersion: '1.0.0',
+            createdAt: fixedTime,
+            version: '1.0.0',
+            implementationVersion: '1.0.0',
+            name: '测试指标',
+            description: '测试用指标',
+            dimensionId: 'D01',
+            metricType: 'OBS',
+            valueKind: 'NUMBER',
+            direction: 'HIGHER_IS_BETTER',
+            sourceKey: 'test',
+            unit: 'count',
+            aggregation: 'LATEST',
+            minimumSamples: 1,
+            minimum: 0,
+            maximum: 100,
+            required: true,
+            applicable: true,
+            evidenceRequired: false,
+            limitations: [],
+          },
+        ],
         rules: [],
         tasks: [],
-        steps: [{
-          stepId: 'step-1',
-          kind: 'SCORING',
-          dependsOn: [],
-          required: true,
-          inputRefs: [],
-          outputContracts: ['ScoreResult'],
-          requiredCapabilities: [],
-        }],
+        steps: [
+          {
+            stepId: 'step-1',
+            kind: 'SCORING',
+            dependsOn: [],
+            required: true,
+            inputRefs: [],
+            outputContracts: ['ScoreResult'],
+            requiredCapabilities: [],
+          },
+        ],
         policy: {
           id: 'p1',
           schemaVersion: '1.0.0',
@@ -212,7 +216,7 @@ describe('E2E-06: FIXED 后验证失败处理', () => {
       false,
       fixedTime,
     );
-    
+
     // 验证失败
     const result = createVerificationResult(
       plan.id,
@@ -224,7 +228,7 @@ describe('E2E-06: FIXED 后验证失败处理', () => {
     );
     const failed = transitionVerification(result, 'FAILED', '验证未通过', fixedTime);
     expect(failed.status).toBe('FAILED');
-    
+
     // FIXED 可以直接进入 VERIFIED，但应该在验证通过后
     // 这里演示的是验证失败的情况，Finding 应该保持 FIXED 或重开
     expect(fixed.lifecycle).toBe('FIXED');
@@ -234,14 +238,14 @@ describe('E2E-06: FIXED 后验证失败处理', () => {
     const rules = [makeRule('r1', 'FAIL')];
     const signals = generateSignals(rules, [], 'run-1', fixedTime);
     const finding = createFinding(signals[0]!, 'run-1', fixedTime);
-    
+
     const triaged = transitionFinding(finding, 'TRIAGED', '确认', fixedTime);
     const investigating = transitionFinding(triaged, 'INVESTIGATING', '调查中', fixedTime);
     const confirmed = transitionFinding(investigating, 'CONFIRMED', '已确认', fixedTime);
     const planned = transitionFinding(confirmed, 'PLANNED', '已计划', fixedTime);
     const inProgress = transitionFinding(planned, 'IN_PROGRESS', '修复中', fixedTime);
     const fixed = transitionFinding(inProgress, 'FIXED', '修复', fixedTime);
-    
+
     const plan = createVerificationPlan(
       [fixed.id],
       [],
@@ -256,40 +260,44 @@ describe('E2E-06: FIXED 后验证失败处理', () => {
         scope: { entityIds: [], routes: [], taskIds: [], exclusions: [], limitations: [] },
         dimensions: ['D01'],
         methods: ['AUTOMATED'],
-        metrics: [{
-          id: 'm1',
-          schemaVersion: '1.0.0',
-          createdAt: fixedTime,
-          version: '1.0.0',
-          implementationVersion: '1.0.0',
-          name: '测试指标',
-          description: '测试用指标',
-          dimensionId: 'D01',
-          metricType: 'OBS',
-          valueKind: 'NUMBER',
-          direction: 'HIGHER_IS_BETTER',
-          sourceKey: 'test',
-          unit: 'count',
-          aggregation: 'LATEST',
-          minimumSamples: 1,
-          minimum: 0,
-          maximum: 100,
-          required: true,
-          applicable: true,
-          evidenceRequired: false,
-          limitations: [],
-        }],
+        metrics: [
+          {
+            id: 'm1',
+            schemaVersion: '1.0.0',
+            createdAt: fixedTime,
+            version: '1.0.0',
+            implementationVersion: '1.0.0',
+            name: '测试指标',
+            description: '测试用指标',
+            dimensionId: 'D01',
+            metricType: 'OBS',
+            valueKind: 'NUMBER',
+            direction: 'HIGHER_IS_BETTER',
+            sourceKey: 'test',
+            unit: 'count',
+            aggregation: 'LATEST',
+            minimumSamples: 1,
+            minimum: 0,
+            maximum: 100,
+            required: true,
+            applicable: true,
+            evidenceRequired: false,
+            limitations: [],
+          },
+        ],
         rules: [],
         tasks: [],
-        steps: [{
-          stepId: 'step-1',
-          kind: 'SCORING',
-          dependsOn: [],
-          required: true,
-          inputRefs: [],
-          outputContracts: ['ScoreResult'],
-          requiredCapabilities: [],
-        }],
+        steps: [
+          {
+            stepId: 'step-1',
+            kind: 'SCORING',
+            dependsOn: [],
+            required: true,
+            inputRefs: [],
+            outputContracts: ['ScoreResult'],
+            requiredCapabilities: [],
+          },
+        ],
         policy: {
           id: 'p1',
           schemaVersion: '1.0.0',
@@ -309,16 +317,23 @@ describe('E2E-06: FIXED 后验证失败处理', () => {
         },
         limitations: [],
       },
-      ['r1'],  // requiredRuleIds
-      [],      // requiredMetricIds
+      ['r1'], // requiredRuleIds
+      [], // requiredMetricIds
       ['验证通过'],
       false,
       fixedTime,
     );
-    
-    const result = createVerificationResult(plan.id, 'd', [fixed.id], 'COMPARABLE', fixedTime, 'run-2');
+
+    const result = createVerificationResult(
+      plan.id,
+      'd',
+      [fixed.id],
+      'COMPARABLE',
+      fixedTime,
+      'run-2',
+    );
     const failed = transitionVerification(result, 'FAILED', '失败', fixedTime);
-    
+
     // 验证历史保留
     expect(failed.planId).toBe(plan.id);
     expect(failed.findingIds).toContain(fixed.id);
@@ -328,18 +343,18 @@ describe('E2E-06: FIXED 后验证失败处理', () => {
     const rules = [makeRule('r1', 'FAIL')];
     const signals = generateSignals(rules, [], 'run-1', fixedTime);
     const finding = createFinding(signals[0]!, 'run-1', fixedTime);
-    
+
     const triaged = transitionFinding(finding, 'TRIAGED', '确认', fixedTime);
     const investigating = transitionFinding(triaged, 'INVESTIGATING', '调查中', fixedTime);
     const confirmed = transitionFinding(investigating, 'CONFIRMED', '已确认', fixedTime);
     const planned = transitionFinding(confirmed, 'PLANNED', '已计划', fixedTime);
     const inProgress = transitionFinding(planned, 'IN_PROGRESS', '修复中', fixedTime);
     const fixed = transitionFinding(inProgress, 'FIXED', '修复', fixedTime);
-    
+
     // 验证失败后重开
     const reopened = transitionFinding(fixed, 'REOPENED', '验证失败', fixedTime);
     expect(reopened.lifecycle).toBe('REOPENED');
-    
+
     // 重开后可以重新调查
     const reinvestigating = transitionFinding(reopened, 'INVESTIGATING', '重新调查', fixedTime);
     expect(reinvestigating.lifecycle).toBe('INVESTIGATING');
@@ -378,11 +393,11 @@ describe('E2E-07: 同一运行不同评分策略', () => {
         limitations: [],
       },
     };
-    
+
     const run2 = {
       ...run1,
-      policyId: 'sp2',  // 顶层 policyId
-      policyVersion: '2.0.0',  // 顶层 policyVersion
+      policyId: 'sp2', // 顶层 policyId
+      policyVersion: '2.0.0', // 顶层 policyVersion
       evaluation: {
         ...run1.evaluation,
         id: 'eval-2',
@@ -392,11 +407,13 @@ describe('E2E-07: 同一运行不同评分策略', () => {
         overallScore: 90,
       },
     };
-    
+
     // 可比性判定为 NOT_COMPARABLE
     const comparability = checkComparability(run1, run2);
     expect(comparability.comparability).toBe('NOT_COMPARABLE');
-    expect(comparability.dimensions.find(d => d.name === 'scoring-policy')?.comparable).toBe(false);
+    expect(comparability.dimensions.find((d) => d.name === 'scoring-policy')?.comparable).toBe(
+      false,
+    );
   });
 
   it('比较明确披露策略差异', () => {
@@ -430,16 +447,16 @@ describe('E2E-07: 同一运行不同评分策略', () => {
         limitations: [],
       },
     };
-    
+
     const run2 = {
       ...run1,
-      policyId: 'sp2',  // 顶层 policyId
+      policyId: 'sp2', // 顶层 policyId
       evaluation: { ...run1.evaluation, id: 'eval-2', policyId: 'sp2', overallScore: 90 },
     };
-    
+
     const comparison = compareRuns(run1, run2);
     expect(comparison.comparability).toBe('NOT_COMPARABLE');
-    expect(comparison.caveats.some(c => c.includes('策略'))).toBe(true);
+    expect(comparison.caveats.some((c) => c.includes('策略'))).toBe(true);
   });
 
   it('不直接归因于产品变化', () => {
@@ -473,13 +490,13 @@ describe('E2E-07: 同一运行不同评分策略', () => {
         limitations: [],
       },
     };
-    
+
     const run2 = {
       ...run1,
-      policyId: 'sp2',  // 顶层 policyId
+      policyId: 'sp2', // 顶层 policyId
       evaluation: { ...run1.evaluation, id: 'eval-2', policyId: 'sp2', overallScore: 90 },
     };
-    
+
     const comparison = compareRuns(run1, run2);
     // 分数差异不能直接解释为产品变化
     expect(comparison.comparability).toBe('NOT_COMPARABLE');
@@ -493,14 +510,14 @@ describe('额外验证：复测有效性', () => {
     const rules = [makeRule('r1', 'FAIL')];
     const signals = generateSignals(rules, [], 'run-1', fixedTime);
     const finding = createFinding(signals[0]!, 'run-1', fixedTime);
-    
+
     const triaged = transitionFinding(finding, 'TRIAGED', '确认', fixedTime);
     const investigating = transitionFinding(triaged, 'INVESTIGATING', '调查中', fixedTime);
     const confirmed = transitionFinding(investigating, 'CONFIRMED', '已确认', fixedTime);
     const planned = transitionFinding(confirmed, 'PLANNED', '已计划', fixedTime);
     const inProgress = transitionFinding(planned, 'IN_PROGRESS', '修复中', fixedTime);
     const fixed = transitionFinding(inProgress, 'FIXED', '修复', fixedTime);
-    
+
     const plan = createVerificationPlan(
       [fixed.id],
       [],
@@ -515,40 +532,44 @@ describe('额外验证：复测有效性', () => {
         scope: { entityIds: [], routes: [], taskIds: [], exclusions: [], limitations: [] },
         dimensions: ['D01'],
         methods: ['AUTOMATED'],
-        metrics: [{
-          id: 'm1',
-          schemaVersion: '1.0.0',
-          createdAt: fixedTime,
-          version: '1.0.0',
-          implementationVersion: '1.0.0',
-          name: '测试指标',
-          description: '测试用指标',
-          dimensionId: 'D01',
-          metricType: 'OBS',
-          valueKind: 'NUMBER',
-          direction: 'HIGHER_IS_BETTER',
-          sourceKey: 'test',
-          unit: 'count',
-          aggregation: 'LATEST',
-          minimumSamples: 1,
-          minimum: 0,
-          maximum: 100,
-          required: true,
-          applicable: true,
-          evidenceRequired: false,
-          limitations: [],
-        }],
+        metrics: [
+          {
+            id: 'm1',
+            schemaVersion: '1.0.0',
+            createdAt: fixedTime,
+            version: '1.0.0',
+            implementationVersion: '1.0.0',
+            name: '测试指标',
+            description: '测试用指标',
+            dimensionId: 'D01',
+            metricType: 'OBS',
+            valueKind: 'NUMBER',
+            direction: 'HIGHER_IS_BETTER',
+            sourceKey: 'test',
+            unit: 'count',
+            aggregation: 'LATEST',
+            minimumSamples: 1,
+            minimum: 0,
+            maximum: 100,
+            required: true,
+            applicable: true,
+            evidenceRequired: false,
+            limitations: [],
+          },
+        ],
         rules: [],
         tasks: [],
-        steps: [{
-          stepId: 'step-1',
-          kind: 'SCORING',
-          dependsOn: [],
-          required: true,
-          inputRefs: [],
-          outputContracts: ['ScoreResult'],
-          requiredCapabilities: [],
-        }],
+        steps: [
+          {
+            stepId: 'step-1',
+            kind: 'SCORING',
+            dependsOn: [],
+            required: true,
+            inputRefs: [],
+            outputContracts: ['ScoreResult'],
+            requiredCapabilities: [],
+          },
+        ],
         policy: {
           id: 'p1',
           schemaVersion: '1.0.0',
@@ -574,7 +595,7 @@ describe('额外验证：复测有效性', () => {
       false,
       fixedTime,
     );
-    
+
     // 有效复测通过
     const result = createVerificationResult(
       plan.id,
@@ -586,7 +607,7 @@ describe('额外验证：复测有效性', () => {
     );
     const passed = transitionVerification(result, 'PASSED', '验证通过', fixedTime);
     expect(passed.status).toBe('PASSED');
-    
+
     // Finding 可以进入 VERIFIED
     const verified = transitionFinding(fixed, 'VERIFIED', '验证通过', fixedTime);
     expect(verified.lifecycle).toBe('VERIFIED');
@@ -596,14 +617,14 @@ describe('额外验证：复测有效性', () => {
     const rules = [makeRule('r1', 'FAIL')];
     const signals = generateSignals(rules, [], 'run-1', fixedTime);
     const finding = createFinding(signals[0]!, 'run-1', fixedTime);
-    
+
     const triaged = transitionFinding(finding, 'TRIAGED', '确认', fixedTime);
     const investigating = transitionFinding(triaged, 'INVESTIGATING', '调查中', fixedTime);
     const confirmed = transitionFinding(investigating, 'CONFIRMED', '已确认', fixedTime);
     const planned = transitionFinding(confirmed, 'PLANNED', '已计划', fixedTime);
     const inProgress = transitionFinding(planned, 'IN_PROGRESS', '修复中', fixedTime);
     const fixed = transitionFinding(inProgress, 'FIXED', '修复', fixedTime);
-    
+
     const plan = createVerificationPlan(
       [fixed.id],
       [],
@@ -618,40 +639,44 @@ describe('额外验证：复测有效性', () => {
         scope: { entityIds: [], routes: [], taskIds: [], exclusions: [], limitations: [] },
         dimensions: ['D01'],
         methods: ['AUTOMATED'],
-        metrics: [{
-          id: 'm1',
-          schemaVersion: '1.0.0',
-          createdAt: fixedTime,
-          version: '1.0.0',
-          implementationVersion: '1.0.0',
-          name: '测试指标',
-          description: '测试用指标',
-          dimensionId: 'D01',
-          metricType: 'OBS',
-          valueKind: 'NUMBER',
-          direction: 'HIGHER_IS_BETTER',
-          sourceKey: 'test',
-          unit: 'count',
-          aggregation: 'LATEST',
-          minimumSamples: 1,
-          minimum: 0,
-          maximum: 100,
-          required: true,
-          applicable: true,
-          evidenceRequired: false,
-          limitations: [],
-        }],
+        metrics: [
+          {
+            id: 'm1',
+            schemaVersion: '1.0.0',
+            createdAt: fixedTime,
+            version: '1.0.0',
+            implementationVersion: '1.0.0',
+            name: '测试指标',
+            description: '测试用指标',
+            dimensionId: 'D01',
+            metricType: 'OBS',
+            valueKind: 'NUMBER',
+            direction: 'HIGHER_IS_BETTER',
+            sourceKey: 'test',
+            unit: 'count',
+            aggregation: 'LATEST',
+            minimumSamples: 1,
+            minimum: 0,
+            maximum: 100,
+            required: true,
+            applicable: true,
+            evidenceRequired: false,
+            limitations: [],
+          },
+        ],
         rules: [],
         tasks: [],
-        steps: [{
-          stepId: 'step-1',
-          kind: 'SCORING',
-          dependsOn: [],
-          required: true,
-          inputRefs: [],
-          outputContracts: ['ScoreResult'],
-          requiredCapabilities: [],
-        }],
+        steps: [
+          {
+            stepId: 'step-1',
+            kind: 'SCORING',
+            dependsOn: [],
+            required: true,
+            inputRefs: [],
+            outputContracts: ['ScoreResult'],
+            requiredCapabilities: [],
+          },
+        ],
         policy: {
           id: 'p1',
           schemaVersion: '1.0.0',
@@ -671,13 +696,13 @@ describe('额外验证：复测有效性', () => {
         },
         limitations: [],
       },
-      ['r1'],  // requiredRuleIds
-      [],      // requiredMetricIds
+      ['r1'], // requiredRuleIds
+      [], // requiredMetricIds
       ['验证通过'],
       false,
       fixedTime,
     );
-    
+
     // 验证不确定（未再次发现）
     const result = createVerificationResult(
       plan.id,
@@ -689,7 +714,7 @@ describe('额外验证：复测有效性', () => {
     );
     const uncertain = transitionVerification(result, 'INCONCLUSIVE', '未再次发现', fixedTime);
     expect(uncertain.status).toBe('INCONCLUSIVE');
-    
+
     // Finding 保持 FIXED，不能直接进入 VERIFIED
     // 但实际上 FIXED → VERIFIED 是允许的，所以这里只验证状态保持
     expect(fixed.lifecycle).toBe('FIXED');
@@ -705,11 +730,11 @@ describe('可比性三类判定', () => {
       policyId: 'sp1',
       policyVersion: '1.0.0',
     };
-    
+
     // 正例：完全相同
     const result1 = checkComparability(base, { ...base });
     expect(result1.comparability).toBe('COMPARABLE');
-    
+
     // 反例：不同定义 ID
     const result2 = checkComparability(base, { ...base, definitionId: 'd2' });
     expect(result2.comparability).toBe('NOT_COMPARABLE');
@@ -723,11 +748,11 @@ describe('可比性三类判定', () => {
       policyId: 'sp1',
       policyVersion: '1.0.0',
     };
-    
+
     // 正例：不同版本但有警告
     const result1 = checkComparability(base, { ...base, definitionVersion: '2.0.0' });
     expect(result1.comparability).toBe('COMPARABLE_WITH_CAVEATS');
-    
+
     // 反例：不同策略（直接 NOT_COMPARABLE）
     const result2 = checkComparability(base, { ...base, policyId: 'sp2' });
     expect(result2.comparability).toBe('NOT_COMPARABLE');
@@ -741,11 +766,11 @@ describe('可比性三类判定', () => {
       policyId: 'sp1',
       policyVersion: '1.0.0',
     };
-    
+
     // 正例：不同策略
     const result1 = checkComparability(base, { ...base, policyId: 'sp2' });
     expect(result1.comparability).toBe('NOT_COMPARABLE');
-    
+
     // 反例：完全相同（应该 COMPARABLE）
     const result2 = checkComparability(base, { ...base });
     expect(result2.comparability).toBe('COMPARABLE');
@@ -755,7 +780,7 @@ describe('可比性三类判定', () => {
 describe('基线更新授权', () => {
   it('未授权基线更新不发生', () => {
     const store = createInMemoryBaselineStore(clock);
-    
+
     const run: EvaluationRun = {
       id: 'run-1',
       schemaVersion: '1.0.0',
@@ -772,7 +797,7 @@ describe('基线更新授权', () => {
       startedAt: fixedTime,
       limitations: [],
     };
-    
+
     const plan: EvaluationPlan = {
       id: 'plan-1',
       schemaVersion: '1.0.0',
@@ -781,15 +806,17 @@ describe('基线更新授权', () => {
       definitionVersion: '1.0.0',
       definitionDigest: 'dd',
       compilerVersion: '0.1.0',
-      steps: [{
-        stepId: 'step-1',
-        kind: 'SCORING',
-        dependsOn: [],
-        required: true,
-        inputRefs: [],
-        outputContracts: ['ScoreResult'],
-        requiredCapabilities: [],
-      }],
+      steps: [
+        {
+          stepId: 'step-1',
+          kind: 'SCORING',
+          dependsOn: [],
+          required: true,
+          inputRefs: [],
+          outputContracts: ['ScoreResult'],
+          requiredCapabilities: [],
+        },
+      ],
       profile: defaultProfile(),
       metricVersions: [],
       ruleVersions: [],
@@ -797,7 +824,7 @@ describe('基线更新授权', () => {
       requiredCapabilities: [],
       planDigest: 'p1',
     };
-    
+
     const context: RunContext = {
       id: 'ctx-1',
       schemaVersion: '1.0.0',
@@ -812,7 +839,7 @@ describe('基线更新授权', () => {
       sampleDescription: 'test',
       limitations: [],
     };
-    
+
     const evaluation: EvaluationResult = {
       id: 'eval-1',
       schemaVersion: '1.0.0',
@@ -834,14 +861,14 @@ describe('基线更新授权', () => {
       constraints: [],
       limitations: [],
     };
-    
+
     store.createBaseline('v1', 'run-1', run, plan, context, evaluation);
-    
+
     // 无原因更新拒绝
     expect(() => {
       store.updateBaseline('v1', 'run-2', '', run, plan, context, evaluation);
     }).toThrow('更新基线必须提供原因');
-    
+
     // 有原因更新成功
     const updated = store.updateBaseline('v1', 'run-2', '版本升级', run, plan, context, evaluation);
     expect(updated.updateReason).toBe('版本升级');

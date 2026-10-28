@@ -20,11 +20,13 @@ uxq evidence collect --run-id <id> --type <evidence-type>
 ```
 
 **Parameters:**
+
 - `--run-id`: Evaluation run ID
 - `--type`: Evidence type (screenshot,video,metrics,logs)
 - `--metadata`: Additional metadata (JSON)
 
 **Example:**
+
 ```bash
 uxq evidence collect \
   --run-id latest \
@@ -39,11 +41,13 @@ uxq evidence link --evidence-id <id> --finding-id <id>
 ```
 
 **Parameters:**
+
 - `--evidence-id`: Evidence identifier
 - `--finding-id`: Finding identifier
 - `--relationship`: Relationship type (supports, contradicts, context)
 
 **Example:**
+
 ```bash
 uxq evidence link \
   --evidence-id ev-001 \
@@ -58,10 +62,12 @@ uxq evidence trace --run-id <id> --format <format>
 ```
 
 **Parameters:**
+
 - `--run-id`: Evaluation run ID
 - `--format`: Output format (matrix,list,json)
 
 **Example:**
+
 ```bash
 uxq evidence trace --run-id latest --format matrix
 ```
@@ -114,16 +120,18 @@ uxq evidence trace --run-id latest --format matrix
 ## 可追溯性矩阵
 
 ### 评价运行: latest
+
 **日期**: 2026-10-28
 **完整性**: 92%
 
-| Finding ID | 描述 | 严重性 | 证据 ID | 证据类型 | 关系 |
-|------------|------|--------|---------|----------|------|
-| f-001 | 按钮对比度不足 | error | ev-001 | screenshot | supports |
-| f-002 | 表单标签缺失 | warning | ev-002, ev-003 | screenshot, code | supports |
-| f-003 | 导航混乱 | info | ev-004 | video | context |
+| Finding ID | 描述           | 严重性  | 证据 ID        | 证据类型         | 关系     |
+| ---------- | -------------- | ------- | -------------- | ---------------- | -------- |
+| f-001      | 按钮对比度不足 | error   | ev-001         | screenshot       | supports |
+| f-002      | 表单标签缺失   | warning | ev-002, ev-003 | screenshot, code | supports |
+| f-003      | 导航混乱       | info    | ev-004         | video            | context  |
 
 ### 统计
+
 - 总 Findings: 15
 - 已链接: 14 (93%)
 - 未链接: 1 (7%)
@@ -134,26 +142,31 @@ uxq evidence trace --run-id latest --format matrix
 ## Evidence Types
 
 ### Screenshot
+
 - Captures visual state at a point in time
 - Format: PNG, JPEG
 - Use for: Visual issues, layout problems
 
 ### Video
+
 - Records user interaction over time
 - Format: MP4, WebM
 - Use for: Task flow analysis, interaction patterns
 
 ### Metrics
+
 - Quantitative measurements
 - Format: JSON, CSV
 - Use for: Performance data, completion rates
 
 ### Logs
+
 - System and user action logs
 - Format: Text, JSON
 - Use for: Error tracking, behavior analysis
 
 ### Code Snippet
+
 - Source code excerpts
 - Format: Text with syntax highlighting
 - Use for: Implementation issues, accessibility markup
@@ -191,7 +204,7 @@ for (const finding of findings) {
     runId: run.id,
     findingId: finding.id,
   });
-  
+
   for (const evidence of relatedEvidence) {
     await uxq.evidence.link({
       evidenceId: evidence.id,

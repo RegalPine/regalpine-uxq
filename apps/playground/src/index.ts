@@ -21,10 +21,7 @@ import type {
 
 const program = new Command();
 
-program
-  .name('uxq-playground')
-  .description('UXQ 评价策略交互式演示环境')
-  .version('0.1.0');
+program.name('uxq-playground').description('UXQ 评价策略交互式演示环境').version('0.1.0');
 
 // ─── 工具函数 ───────────────────────────────────────────
 
@@ -55,7 +52,11 @@ function bar(value: number, width = 30): string {
 program
   .command('normalize')
   .description('演示指标值标准化为 0-100 分的过程')
-  .option('-m, --method <method>', '标准化方法: LINEAR_HIGHER|LINEAR_LOWER|TARGET_RANGE|BOOLEAN', 'LINEAR_HIGHER')
+  .option(
+    '-m, --method <method>',
+    '标准化方法: LINEAR_HIGHER|LINEAR_LOWER|TARGET_RANGE|BOOLEAN',
+    'LINEAR_HIGHER',
+  )
   .option('--min <number>', '最小值', '0')
   .option('--max <number>', '最大值', '100')
   .option('--target-min <number>', '目标最小值（TARGET_RANGE 用）', '40')
@@ -131,7 +132,11 @@ program
     subheader('指标输入');
     for (const metric of scenario.metrics) {
       const statusColor = metric.status === 'MEASURED' ? 'green' : 'yellow';
-      const valueStr = metric.status === 'MEASURED' ? ` = ${metric.value}` : ` (${(metric as any).reason ?? 'N/A'})`;
+      const valueStr =
+        metric.status === 'MEASURED'
+          ? ` = ${metric.value}`
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          : ` (${(metric as any).reason ?? 'N/A'})`;
       console.log(`  ${chalk[statusColor]('●')} ${metric.metricId}${valueStr}`);
     }
 
@@ -141,10 +146,25 @@ program
     for (const rule of scenario.rules) {
       const outcome = evaluateExpression(rule.expression, metricsMap);
       const outcomeColor =
-        outcome === 'PASS' ? 'green' : outcome === 'FAIL' ? 'red' : outcome === 'INDETERMINATE' ? 'yellow' : 'gray';
-      const icon = outcome === 'PASS' ? '✓' : outcome === 'FAIL' ? '✗' : outcome === 'INDETERMINATE' ? '?' : '○';
+        outcome === 'PASS'
+          ? 'green'
+          : outcome === 'FAIL'
+            ? 'red'
+            : outcome === 'INDETERMINATE'
+              ? 'yellow'
+              : 'gray';
+      const icon =
+        outcome === 'PASS'
+          ? '✓'
+          : outcome === 'FAIL'
+            ? '✗'
+            : outcome === 'INDETERMINATE'
+              ? '?'
+              : '○';
 
-      console.log(`\n  ${chalk[outcomeColor].bold(`${icon} ${rule.name}`)} → ${chalk[outcomeColor].bold(outcome)}`);
+      console.log(
+        `\n  ${chalk[outcomeColor].bold(`${icon} ${rule.name}`)} → ${chalk[outcomeColor].bold(outcome)}`,
+      );
       console.log(chalk.gray(`    表达式: ${formatExpression(rule.expression)}`));
       if (rule.critical) {
         console.log(chalk.red(`    ⚠ 关键规则 — 失败将导致整体评价不合格`));
@@ -176,21 +196,26 @@ program
     for (const dim of scenarioData.dimensions) {
       const dimColor = dim.score >= 80 ? 'green' : dim.score >= 60 ? 'yellow' : 'red';
       console.log(`\n  ${chalk[dimColor].bold(`${dim.dimensionId} — ${dim.name}`)}`);
-      console.log(`  权重: ${dim.weight.toFixed(2)}  得分: ${chalk[dimColor].bold(dim.score.toFixed(1))}`);
+      console.log(
+        `  权重: ${dim.weight.toFixed(2)}  得分: ${chalk[dimColor].bold(dim.score.toFixed(1))}`,
+      );
       console.log(`  ${bar(dim.score)}`);
 
       if (dim.metrics.length > 0) {
         console.log(chalk.gray('    指标明细:'));
         for (const m of dim.metrics) {
           const mColor = m.score >= 80 ? 'green' : m.score >= 60 ? 'yellow' : 'red';
-          console.log(`      ${m.metricId.padEnd(12)} 权重=${m.weight.toFixed(1)}  原始=${String(m.rawValue).padEnd(6)}  →  ${chalk[mColor].bold(m.score.toFixed(1))}`);
+          console.log(
+            `      ${m.metricId.padEnd(12)} 权重=${m.weight.toFixed(1)}  原始=${String(m.rawValue).padEnd(6)}  →  ${chalk[mColor].bold(m.score.toFixed(1))}`,
+          );
         }
       }
     }
 
     // 总体评分
     const totalWeight = scenarioData.dimensions.reduce((s, d) => s + d.weight, 0);
-    const overallScore = scenarioData.dimensions.reduce((s, d) => s + d.score * d.weight, 0) / totalWeight;
+    const overallScore =
+      scenarioData.dimensions.reduce((s, d) => s + d.score * d.weight, 0) / totalWeight;
     const outcome = overallScore >= 70 ? 'PASS' : overallScore >= 50 ? 'INCONCLUSIVE' : 'FAIL';
     const outcomeColor = outcome === 'PASS' ? 'green' : outcome === 'FAIL' ? 'red' : 'yellow';
     const outcomeIcon = outcome === 'PASS' ? '✓' : outcome === 'FAIL' ? '✗' : '?';
@@ -211,9 +236,21 @@ program
     header('评分策略对比');
 
     const policies = [
-      { name: '严格策略', threshold: 80, weights: { D01: 0.25, D02: 0.20, D03: 0.20, D04: 0.15, D05: 0.10, D06: 0.10 } },
-      { name: '均衡策略', threshold: 70, weights: { D01: 0.17, D02: 0.17, D03: 0.17, D04: 0.17, D05: 0.16, D06: 0.16 } },
-      { name: '体验优先', threshold: 65, weights: { D01: 0.30, D02: 0.25, D03: 0.15, D04: 0.10, D05: 0.10, D06: 0.10 } },
+      {
+        name: '严格策略',
+        threshold: 80,
+        weights: { D01: 0.25, D02: 0.2, D03: 0.2, D04: 0.15, D05: 0.1, D06: 0.1 },
+      },
+      {
+        name: '均衡策略',
+        threshold: 70,
+        weights: { D01: 0.17, D02: 0.17, D03: 0.17, D04: 0.17, D05: 0.16, D06: 0.16 },
+      },
+      {
+        name: '体验优先',
+        threshold: 65,
+        weights: { D01: 0.3, D02: 0.25, D03: 0.15, D04: 0.1, D05: 0.1, D06: 0.1 },
+      },
     ];
 
     const dimScores = { D01: 85, D02: 72, D03: 68, D04: 90, D05: 55, D06: 78 };
@@ -246,7 +283,9 @@ program
       console.log(`\n  ${chalk.bold(policy.name)}:`);
       for (const [dimId, weight] of Object.entries(policy.weights)) {
         const barWidth = Math.round(weight * 40);
-        console.log(`    ${dimId} ${chalk.cyan('█'.repeat(barWidth))} ${(weight * 100).toFixed(0)}%`);
+        console.log(
+          `    ${dimId} ${chalk.cyan('█'.repeat(barWidth))} ${(weight * 100).toFixed(0)}%`,
+        );
       }
     }
   });
@@ -261,7 +300,9 @@ program
     console.log(chalk.bold('欢迎使用 UXQ 评价策略演示环境！\n'));
     console.log('可用演示命令：');
     console.log(`  ${chalk.cyan('normalize')}  — 指标标准化方法演示`);
-    console.log(`    示例: ${chalk.gray('uxq-playground normalize --method LINEAR_HIGHER --values 0,30,60,90')}`);
+    console.log(
+      `    示例: ${chalk.gray('uxq-playground normalize --method LINEAR_HIGHER --values 0,30,60,90')}`,
+    );
     console.log(`  ${chalk.cyan('rule')}       — 规则引擎表达式求值`);
     console.log(`    示例: ${chalk.gray('uxq-playground rule --preset accessibility')}`);
     console.log(`  ${chalk.cyan('scoring')}    — 完整评分流程演示`);
@@ -287,25 +328,61 @@ function buildScenarios(): Record<string, DemoScenario> {
       description: '验证页面是否满足 WCAG 2.1 AA 级要求',
       metrics: [
         {
-          id: 'mr-001', schemaVersion: '1.0.0', createdAt: '2026-10-28T00:00:00Z',
-          runId: 'run-demo', metricId: 'img-alt-missing', metricVersion: '1.0.0',
-          implementationVersion: '1.0.0', dimensionId: 'D05', status: 'MEASURED',
-          value: 3, measuredAt: '2026-10-28T00:00:00Z', evidenceIds: [], observationIds: [],
-          excludedSampleIds: [], sampleCount: 1, inputDigest: 'demo', limitations: [],
+          id: 'mr-001',
+          schemaVersion: '1.0.0',
+          createdAt: '2026-10-28T00:00:00Z',
+          runId: 'run-demo',
+          metricId: 'img-alt-missing',
+          metricVersion: '1.0.0',
+          implementationVersion: '1.0.0',
+          dimensionId: 'D05',
+          status: 'MEASURED',
+          value: 3,
+          measuredAt: '2026-10-28T00:00:00Z',
+          evidenceIds: [],
+          observationIds: [],
+          excludedSampleIds: [],
+          sampleCount: 1,
+          inputDigest: 'demo',
+          limitations: [],
         },
         {
-          id: 'mr-002', schemaVersion: '1.0.0', createdAt: '2026-10-28T00:00:00Z',
-          runId: 'run-demo', metricId: 'color-contrast-ratio', metricVersion: '1.0.0',
-          implementationVersion: '1.0.0', dimensionId: 'D05', status: 'MEASURED',
-          value: 4.8, measuredAt: '2026-10-28T00:00:00Z', evidenceIds: [], observationIds: [],
-          excludedSampleIds: [], sampleCount: 1, inputDigest: 'demo', limitations: [],
+          id: 'mr-002',
+          schemaVersion: '1.0.0',
+          createdAt: '2026-10-28T00:00:00Z',
+          runId: 'run-demo',
+          metricId: 'color-contrast-ratio',
+          metricVersion: '1.0.0',
+          implementationVersion: '1.0.0',
+          dimensionId: 'D05',
+          status: 'MEASURED',
+          value: 4.8,
+          measuredAt: '2026-10-28T00:00:00Z',
+          evidenceIds: [],
+          observationIds: [],
+          excludedSampleIds: [],
+          sampleCount: 1,
+          inputDigest: 'demo',
+          limitations: [],
         },
         {
-          id: 'mr-003', schemaVersion: '1.0.0', createdAt: '2026-10-28T00:00:00Z',
-          runId: 'run-demo', metricId: 'keyboard-trap-count', metricVersion: '1.0.0',
-          implementationVersion: '1.0.0', dimensionId: 'D05', status: 'MEASURED',
-          value: 0, measuredAt: '2026-10-28T00:00:00Z', evidenceIds: [], observationIds: [],
-          excludedSampleIds: [], sampleCount: 1, inputDigest: 'demo', limitations: [],
+          id: 'mr-003',
+          schemaVersion: '1.0.0',
+          createdAt: '2026-10-28T00:00:00Z',
+          runId: 'run-demo',
+          metricId: 'keyboard-trap-count',
+          metricVersion: '1.0.0',
+          implementationVersion: '1.0.0',
+          dimensionId: 'D05',
+          status: 'MEASURED',
+          value: 0,
+          measuredAt: '2026-10-28T00:00:00Z',
+          evidenceIds: [],
+          observationIds: [],
+          excludedSampleIds: [],
+          sampleCount: 1,
+          inputDigest: 'demo',
+          limitations: [],
         },
       ],
       rules: [
@@ -343,25 +420,61 @@ function buildScenarios(): Record<string, DemoScenario> {
       description: '验证页面加载性能是否满足 Core Web Vitals 标准',
       metrics: [
         {
-          id: 'mr-010', schemaVersion: '1.0.0', createdAt: '2026-10-28T00:00:00Z',
-          runId: 'run-demo', metricId: 'lcp', metricVersion: '1.0.0',
-          implementationVersion: '1.0.0', dimensionId: 'D01', status: 'MEASURED',
-          value: 2200, measuredAt: '2026-10-28T00:00:00Z', evidenceIds: [], observationIds: [],
-          excludedSampleIds: [], sampleCount: 1, inputDigest: 'demo', limitations: [],
+          id: 'mr-010',
+          schemaVersion: '1.0.0',
+          createdAt: '2026-10-28T00:00:00Z',
+          runId: 'run-demo',
+          metricId: 'lcp',
+          metricVersion: '1.0.0',
+          implementationVersion: '1.0.0',
+          dimensionId: 'D01',
+          status: 'MEASURED',
+          value: 2200,
+          measuredAt: '2026-10-28T00:00:00Z',
+          evidenceIds: [],
+          observationIds: [],
+          excludedSampleIds: [],
+          sampleCount: 1,
+          inputDigest: 'demo',
+          limitations: [],
         },
         {
-          id: 'mr-011', schemaVersion: '1.0.0', createdAt: '2026-10-28T00:00:00Z',
-          runId: 'run-demo', metricId: 'fid', metricVersion: '1.0.0',
-          implementationVersion: '1.0.0', dimensionId: 'D01', status: 'MEASURED',
-          value: 80, measuredAt: '2026-10-28T00:00:00Z', evidenceIds: [], observationIds: [],
-          excludedSampleIds: [], sampleCount: 1, inputDigest: 'demo', limitations: [],
+          id: 'mr-011',
+          schemaVersion: '1.0.0',
+          createdAt: '2026-10-28T00:00:00Z',
+          runId: 'run-demo',
+          metricId: 'fid',
+          metricVersion: '1.0.0',
+          implementationVersion: '1.0.0',
+          dimensionId: 'D01',
+          status: 'MEASURED',
+          value: 80,
+          measuredAt: '2026-10-28T00:00:00Z',
+          evidenceIds: [],
+          observationIds: [],
+          excludedSampleIds: [],
+          sampleCount: 1,
+          inputDigest: 'demo',
+          limitations: [],
         },
         {
-          id: 'mr-012', schemaVersion: '1.0.0', createdAt: '2026-10-28T00:00:00Z',
-          runId: 'run-demo', metricId: 'cls', metricVersion: '1.0.0',
-          implementationVersion: '1.0.0', dimensionId: 'D01', status: 'MEASURED',
-          value: 0.15, measuredAt: '2026-10-28T00:00:00Z', evidenceIds: [], observationIds: [],
-          excludedSampleIds: [], sampleCount: 1, inputDigest: 'demo', limitations: [],
+          id: 'mr-012',
+          schemaVersion: '1.0.0',
+          createdAt: '2026-10-28T00:00:00Z',
+          runId: 'run-demo',
+          metricId: 'cls',
+          metricVersion: '1.0.0',
+          implementationVersion: '1.0.0',
+          dimensionId: 'D01',
+          status: 'MEASURED',
+          value: 0.15,
+          measuredAt: '2026-10-28T00:00:00Z',
+          evidenceIds: [],
+          observationIds: [],
+          excludedSampleIds: [],
+          sampleCount: 1,
+          inputDigest: 'demo',
+          limitations: [],
         },
       ],
       rules: [
@@ -399,18 +512,42 @@ function buildScenarios(): Record<string, DemoScenario> {
       description: '验证评价覆盖率和证据充分性',
       metrics: [
         {
-          id: 'mr-020', schemaVersion: '1.0.0', createdAt: '2026-10-28T00:00:00Z',
-          runId: 'run-demo', metricId: 'coverage-ratio', metricVersion: '1.0.0',
-          implementationVersion: '1.0.0', dimensionId: 'D06', status: 'MEASURED',
-          value: 0.85, measuredAt: '2026-10-28T00:00:00Z', evidenceIds: [], observationIds: [],
-          excludedSampleIds: [], sampleCount: 1, inputDigest: 'demo', limitations: [],
+          id: 'mr-020',
+          schemaVersion: '1.0.0',
+          createdAt: '2026-10-28T00:00:00Z',
+          runId: 'run-demo',
+          metricId: 'coverage-ratio',
+          metricVersion: '1.0.0',
+          implementationVersion: '1.0.0',
+          dimensionId: 'D06',
+          status: 'MEASURED',
+          value: 0.85,
+          measuredAt: '2026-10-28T00:00:00Z',
+          evidenceIds: [],
+          observationIds: [],
+          excludedSampleIds: [],
+          sampleCount: 1,
+          inputDigest: 'demo',
+          limitations: [],
         },
         {
-          id: 'mr-021', schemaVersion: '1.0.0', createdAt: '2026-10-28T00:00:00Z',
-          runId: 'run-demo', metricId: 'evidence-count', metricVersion: '1.0.0',
-          implementationVersion: '1.0.0', dimensionId: 'D06', status: 'MEASURED',
-          value: 12, measuredAt: '2026-10-28T00:00:00Z', evidenceIds: [], observationIds: [],
-          excludedSampleIds: [], sampleCount: 1, inputDigest: 'demo', limitations: [],
+          id: 'mr-021',
+          schemaVersion: '1.0.0',
+          createdAt: '2026-10-28T00:00:00Z',
+          runId: 'run-demo',
+          metricId: 'evidence-count',
+          metricVersion: '1.0.0',
+          implementationVersion: '1.0.0',
+          dimensionId: 'D06',
+          status: 'MEASURED',
+          value: 12,
+          measuredAt: '2026-10-28T00:00:00Z',
+          evidenceIds: [],
+          observationIds: [],
+          excludedSampleIds: [],
+          sampleCount: 1,
+          inputDigest: 'demo',
+          limitations: [],
         },
       ],
       rules: [
@@ -437,87 +574,180 @@ interface DimDemo {
   metrics: { metricId: string; weight: number; rawValue: number; score: number }[];
 }
 
-function buildScoringScenarios(): Record<string, { name: string; description: string; dimensions: DimDemo[] }> {
+function buildScoringScenarios(): Record<
+  string,
+  { name: string; description: string; dimensions: DimDemo[] }
+> {
   return {
     good: {
       name: '优秀产品',
       description: '各维度表现优异的产品评价',
       dimensions: [
-        { dimensionId: 'D01', name: '任务效率', weight: 0.25, score: 92, metrics: [
-          { metricId: 'task-completion', weight: 1.5, rawValue: 95, score: 95 },
-          { metricId: 'task-time', weight: 1.0, rawValue: 88, score: 88 },
-        ]},
-        { dimensionId: 'D02', name: '交互质量', weight: 0.20, score: 88, metrics: [
-          { metricId: 'error-rate', weight: 1.2, rawValue: 90, score: 90 },
-          { metricId: 'learnability', weight: 0.8, rawValue: 85, score: 85 },
-        ]},
-        { dimensionId: 'D03', name: '认知负担', weight: 0.15, score: 85, metrics: [
-          { metricId: 'info-density', weight: 1.0, rawValue: 82, score: 82 },
-          { metricId: 'nav-depth', weight: 1.0, rawValue: 88, score: 88 },
-        ]},
-        { dimensionId: 'D04', name: '可访问性', weight: 0.15, score: 90, metrics: [
-          { metricId: 'a11y-score', weight: 1.0, rawValue: 90, score: 90 },
-        ]},
-        { dimensionId: 'D05', name: '包容性', weight: 0.15, score: 86, metrics: [
-          { metricId: 'i18n-coverage', weight: 1.0, rawValue: 86, score: 86 },
-        ]},
-        { dimensionId: 'D06', name: '主观体验', weight: 0.10, score: 91, metrics: [
-          { metricId: 'sus-score', weight: 1.0, rawValue: 91, score: 91 },
-        ]},
+        {
+          dimensionId: 'D01',
+          name: '任务效率',
+          weight: 0.25,
+          score: 92,
+          metrics: [
+            { metricId: 'task-completion', weight: 1.5, rawValue: 95, score: 95 },
+            { metricId: 'task-time', weight: 1.0, rawValue: 88, score: 88 },
+          ],
+        },
+        {
+          dimensionId: 'D02',
+          name: '交互质量',
+          weight: 0.2,
+          score: 88,
+          metrics: [
+            { metricId: 'error-rate', weight: 1.2, rawValue: 90, score: 90 },
+            { metricId: 'learnability', weight: 0.8, rawValue: 85, score: 85 },
+          ],
+        },
+        {
+          dimensionId: 'D03',
+          name: '认知负担',
+          weight: 0.15,
+          score: 85,
+          metrics: [
+            { metricId: 'info-density', weight: 1.0, rawValue: 82, score: 82 },
+            { metricId: 'nav-depth', weight: 1.0, rawValue: 88, score: 88 },
+          ],
+        },
+        {
+          dimensionId: 'D04',
+          name: '可访问性',
+          weight: 0.15,
+          score: 90,
+          metrics: [{ metricId: 'a11y-score', weight: 1.0, rawValue: 90, score: 90 }],
+        },
+        {
+          dimensionId: 'D05',
+          name: '包容性',
+          weight: 0.15,
+          score: 86,
+          metrics: [{ metricId: 'i18n-coverage', weight: 1.0, rawValue: 86, score: 86 }],
+        },
+        {
+          dimensionId: 'D06',
+          name: '主观体验',
+          weight: 0.1,
+          score: 91,
+          metrics: [{ metricId: 'sus-score', weight: 1.0, rawValue: 91, score: 91 }],
+        },
       ],
     },
     mixed: {
       name: '中等产品',
       description: '部分维度表现良好，部分存在改进空间',
       dimensions: [
-        { dimensionId: 'D01', name: '任务效率', weight: 0.25, score: 78, metrics: [
-          { metricId: 'task-completion', weight: 1.5, rawValue: 82, score: 82 },
-          { metricId: 'task-time', weight: 1.0, rawValue: 72, score: 72 },
-        ]},
-        { dimensionId: 'D02', name: '交互质量', weight: 0.20, score: 65, metrics: [
-          { metricId: 'error-rate', weight: 1.2, rawValue: 60, score: 60 },
-          { metricId: 'learnability', weight: 0.8, rawValue: 72, score: 72 },
-        ]},
-        { dimensionId: 'D03', name: '认知负担', weight: 0.15, score: 70, metrics: [
-          { metricId: 'info-density', weight: 1.0, rawValue: 68, score: 68 },
-          { metricId: 'nav-depth', weight: 1.0, rawValue: 73, score: 73 },
-        ]},
-        { dimensionId: 'D04', name: '可访问性', weight: 0.15, score: 55, metrics: [
-          { metricId: 'a11y-score', weight: 1.0, rawValue: 55, score: 55 },
-        ]},
-        { dimensionId: 'D05', name: '包容性', weight: 0.15, score: 72, metrics: [
-          { metricId: 'i18n-coverage', weight: 1.0, rawValue: 72, score: 72 },
-        ]},
-        { dimensionId: 'D06', name: '主观体验', weight: 0.10, score: 68, metrics: [
-          { metricId: 'sus-score', weight: 1.0, rawValue: 68, score: 68 },
-        ]},
+        {
+          dimensionId: 'D01',
+          name: '任务效率',
+          weight: 0.25,
+          score: 78,
+          metrics: [
+            { metricId: 'task-completion', weight: 1.5, rawValue: 82, score: 82 },
+            { metricId: 'task-time', weight: 1.0, rawValue: 72, score: 72 },
+          ],
+        },
+        {
+          dimensionId: 'D02',
+          name: '交互质量',
+          weight: 0.2,
+          score: 65,
+          metrics: [
+            { metricId: 'error-rate', weight: 1.2, rawValue: 60, score: 60 },
+            { metricId: 'learnability', weight: 0.8, rawValue: 72, score: 72 },
+          ],
+        },
+        {
+          dimensionId: 'D03',
+          name: '认知负担',
+          weight: 0.15,
+          score: 70,
+          metrics: [
+            { metricId: 'info-density', weight: 1.0, rawValue: 68, score: 68 },
+            { metricId: 'nav-depth', weight: 1.0, rawValue: 73, score: 73 },
+          ],
+        },
+        {
+          dimensionId: 'D04',
+          name: '可访问性',
+          weight: 0.15,
+          score: 55,
+          metrics: [{ metricId: 'a11y-score', weight: 1.0, rawValue: 55, score: 55 }],
+        },
+        {
+          dimensionId: 'D05',
+          name: '包容性',
+          weight: 0.15,
+          score: 72,
+          metrics: [{ metricId: 'i18n-coverage', weight: 1.0, rawValue: 72, score: 72 }],
+        },
+        {
+          dimensionId: 'D06',
+          name: '主观体验',
+          weight: 0.1,
+          score: 68,
+          metrics: [{ metricId: 'sus-score', weight: 1.0, rawValue: 68, score: 68 }],
+        },
       ],
     },
     poor: {
       name: '待改进产品',
       description: '多个维度存在严重问题，需要重点改进',
       dimensions: [
-        { dimensionId: 'D01', name: '任务效率', weight: 0.25, score: 45, metrics: [
-          { metricId: 'task-completion', weight: 1.5, rawValue: 50, score: 50 },
-          { metricId: 'task-time', weight: 1.0, rawValue: 38, score: 38 },
-        ]},
-        { dimensionId: 'D02', name: '交互质量', weight: 0.20, score: 40, metrics: [
-          { metricId: 'error-rate', weight: 1.2, rawValue: 35, score: 35 },
-          { metricId: 'learnability', weight: 0.8, rawValue: 48, score: 48 },
-        ]},
-        { dimensionId: 'D03', name: '认知负担', weight: 0.15, score: 50, metrics: [
-          { metricId: 'info-density', weight: 1.0, rawValue: 45, score: 45 },
-          { metricId: 'nav-depth', weight: 1.0, rawValue: 56, score: 56 },
-        ]},
-        { dimensionId: 'D04', name: '可访问性', weight: 0.15, score: 30, metrics: [
-          { metricId: 'a11y-score', weight: 1.0, rawValue: 30, score: 30 },
-        ]},
-        { dimensionId: 'D05', name: '包容性', weight: 0.15, score: 55, metrics: [
-          { metricId: 'i18n-coverage', weight: 1.0, rawValue: 55, score: 55 },
-        ]},
-        { dimensionId: 'D06', name: '主观体验', weight: 0.10, score: 35, metrics: [
-          { metricId: 'sus-score', weight: 1.0, rawValue: 35, score: 35 },
-        ]},
+        {
+          dimensionId: 'D01',
+          name: '任务效率',
+          weight: 0.25,
+          score: 45,
+          metrics: [
+            { metricId: 'task-completion', weight: 1.5, rawValue: 50, score: 50 },
+            { metricId: 'task-time', weight: 1.0, rawValue: 38, score: 38 },
+          ],
+        },
+        {
+          dimensionId: 'D02',
+          name: '交互质量',
+          weight: 0.2,
+          score: 40,
+          metrics: [
+            { metricId: 'error-rate', weight: 1.2, rawValue: 35, score: 35 },
+            { metricId: 'learnability', weight: 0.8, rawValue: 48, score: 48 },
+          ],
+        },
+        {
+          dimensionId: 'D03',
+          name: '认知负担',
+          weight: 0.15,
+          score: 50,
+          metrics: [
+            { metricId: 'info-density', weight: 1.0, rawValue: 45, score: 45 },
+            { metricId: 'nav-depth', weight: 1.0, rawValue: 56, score: 56 },
+          ],
+        },
+        {
+          dimensionId: 'D04',
+          name: '可访问性',
+          weight: 0.15,
+          score: 30,
+          metrics: [{ metricId: 'a11y-score', weight: 1.0, rawValue: 30, score: 30 }],
+        },
+        {
+          dimensionId: 'D05',
+          name: '包容性',
+          weight: 0.15,
+          score: 55,
+          metrics: [{ metricId: 'i18n-coverage', weight: 1.0, rawValue: 55, score: 55 }],
+        },
+        {
+          dimensionId: 'D06',
+          name: '主观体验',
+          weight: 0.1,
+          score: 35,
+          metrics: [{ metricId: 'sus-score', weight: 1.0, rawValue: 35, score: 35 }],
+        },
       ],
     },
   };
@@ -532,8 +762,14 @@ function formatExpression(expr: RuleExpression): string {
     return `NOT(${formatExpression(expr.child)})`;
   }
   const opSymbols: Record<string, string> = {
-    LT: '<', LTE: '≤', GT: '>', GTE: '≥', EQ: '=', NE: '≠',
-    BETWEEN: '∈', IN: '∈',
+    LT: '<',
+    LTE: '≤',
+    GT: '>',
+    GTE: '≥',
+    EQ: '=',
+    NE: '≠',
+    BETWEEN: '∈',
+    IN: '∈',
   };
   const sym = opSymbols[expr.op] ?? expr.op;
   if (expr.op === 'BETWEEN') {

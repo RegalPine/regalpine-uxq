@@ -3,7 +3,7 @@ import type { Timestamp, Id } from '@uxq/core';
 
 /**
  * M4.3: 可访问性与辅助技术模块
- * 
+ *
  * 扩展自动化、人工检查及辅助技术测试矩阵。
  * 声明 WCAG 版本、覆盖、方法和未覆盖项。
  * 明确限制：不夸大全面合规。
@@ -17,18 +17,18 @@ export type ConformanceLevel = 'A' | 'AA' | 'AAA';
 
 /** 检查类型 */
 export type CheckType =
-  | 'AUTOMATED'      // 自动化检查
-  | 'MANUAL'         // 人工检查
+  | 'AUTOMATED' // 自动化检查
+  | 'MANUAL' // 人工检查
   | 'ASSISTIVE_TECH' // 辅助技术测试
-  | 'USER_TEST';     // 用户测试
+  | 'USER_TEST'; // 用户测试
 
 /** WCAG 准则 */
 export interface WCAGCriterion {
-  id: string;  // e.g., "1.1.1"
+  id: string; // e.g., "1.1.1"
   level: ConformanceLevel;
   name: string;
   description: string;
-  techniques: string[];  // 推荐技术
+  techniques: string[]; // 推荐技术
 }
 
 /** 可访问性检查结果 */
@@ -143,12 +143,8 @@ export function createAccessibilityReport(
   };
 
   const criteriaEvaluated = new Set(checks.map((c) => c.criterionId));
-  const passedCriteria = checks
-    .filter((c) => c.status === 'PASS')
-    .map((c) => c.criterionId);
-  const failedCriteria = checks
-    .filter((c) => c.status === 'FAIL')
-    .map((c) => c.criterionId);
+  const passedCriteria = checks.filter((c) => c.status === 'PASS').map((c) => c.criterionId);
+  const failedCriteria = checks.filter((c) => c.status === 'FAIL').map((c) => c.criterionId);
   const notEvaluatedCriteria = allCriteria
     .filter((c) => !criteriaEvaluated.has(c.id))
     .map((c) => c.id);
@@ -156,11 +152,14 @@ export function createAccessibilityReport(
   const targetCriteria = allCriteria.filter((c) => {
     if (targetLevel === 'A') return c.level === 'A';
     if (targetLevel === 'AA') return c.level === 'A' || c.level === 'AA';
-    return true;  // AAA includes all
+    return true; // AAA includes all
   });
 
-  const conforms = failedCriteria.length === 0 && 
-    targetCriteria.every((c) => passedCriteria.includes(c.id) || notEvaluatedCriteria.includes(c.id));
+  const conforms =
+    failedCriteria.length === 0 &&
+    targetCriteria.every(
+      (c) => passedCriteria.includes(c.id) || notEvaluatedCriteria.includes(c.id),
+    );
 
   const conformanceClaim: ConformanceClaim = {
     conforms,
@@ -173,9 +172,8 @@ export function createAccessibilityReport(
     statement: generateConformanceStatement(wcagVersion, targetLevel, conforms, summary),
   };
 
-  const coveragePercent = targetCriteria.length > 0
-    ? (criteriaEvaluated.size / targetCriteria.length) * 100
-    : 0;
+  const coveragePercent =
+    targetCriteria.length > 0 ? (criteriaEvaluated.size / targetCriteria.length) * 100 : 0;
 
   return {
     id: newId('a11y-report'),
@@ -213,41 +211,125 @@ function generateConformanceStatement(
   if (!conforms) {
     return `不符合 WCAG ${wcagVersion} ${level} 级别要求（${summary.failed} 项失败）`;
   }
-  
+
   return `符合 WCAG ${wcagVersion} ${level} 级别要求（${summary.passed} 项通过）`;
 }
 
 /** WCAG 2.1 AA 级别核心准则 */
 export const WCAG_21_AA_CRITERIA: WCAGCriterion[] = [
   // 1.1 文本替代
-  { id: '1.1.1', level: 'A', name: '非文本内容', description: '所有非文本内容都有替代文本', techniques: ['H37', 'H24'] },
-  
+  {
+    id: '1.1.1',
+    level: 'A',
+    name: '非文本内容',
+    description: '所有非文本内容都有替代文本',
+    techniques: ['H37', 'H24'],
+  },
+
   // 1.3 可适应
-  { id: '1.3.1', level: 'A', name: '信息和关系', description: '可以通过程序确定信息和关系', techniques: ['H49', 'H51'] },
-  { id: '1.3.2', level: 'A', name: '有意义的顺序', description: '顺序不影响理解', techniques: ['H56', 'G57'] },
-  
+  {
+    id: '1.3.1',
+    level: 'A',
+    name: '信息和关系',
+    description: '可以通过程序确定信息和关系',
+    techniques: ['H49', 'H51'],
+  },
+  {
+    id: '1.3.2',
+    level: 'A',
+    name: '有意义的顺序',
+    description: '顺序不影响理解',
+    techniques: ['H56', 'G57'],
+  },
+
   // 1.4 可辨别
-  { id: '1.4.1', level: 'A', name: '颜色的使用', description: '颜色不作为传达信息的唯一手段', techniques: ['G14', 'G182'] },
-  { id: '1.4.3', level: 'AA', name: '对比度（最低）', description: '文本对比度至少 4.5:1', techniques: ['G18', 'G145'] },
-  { id: '1.4.4', level: 'AA', name: '调整文本大小', description: '可以放大到 200% 而不丢失内容', techniques: ['G142', 'G179'] },
-  
+  {
+    id: '1.4.1',
+    level: 'A',
+    name: '颜色的使用',
+    description: '颜色不作为传达信息的唯一手段',
+    techniques: ['G14', 'G182'],
+  },
+  {
+    id: '1.4.3',
+    level: 'AA',
+    name: '对比度（最低）',
+    description: '文本对比度至少 4.5:1',
+    techniques: ['G18', 'G145'],
+  },
+  {
+    id: '1.4.4',
+    level: 'AA',
+    name: '调整文本大小',
+    description: '可以放大到 200% 而不丢失内容',
+    techniques: ['G142', 'G179'],
+  },
+
   // 2.1 可键盘访问
-  { id: '2.1.1', level: 'A', name: '键盘', description: '所有功能可以通过键盘访问', techniques: ['G90', 'G202'] },
-  { id: '2.1.2', level: 'A', name: '无键盘陷阱', description: '焦点不会被困在某个区域', techniques: ['G21', 'H91'] },
-  
+  {
+    id: '2.1.1',
+    level: 'A',
+    name: '键盘',
+    description: '所有功能可以通过键盘访问',
+    techniques: ['G90', 'G202'],
+  },
+  {
+    id: '2.1.2',
+    level: 'A',
+    name: '无键盘陷阱',
+    description: '焦点不会被困在某个区域',
+    techniques: ['G21', 'H91'],
+  },
+
   // 2.4 可导航
-  { id: '2.4.1', level: 'A', name: '跳过块', description: '提供跳过重复内容的方式', techniques: ['G1', 'H69'] },
-  { id: '2.4.2', level: 'A', name: '页面标题', description: '页面有描述性标题', techniques: ['G88', 'H25'] },
-  { id: '2.4.3', level: 'A', name: '焦点顺序', description: '焦点顺序保持有意义的顺序', techniques: ['H4', 'G59'] },
-  
+  {
+    id: '2.4.1',
+    level: 'A',
+    name: '跳过块',
+    description: '提供跳过重复内容的方式',
+    techniques: ['G1', 'H69'],
+  },
+  {
+    id: '2.4.2',
+    level: 'A',
+    name: '页面标题',
+    description: '页面有描述性标题',
+    techniques: ['G88', 'H25'],
+  },
+  {
+    id: '2.4.3',
+    level: 'A',
+    name: '焦点顺序',
+    description: '焦点顺序保持有意义的顺序',
+    techniques: ['H4', 'G59'],
+  },
+
   // 3.1 可读
-  { id: '3.1.1', level: 'A', name: '页面语言', description: '页面语言可以程序确定', techniques: ['H57', 'G15'] },
-  
+  {
+    id: '3.1.1',
+    level: 'A',
+    name: '页面语言',
+    description: '页面语言可以程序确定',
+    techniques: ['H57', 'G15'],
+  },
+
   // 3.2 可预测
-  { id: '3.2.1', level: 'A', name: '焦点触发', description: '获得焦点不触发变化', techniques: ['G107', 'G80'] },
-  
+  {
+    id: '3.2.1',
+    level: 'A',
+    name: '焦点触发',
+    description: '获得焦点不触发变化',
+    techniques: ['G107', 'G80'],
+  },
+
   // 4.1 兼容
-  { id: '4.1.2', level: 'A', name: '名称、角色、值', description: '组件的名称和角色可以程序确定', techniques: ['H91', 'ARIA16'] },
+  {
+    id: '4.1.2',
+    level: 'A',
+    name: '名称、角色、值',
+    description: '组件的名称和角色可以程序确定',
+    techniques: ['H91', 'ARIA16'],
+  },
 ];
 
 /** 验证可访问性检查完整性 */
@@ -269,7 +351,10 @@ export function validateAccessibilityCheck(check: AccessibilityCheckResult): {
     issues.push('失败的检查应提供修复建议');
   }
 
-  if (check.checkType === 'ASSISTIVE_TECH' && (!check.assistiveTechUsed || check.assistiveTechUsed.length === 0)) {
+  if (
+    check.checkType === 'ASSISTIVE_TECH' &&
+    (!check.assistiveTechUsed || check.assistiveTechUsed.length === 0)
+  ) {
     issues.push('辅助技术测试应说明使用的技术');
   }
 

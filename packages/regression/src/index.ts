@@ -68,8 +68,23 @@ export interface ComparisonResult {
 }
 
 export interface BaselineStore {
-  createBaseline(name: string, runId: string, run: EvaluationRun, plan: EvaluationPlan, context: RunContext, evaluation: EvaluationResult): Baseline;
-  updateBaseline(name: string, runId: string, reason: string, run: EvaluationRun, plan: EvaluationPlan, context: RunContext, evaluation: EvaluationResult): Baseline;
+  createBaseline(
+    name: string,
+    runId: string,
+    run: EvaluationRun,
+    plan: EvaluationPlan,
+    context: RunContext,
+    evaluation: EvaluationResult,
+  ): Baseline;
+  updateBaseline(
+    name: string,
+    runId: string,
+    reason: string,
+    run: EvaluationRun,
+    plan: EvaluationPlan,
+    context: RunContext,
+    evaluation: EvaluationResult,
+  ): Baseline;
   getBaseline(name: string): Baseline | undefined;
   listBaselines(): Baseline[];
   deleteBaseline(name: string): void;
@@ -145,8 +160,24 @@ export function createInMemoryBaselineStore(clock: Clock = systemClock): Baselin
 
 /** 检查两个运行的可比性。 */
 export function checkComparability(
-  baseline: { planDigest: string; definitionId: string; definitionVersion: string; policyId: string; policyVersion: string; browserVersion?: string; viewport?: { width: number; height: number } },
-  current: { planDigest: string; definitionId: string; definitionVersion: string; policyId: string; policyVersion: string; browserVersion?: string; viewport?: { width: number; height: number } },
+  baseline: {
+    planDigest: string;
+    definitionId: string;
+    definitionVersion: string;
+    policyId: string;
+    policyVersion: string;
+    browserVersion?: string;
+    viewport?: { width: number; height: number };
+  },
+  current: {
+    planDigest: string;
+    definitionId: string;
+    definitionVersion: string;
+    policyId: string;
+    policyVersion: string;
+    browserVersion?: string;
+    viewport?: { width: number; height: number };
+  },
 ): { comparability: Comparability; dimensions: ComparisonDimension[]; caveats: string[] } {
   const dimensions: ComparisonDimension[] = [];
   const caveats: string[] = [];
@@ -158,7 +189,10 @@ export function checkComparability(
   dimensions.push(defDim);
 
   const sameDefinitionVersion = baseline.definitionVersion === current.definitionVersion;
-  const defVersionDim: ComparisonDimension = { name: 'definition-version', comparable: sameDefinitionVersion };
+  const defVersionDim: ComparisonDimension = {
+    name: 'definition-version',
+    comparable: sameDefinitionVersion,
+  };
   if (!sameDefinitionVersion) defVersionDim.reason = '评价定义版本不同，指标和规则可能已变化';
   dimensions.push(defVersionDim);
   if (!sameDefinitionVersion) caveats.push('定义版本不同，比较结果可能受配置变化影响');
@@ -171,7 +205,8 @@ export function checkComparability(
   if (!samePlan) caveats.push('执行计划不同，步骤和依赖可能已变化');
 
   // Policy
-  const samePolicy = baseline.policyId === current.policyId && baseline.policyVersion === current.policyVersion;
+  const samePolicy =
+    baseline.policyId === current.policyId && baseline.policyVersion === current.policyVersion;
   const policyDim: ComparisonDimension = { name: 'scoring-policy', comparable: samePolicy };
   if (!samePolicy) policyDim.reason = '评分策略不同';
   dimensions.push(policyDim);
@@ -185,13 +220,17 @@ export function checkComparability(
   if (!sameBrowser) caveats.push('浏览器版本不同，渲染差异可能影响结果');
 
   // Viewport
-  const sameViewport = baseline.viewport?.width === current.viewport?.width && baseline.viewport?.height === current.viewport?.height;
+  const sameViewport =
+    baseline.viewport?.width === current.viewport?.width &&
+    baseline.viewport?.height === current.viewport?.height;
   const viewportDim: ComparisonDimension = { name: 'viewport', comparable: sameViewport };
   if (!sameViewport) viewportDim.reason = '视口尺寸不同';
   dimensions.push(viewportDim);
 
   // Determine overall comparability
-  const criticalDiffs = dimensions.filter((d) => !d.comparable && ['definition-id', 'scoring-policy'].includes(d.name));
+  const criticalDiffs = dimensions.filter(
+    (d) => !d.comparable && ['definition-id', 'scoring-policy'].includes(d.name),
+  );
   if (criticalDiffs.length > 0) {
     return { comparability: 'NOT_COMPARABLE', dimensions, caveats };
   }
@@ -206,14 +245,40 @@ export function checkComparability(
 
 /** 比较两个运行的指标和规则结果。 */
 export function compareRuns(
-  baseline: { planDigest: string; definitionId: string; definitionVersion: string; policyId: string; policyVersion: string; browserVersion?: string; viewport?: { width: number; height: number }; metrics: MetricResult[]; rules: RuleResult[]; evaluation: EvaluationResult },
-  current: { planDigest: string; definitionId: string; definitionVersion: string; policyId: string; policyVersion: string; browserVersion?: string; viewport?: { width: number; height: number }; metrics: MetricResult[]; rules: RuleResult[]; evaluation: EvaluationResult },
+  baseline: {
+    planDigest: string;
+    definitionId: string;
+    definitionVersion: string;
+    policyId: string;
+    policyVersion: string;
+    browserVersion?: string;
+    viewport?: { width: number; height: number };
+    metrics: MetricResult[];
+    rules: RuleResult[];
+    evaluation: EvaluationResult;
+  },
+  current: {
+    planDigest: string;
+    definitionId: string;
+    definitionVersion: string;
+    policyId: string;
+    policyVersion: string;
+    browserVersion?: string;
+    viewport?: { width: number; height: number };
+    metrics: MetricResult[];
+    rules: RuleResult[];
+    evaluation: EvaluationResult;
+  },
 ): ComparisonResult {
   const { comparability, dimensions, caveats } = checkComparability(baseline, current);
 
   // Compare metrics
-  const baselineMetrics = new Map(baseline.metrics.filter((m) => m.status === 'MEASURED').map((m) => [m.metricId, m]));
-  const currentMetrics = new Map(current.metrics.filter((m) => m.status === 'MEASURED').map((m) => [m.metricId, m]));
+  const baselineMetrics = new Map(
+    baseline.metrics.filter((m) => m.status === 'MEASURED').map((m) => [m.metricId, m]),
+  );
+  const currentMetrics = new Map(
+    current.metrics.filter((m) => m.status === 'MEASURED').map((m) => [m.metricId, m]),
+  );
 
   const metricDeltas: MetricDelta[] = [];
   const allMetricIds = new Set([...baselineMetrics.keys(), ...currentMetrics.keys()]);
@@ -230,7 +295,13 @@ export function compareRuns(
       deltaPercent = bValue !== 0 ? (delta / Math.abs(bValue)) * 100 : null;
     }
 
-    metricDeltas.push({ metricId, baselineValue: bValue, currentValue: cValue, delta, deltaPercent });
+    metricDeltas.push({
+      metricId,
+      baselineValue: bValue,
+      currentValue: cValue,
+      delta,
+      deltaPercent,
+    });
   }
 
   // Compare rules
@@ -244,12 +315,18 @@ export function compareRuns(
     const cRule = currentRules.get(ruleId);
     const bOutcome = bRule?.outcome ?? 'NOT_EVALUATED';
     const cOutcome = cRule?.outcome ?? 'NOT_EVALUATED';
-    ruleDeltas.push({ ruleId, baselineOutcome: bOutcome, currentOutcome: cOutcome, changed: bOutcome !== cOutcome });
+    ruleDeltas.push({
+      ruleId,
+      baselineOutcome: bOutcome,
+      currentOutcome: cOutcome,
+      changed: bOutcome !== cOutcome,
+    });
   }
 
   const baselineScore = baseline.evaluation.overallScore;
   const currentScore = current.evaluation.overallScore;
-  const scoreDelta = baselineScore !== null && currentScore !== null ? currentScore - baselineScore : null;
+  const scoreDelta =
+    baselineScore !== null && currentScore !== null ? currentScore - baselineScore : null;
 
   return {
     comparability,

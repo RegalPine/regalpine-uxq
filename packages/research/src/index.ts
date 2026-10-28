@@ -3,7 +3,7 @@ import type { Timestamp, Id } from '@uxq/core';
 
 /**
  * M4.2: 主观研究模块
- * 
+ *
  * 用户测试、量表、访谈数据导入。
  * 记录样本、版本、授权和数据质量。
  * 明确限制：缺失处理正确，授权范围、脱敏与保留可验证。
@@ -11,32 +11,32 @@ import type { Timestamp, Id } from '@uxq/core';
 
 /** 研究方法类型 */
 export type ResearchMethod =
-  | 'USER_TEST'        // 用户测试
-  | 'SURVEY'           // 问卷调查
-  | 'INTERVIEW'        // 访谈
-  | 'FOCUS_GROUP'      // 焦点小组
-  | 'DIARY_STUDY'      // 日志研究
-  | 'A_B_TEST';        // A/B 测试
+  | 'USER_TEST' // 用户测试
+  | 'SURVEY' // 问卷调查
+  | 'INTERVIEW' // 访谈
+  | 'FOCUS_GROUP' // 焦点小组
+  | 'DIARY_STUDY' // 日志研究
+  | 'A_B_TEST'; // A/B 测试
 
 /** 量表类型 */
 export type ScaleType =
-  | 'LIKERT_5'         // 5 点李克特量表
-  | 'LIKERT_7'         // 7 点李克特量表
-  | 'SUS'              // 系统可用性量表
-  | 'NPS'              // 净推荐值
-  | 'CSAT'             // 客户满意度
-  | 'CUSTOM';          // 自定义量表
+  | 'LIKERT_5' // 5 点李克特量表
+  | 'LIKERT_7' // 7 点李克特量表
+  | 'SUS' // 系统可用性量表
+  | 'NPS' // 净推荐值
+  | 'CSAT' // 客户满意度
+  | 'CUSTOM'; // 自定义量表
 
 /** 研究参与者 */
 export interface ResearchParticipant {
   id: Id<'participant'>;
   schemaVersion: '1.0.0';
   createdAt: Timestamp;
-  pseudonym: string;  // 匿名标识
-  demographics?: Record<string, string>;  // 人口统计（脱敏）
+  pseudonym: string; // 匿名标识
+  demographics?: Record<string, string>; // 人口统计（脱敏）
   consentGiven: boolean;
-  consentScope: string[];  // 授权范围
-  dataRetentionDays: number;  // 数据保留天数
+  consentScope: string[]; // 授权范围
+  dataRetentionDays: number; // 数据保留天数
   limitations: string[];
 }
 
@@ -88,8 +88,8 @@ export interface ResearchDataset {
     low: number;
     excluded: number;
   };
-  consentRate: number;  // 同意率
-  completionRate: number;  // 完成率
+  consentRate: number; // 同意率
+  completionRate: number; // 完成率
   limitations: string[];
 }
 
@@ -116,9 +116,9 @@ export function createResearchParticipant(
       `数据保留 ${dataRetentionDays} 天`,
     ],
   };
-  
+
   if (demographics) base.demographics = demographics;
-  
+
   return base;
 }
 
@@ -143,16 +143,12 @@ export function createResearchSession(
     responses: [],
     observations: [],
     dataQuality: 'MEDIUM',
-    limitations: [
-      '主观数据不替代客观测量',
-      '样本偏差可能影响结论',
-      '研究方法必须明确声明',
-    ],
+    limitations: ['主观数据不替代客观测量', '样本偏差可能影响结论', '研究方法必须明确声明'],
   };
-  
+
   if (taskId) base.taskId = taskId;
   if (scenarioId) base.scenarioId = scenarioId;
-  
+
   return base;
 }
 
@@ -173,7 +169,7 @@ export function addResponse(
     value,
     timestamp,
   };
-  
+
   const response: ResearchResponse = scaleType
     ? notes
       ? { ...base, scaleType, notes }
@@ -181,7 +177,7 @@ export function addResponse(
     : notes
       ? { ...base, notes }
       : base;
-  
+
   return {
     ...session,
     responses: [...session.responses, response],
@@ -218,7 +214,7 @@ export function createResearchDataset(
 ): ResearchDataset {
   const completedSessions = sessions.filter((s) => s.endedAt);
   const excludedSessions = sessions.filter((s) => s.dataQuality === 'EXCLUDED');
-  
+
   const qualityCounts = {
     high: sessions.filter((s) => s.dataQuality === 'HIGH').length,
     medium: sessions.filter((s) => s.dataQuality === 'MEDIUM').length,
@@ -227,7 +223,7 @@ export function createResearchDataset(
   };
 
   const uniqueParticipants = new Set(sessions.map((s) => s.participantId));
-  const consentedParticipants = uniqueParticipants.size;  // 简化：假设所有参与者都已同意
+  const consentedParticipants = uniqueParticipants.size; // 简化：假设所有参与者都已同意
 
   return {
     id: newId('dataset'),
@@ -243,11 +239,7 @@ export function createResearchDataset(
     dataQualitySummary: qualityCounts,
     consentRate: consentedParticipants > 0 ? consentedParticipants / uniqueParticipants.size : 0,
     completionRate: sessions.length > 0 ? completedSessions.length / sessions.length : 0,
-    limitations: [
-      '数据集包含主观响应',
-      '数据质量分布已记录',
-      '缺失和排除数据已标记',
-    ],
+    limitations: ['数据集包含主观响应', '数据质量分布已记录', '缺失和排除数据已标记'],
   };
 }
 
@@ -322,12 +314,14 @@ export function calculateScaleStatistics(
   const sorted = [...numericValues].sort((a, b) => a - b);
   const sum = numericValues.reduce((acc, val) => acc + val, 0);
   const mean = sum / numericValues.length;
-  
-  const median = sorted.length % 2 === 0
-    ? (sorted[sorted.length / 2 - 1]! + sorted[sorted.length / 2]!) / 2
-    : sorted[Math.floor(sorted.length / 2)]!;
 
-  const variance = numericValues.reduce((acc, val) => acc + Math.pow(val - mean, 2), 0) / numericValues.length;
+  const median =
+    sorted.length % 2 === 0
+      ? (sorted[sorted.length / 2 - 1]! + sorted[sorted.length / 2]!) / 2
+      : sorted[Math.floor(sorted.length / 2)]!;
+
+  const variance =
+    numericValues.reduce((acc, val) => acc + Math.pow(val - mean, 2), 0) / numericValues.length;
   const stdDev = Math.sqrt(variance);
 
   return {

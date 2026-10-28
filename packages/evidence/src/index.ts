@@ -83,17 +83,33 @@ export function retireEvidence(evidence: Evidence): Evidence {
 
 /** 敏感字段名模式（归一化后匹配：去除 _、-、空格并小写） */
 const SENSITIVE_KEYS = new Set([
-  'password', 'passwd', 'secret', 'secretkey', 'token', 'accesstoken', 'refreshtoken',
-  'authorization', 'auth', 'cookie', 'session', 'sessionid', 'csrf', 'xsrf',
-  'apikey', 'credential', 'credentials',
-  'privatekey', 'ssn', 'creditcard',
+  'password',
+  'passwd',
+  'secret',
+  'secretkey',
+  'token',
+  'accesstoken',
+  'refreshtoken',
+  'authorization',
+  'auth',
+  'cookie',
+  'session',
+  'sessionid',
+  'csrf',
+  'xsrf',
+  'apikey',
+  'credential',
+  'credentials',
+  'privatekey',
+  'ssn',
+  'creditcard',
 ]);
 
 /** 敏感值正则模式 */
 const SENSITIVE_VALUE_PATTERNS: RegExp[] = [
-  /Bearer\s+[A-Za-z0-9\-._~+/]+=*/g,                       // Bearer token
-  /[A-Za-z0-9]{32,}/g,                                       // 长随机字符串（API key 等）
-  /(?:password|passwd|secret|token)\s*[:=]\s*\S+/gi,         // key=value 形式
+  /Bearer\s+[A-Za-z0-9\-._~+/]+=*/g, // Bearer token
+  /[A-Za-z0-9]{32,}/g, // 长随机字符串（API key 等）
+  /(?:password|passwd|secret|token)\s*[:=]\s*\S+/gi, // key=value 形式
 ];
 
 /** 脱敏占位符 */
@@ -147,10 +163,7 @@ export interface SharingComplianceResult {
 }
 
 /** 检查证据是否满足分享合规要求 */
-export function checkSharingCompliance(
-  evidence: Evidence,
-  at: string,
-): SharingComplianceResult {
+export function checkSharingCompliance(evidence: Evidence, at: string): SharingComplianceResult {
   parseTimestamp(at);
   const issues: string[] = [];
 

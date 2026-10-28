@@ -17,18 +17,10 @@
           "const": "COMPLETED"
         },
         "outcome": {
-          "enum": [
-            "PASS",
-            "FAIL",
-            "INDETERMINATE",
-            "NOT_APPLICABLE"
-          ]
+          "enum": ["PASS", "FAIL", "INDETERMINATE", "NOT_APPLICABLE"]
         }
       },
-      "required": [
-        "executionStatus",
-        "outcome"
-      ]
+      "required": ["executionStatus", "outcome"]
     },
     {
       "type": "object",
@@ -43,11 +35,7 @@
           "$ref": "#/$defs/ErrorRecord"
         }
       },
-      "required": [
-        "executionStatus",
-        "outcome",
-        "error"
-      ]
+      "required": ["executionStatus", "outcome", "error"]
     }
   ],
   "$defs": {
@@ -96,13 +84,7 @@
       ]
     },
     "RuleOutcome": {
-      "enum": [
-        "PASS",
-        "FAIL",
-        "INDETERMINATE",
-        "NOT_APPLICABLE",
-        "EXECUTION_ERROR"
-      ]
+      "enum": ["PASS", "FAIL", "INDETERMINATE", "NOT_APPLICABLE", "EXECUTION_ERROR"]
     }
   }
 }

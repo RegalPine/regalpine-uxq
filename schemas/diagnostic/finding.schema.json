@@ -88,27 +88,13 @@
       ]
     },
     "Severity": {
-      "enum": [
-        "S1",
-        "S2",
-        "S3",
-        "S4"
-      ]
+      "enum": ["S1", "S2", "S3", "S4"]
     },
     "Priority": {
-      "enum": [
-        "P0",
-        "P1",
-        "P2",
-        "P3"
-      ]
+      "enum": ["P0", "P1", "P2", "P3"]
     },
     "Confidence": {
-      "enum": [
-        "HIGH",
-        "MEDIUM",
-        "LOW"
-      ]
+      "enum": ["HIGH", "MEDIUM", "LOW"]
     },
     "FindingLifecycleStatus": {
       "enum": [
@@ -146,12 +132,7 @@
           "$ref": "#/$defs/IdList"
         },
         "sourceType": {
-          "enum": [
-            "RULE",
-            "METRIC",
-            "EXPERT",
-            "RESEARCH"
-          ]
+          "enum": ["RULE", "METRIC", "EXPERT", "RESEARCH"]
         },
         "valid": {
           "type": "boolean"
@@ -163,14 +144,7 @@
           "$ref": "#/$defs/IdList"
         }
       },
-      "required": [
-        "runId",
-        "sourceResultIds",
-        "sourceType",
-        "valid",
-        "reason",
-        "evidenceIds"
-      ]
+      "required": ["runId", "sourceResultIds", "sourceType", "valid", "reason", "evidenceIds"]
     }
   }
 }

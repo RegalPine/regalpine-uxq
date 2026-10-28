@@ -29,16 +29,10 @@
       "$ref": "#/$defs/TaskOutcome"
     },
     "businessSuccess": {
-      "type": [
-        "boolean",
-        "null"
-      ]
+      "type": ["boolean", "null"]
     },
     "feedbackSuccess": {
-      "type": [
-        "boolean",
-        "null"
-      ]
+      "type": ["boolean", "null"]
     },
     "startedAt": {
       "$ref": "#/$defs/Timestamp"
@@ -63,10 +57,7 @@
       "minimum": 0
     },
     "method": {
-      "enum": [
-        "AUTOMATED",
-        "USER_RESEARCH"
-      ]
+      "enum": ["AUTOMATED", "USER_RESEARCH"]
     },
     "evidenceIds": {
       "$ref": "#/$defs/IdList"
@@ -100,14 +91,7 @@
   ],
   "$defs": {
     "TaskOutcome": {
-      "enum": [
-        "SUCCESS",
-        "PARTIAL_SUCCESS",
-        "FAILURE",
-        "ABORTED",
-        "TIMEOUT",
-        "INVALID"
-      ]
+      "enum": ["SUCCESS", "PARTIAL_SUCCESS", "FAILURE", "ABORTED", "TIMEOUT", "INVALID"]
     }
   }
 }

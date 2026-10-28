@@ -10,7 +10,7 @@ import type { ViewportConfig, BrowserMatrixConfig } from '@uxq/browser';
 describe('M4.6: 多浏览器/视口验收矩阵', () => {
   it('标准视口列表包含主要尺寸', () => {
     expect(STANDARD_VIEWPORTS.length).toBeGreaterThanOrEqual(5);
-    
+
     const names = STANDARD_VIEWPORTS.map((v) => v.name);
     expect(names).toContain('mobile');
     expect(names).toContain('tablet');
@@ -29,7 +29,7 @@ describe('M4.6: 多浏览器/视口验收矩阵', () => {
 
     // 3 browsers × 2 viewports × 1 color scheme = 6
     expect(matrix).toHaveLength(6);
-    
+
     // 每个浏览器都有 laptop 和 desktop
     for (const browser of STANDARD_BROWSERS) {
       const configs = matrix.filter((c) => c.browser === browser);
@@ -49,10 +49,10 @@ describe('M4.6: 多浏览器/视口验收矩阵', () => {
 
     // 2 browsers × 2 viewports × 2 color schemes = 8
     expect(matrix).toHaveLength(8);
-    
+
     // 检查 locale
     expect(matrix.every((c) => c.locale === 'en-US')).toBe(true);
-    
+
     // 检查所有组合都存在
     const combos = matrix.map((c) => `${c.browser}-${c.viewport.name}-${c.colorScheme}`);
     expect(combos).toContain('chromium-mobile-small-light');

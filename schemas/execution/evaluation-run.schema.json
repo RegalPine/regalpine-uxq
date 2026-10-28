@@ -60,15 +60,7 @@
   ],
   "$defs": {
     "RunStatus": {
-      "enum": [
-        "CREATED",
-        "PREPARING",
-        "RUNNING",
-        "COMPLETED",
-        "PARTIAL",
-        "FAILED",
-        "CANCELLED"
-      ]
+      "enum": ["CREATED", "PREPARING", "RUNNING", "COMPLETED", "PARTIAL", "FAILED", "CANCELLED"]
     },
     "RunManifest": {
       "allOf": [
@@ -148,27 +140,14 @@
           "$ref": "#/$defs/ArtifactReference"
         }
       },
-      "required": [
-        "evaluationResultId",
-        "policyId",
-        "policyVersion",
-        "createdAt",
-        "artifact"
-      ]
+      "required": ["evaluationResultId", "policyId", "policyVersion", "createdAt", "artifact"]
     },
     "ManifestFailure": {
       "type": "object",
       "additionalProperties": false,
       "properties": {
         "stage": {
-          "enum": [
-            "EXECUTION",
-            "CLEANUP",
-            "PERSISTENCE",
-            "SETTLEMENT",
-            "REPORT",
-            "RECOVERY"
-          ]
+          "enum": ["EXECUTION", "CLEANUP", "PERSISTENCE", "SETTLEMENT", "REPORT", "RECOVERY"]
         },
         "at": {
           "$ref": "#/$defs/Timestamp"
@@ -177,11 +156,7 @@
           "$ref": "#/$defs/ErrorRecord"
         }
       },
-      "required": [
-        "stage",
-        "at",
-        "error"
-      ]
+      "required": ["stage", "at", "error"]
     }
   }
 }

@@ -207,7 +207,7 @@ export function createReportArtifact(
 
 /**
  * M3.5: 生成回归报告
- * 
+ *
  * 从比较结果和 Finding 历史生成回归报告。
  * 不重新计算评分，不修改历史事实。
  */
@@ -277,7 +277,9 @@ export function renderRegressionMarkdown(report: RegressionReport): string {
   lines.push('');
   lines.push(`- 报告 ID：${escapeMarkdown(report.id)}`);
   lines.push(`- 生成时间：${escapeMarkdown(report.createdAt)}`);
-  lines.push(`- 基线：${escapeMarkdown(report.baselineName)} (${escapeMarkdown(report.baselineRunId)})`);
+  lines.push(
+    `- 基线：${escapeMarkdown(report.baselineName)} (${escapeMarkdown(report.baselineRunId)})`,
+  );
   lines.push(`- 当前运行：${escapeMarkdown(report.currentRunId)}`);
   lines.push('');
   lines.push('## 可比性');
@@ -295,8 +297,11 @@ export function renderRegressionMarkdown(report: RegressionReport): string {
     lines.push('|---|---|---|---|---|');
     for (const metric of report.metricDeltas) {
       const deltaStr = metric.delta !== null ? String(metric.delta) : '_不可用_';
-      const deltaPctStr = metric.deltaPercent !== null ? `${metric.deltaPercent.toFixed(1)}%` : '_不可用_';
-      lines.push(`| ${escapeMarkdown(metric.metricId)} | ${escapeMarkdown(String(metric.baselineValue ?? '_不可用_'))} | ${escapeMarkdown(String(metric.currentValue ?? '_不可用_'))} | ${deltaStr} | ${deltaPctStr} |`);
+      const deltaPctStr =
+        metric.deltaPercent !== null ? `${metric.deltaPercent.toFixed(1)}%` : '_不可用_';
+      lines.push(
+        `| ${escapeMarkdown(metric.metricId)} | ${escapeMarkdown(String(metric.baselineValue ?? '_不可用_'))} | ${escapeMarkdown(String(metric.currentValue ?? '_不可用_'))} | ${deltaStr} | ${deltaPctStr} |`,
+      );
     }
     lines.push('');
   }
@@ -307,7 +312,9 @@ export function renderRegressionMarkdown(report: RegressionReport): string {
     lines.push('|---|---|---|---|');
     for (const rule of report.ruleDeltas) {
       const changed = rule.changed ? '是' : '否';
-      lines.push(`| ${escapeMarkdown(rule.ruleId)} | ${escapeMarkdown(rule.baselineOutcome)} | ${escapeMarkdown(rule.currentOutcome)} | ${changed} |`);
+      lines.push(
+        `| ${escapeMarkdown(rule.ruleId)} | ${escapeMarkdown(rule.baselineOutcome)} | ${escapeMarkdown(rule.currentOutcome)} | ${changed} |`,
+      );
     }
     lines.push('');
   }

@@ -72,7 +72,16 @@ const FILE_MAP = {
   },
   'definition/evaluation-plan.schema.json': {
     title: 'EvaluationPlan',
-    defs: ['EvaluationPlan', 'PlanReference', 'PlannedStep', 'StepKind', 'ExecutionProfile', 'ProfileOverrides', 'RetryPolicy', 'Viewport'],
+    defs: [
+      'EvaluationPlan',
+      'PlanReference',
+      'PlannedStep',
+      'StepKind',
+      'ExecutionProfile',
+      'ProfileOverrides',
+      'RetryPolicy',
+      'Viewport',
+    ],
   },
   'execution/evaluation-run.schema.json': {
     title: 'EvaluationRun',
@@ -108,7 +117,13 @@ const FILE_MAP = {
   },
   'evidence/evidence.schema.json': {
     title: 'Evidence',
-    defs: ['Evidence', 'EvidenceSource', 'EvidenceLifecycle', 'EvidenceValidity', 'EvidencePrivacy'],
+    defs: [
+      'Evidence',
+      'EvidenceSource',
+      'EvidenceLifecycle',
+      'EvidenceValidity',
+      'EvidencePrivacy',
+    ],
   },
   'evidence/evidence-link.schema.json': {
     title: 'EvidenceLink',
@@ -116,7 +131,15 @@ const FILE_MAP = {
   },
   'diagnostic/finding.schema.json': {
     title: 'Finding',
-    defs: ['Finding', 'FindingType', 'Severity', 'Priority', 'Confidence', 'FindingLifecycleStatus', 'DiagnosticSignal'],
+    defs: [
+      'Finding',
+      'FindingType',
+      'Severity',
+      'Priority',
+      'Confidence',
+      'FindingLifecycleStatus',
+      'DiagnosticSignal',
+    ],
   },
   'diagnostic/root-cause-hypothesis.schema.json': {
     title: 'RootCauseHypothesis',
@@ -132,7 +155,14 @@ const FILE_MAP = {
   },
   'result/evaluation-result.schema.json': {
     title: 'EvaluationResult',
-    defs: ['EvaluationResult', 'EvaluationStatus', 'OverallOutcome', 'Coverage', 'DimensionResult', 'RiskConstraint'],
+    defs: [
+      'EvaluationResult',
+      'EvaluationStatus',
+      'OverallOutcome',
+      'Coverage',
+      'DimensionResult',
+      'RiskConstraint',
+    ],
   },
   'reporting/report-artifact.schema.json': {
     title: 'ReportArtifact',
@@ -144,12 +174,7 @@ const FILE_MAP = {
  * Shared definitions that appear in many files and should always be
  * referenced from the main schema rather than duplicated.
  */
-const SHARED_DEFS = new Set([
-  'BaseRecord',
-  'ErrorRecord',
-  'EvaluationSnapshot',
-  'RunBundle',
-]);
+const SHARED_DEFS = new Set(['BaseRecord', 'ErrorRecord', 'EvaluationSnapshot', 'RunBundle']);
 
 async function extractSchemas() {
   const raw = await readFile(MAIN_SCHEMA_PATH, 'utf8');
@@ -173,7 +198,13 @@ async function extractSchemas() {
       $schema: 'https://json-schema.org/draft/2020-12/schema',
       $id: `${BASE_ID}/${relPath.replace('.schema.json', '')}/${SCHEMA_VERSION}`,
       title: config.title,
-      ...defs[config.title] ? { ...defs[config.title], $id: `${BASE_ID}/${relPath.replace('.schema.json', '')}/${SCHEMA_VERSION}`, title: config.title } : {},
+      ...(defs[config.title]
+        ? {
+            ...defs[config.title],
+            $id: `${BASE_ID}/${relPath.replace('.schema.json', '')}/${SCHEMA_VERSION}`,
+            title: config.title,
+          }
+        : {}),
     };
 
     // If the primary definition exists, wrap it properly
