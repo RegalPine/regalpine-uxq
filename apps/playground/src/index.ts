@@ -135,8 +135,8 @@ program
       const valueStr =
         metric.status === 'MEASURED'
           ? ` = ${metric.value}`
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          : ` (${(metric as any).reason ?? 'N/A'})`;
+          : // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            ` (${(metric as any).reason ?? 'N/A'})`;
       console.log(`  ${chalk[statusColor]('●')} ${metric.metricId}${valueStr}`);
     }
 
