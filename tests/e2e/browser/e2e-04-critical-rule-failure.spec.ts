@@ -55,20 +55,20 @@ test.describe('E2E-04: 关键规则失败与 Finding 生成', () => {
     const imageCount = await images.count();
     expect(imageCount).toBeGreaterThan(0);
 
-    const missingAltCount = await images.filter('img:not([alt])').count();
+    const missingAltCount = await page.locator('img:not([alt])').count();
 
     // 规则 2: 检查按钮是否有可访问名称
     const buttons = page.locator('button');
     const buttonCount = await buttons.count();
-    const unnamedButtonCount = await buttons
-      .filter('button:not([aria-label]):not([aria-labelledby]):not(:has-text(*))')
+    const unnamedButtonCount = await page
+      .locator('button:not([aria-label]):not([aria-labelledby]):not(:has-text(*))')
       .count();
 
     // 规则 3: 检查输入是否有 label
     const inputs = page.locator('input');
     const inputCount = await inputs.count();
-    const unlabeledInputCount = await inputs
-      .filter('input:not([aria-label]):not([aria-labelledby])')
+    const unlabeledInputCount = await page
+      .locator('input:not([aria-label]):not([aria-labelledby])')
       .count();
 
     // 生成 RuleResult

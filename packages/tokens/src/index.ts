@@ -340,7 +340,7 @@ export class TokenTransformer {
       ...token,
       originalValue: token.value,
       transformedValue: this.transformValue(token, theme),
-      theme,
+      ...(theme !== undefined && { theme }),
     }));
   }
 

@@ -70,7 +70,7 @@ describe('@uxq/tokens', () => {
       const result = parser.parse(input, 'json');
 
       expect(result.errors).toHaveLength(1);
-      expect(result.errors[0].code).toBe('PARSE_ERROR');
+      expect(result.errors[0]!.code).toBe('PARSE_ERROR');
     });
 
     it('应该处理非对象输入', () => {
@@ -78,7 +78,7 @@ describe('@uxq/tokens', () => {
       const result = parser.parse(input, 'json');
 
       expect(result.errors).toHaveLength(1);
-      expect(result.errors[0].code).toBe('INVALID_FORMAT');
+      expect(result.errors[0]!.code).toBe('INVALID_FORMAT');
     });
 
     it('应该拒绝无效的 Token 类型', () => {
@@ -92,7 +92,7 @@ describe('@uxq/tokens', () => {
       const result = parser.parse(input, 'json');
 
       expect(result.errors).toHaveLength(1);
-      expect(result.errors[0].code).toBe('INVALID_TOKEN_TYPE');
+      expect(result.errors[0]!.code).toBe('INVALID_TOKEN_TYPE');
     });
 
     it('应该处理空对象', () => {
@@ -119,8 +119,8 @@ describe('@uxq/tokens', () => {
       const result = parser.parse(input, 'json');
 
       expect(result.errors).toHaveLength(0);
-      expect(result.tokens[0].extensions).toBeDefined();
-      expect(result.tokens[0].extensions?.['com.example']).toEqual({ deprecated: true });
+      expect(result.tokens[0]!.extensions).toBeDefined();
+      expect(result.tokens[0]!.extensions?.['com.example']).toEqual({ deprecated: true });
     });
   });
 
@@ -153,7 +153,7 @@ describe('@uxq/tokens', () => {
 
       expect(result.valid).toBe(false);
       expect(result.errors).toHaveLength(1);
-      expect(result.errors[0].code).toBe('DUPLICATE_NAME');
+      expect(result.errors[0]!.code).toBe('DUPLICATE_NAME');
     });
 
     it('应该警告未解析的引用', () => {
@@ -165,7 +165,7 @@ describe('@uxq/tokens', () => {
 
       expect(result.valid).toBe(true);
       expect(result.warnings).toHaveLength(1);
-      expect(result.warnings[0].code).toBe('UNRESOLVED_REFERENCE');
+      expect(result.warnings[0]!.code).toBe('UNRESOLVED_REFERENCE');
     });
 
     it('应该接受已解析的引用', () => {
@@ -207,8 +207,8 @@ describe('@uxq/tokens', () => {
 
       const result = transformer.transform(tokens);
 
-      expect(result[0].originalValue).toBe(8);
-      expect(result[0].transformedValue).toBe(8);
+      expect(result[0]!.originalValue).toBe(8);
+      expect(result[0]!.transformedValue).toBe(8);
     });
   });
 
@@ -246,7 +246,7 @@ describe('@uxq/tokens', () => {
       const result = registry.register(tokens2);
 
       expect(result.valid).toBe(false);
-      expect(result.errors[0].code).toBe('DUPLICATE_NAME');
+      expect(result.errors[0]!.code).toBe('DUPLICATE_NAME');
     });
 
     it('应该比较 Token 差异', () => {

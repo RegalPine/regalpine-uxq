@@ -163,8 +163,8 @@ describe('@uxq/theme', () => {
       const results = validator.checkContrast(theme);
 
       expect(results).toHaveLength(1);
-      expect(results[0].tokenName).toBe('color-primary');
-      expect(results[0].ratio).toBeGreaterThan(0);
+      expect(results[0]!.tokenName).toBe('color-primary');
+      expect(results[0]!.ratio).toBeGreaterThan(0);
     });
 
     it('应该检查可读性', () => {
@@ -180,7 +180,7 @@ describe('@uxq/theme', () => {
       const results = validator.checkReadability(theme);
 
       expect(results).toHaveLength(1);
-      expect(results[0].passed).toBe(true);
+      expect(results[0]!.passed).toBe(true);
     });
 
     it('应该检查一致性', () => {
@@ -197,7 +197,7 @@ describe('@uxq/theme', () => {
       const results = validator.checkConsistency(theme);
 
       expect(results).toHaveLength(1);
-      expect(results[0].consistent).toBe(true);
+      expect(results[0]!.consistent).toBe(true);
     });
   });
 });

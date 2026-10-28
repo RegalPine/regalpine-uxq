@@ -12,3 +12,4 @@ docs/architecture/UXQ-架构设计.md
 docs/architecture/UXQ-分阶段实现计划.md
 **/generated.ts
 **/*.generated.ts
+tests/golden/__snapshots__/

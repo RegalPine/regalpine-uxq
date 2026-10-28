@@ -36,7 +36,8 @@ const SNAPSHOT_DIR = resolve(__dirname, '__snapshots__');
 
 async function readSnapshot(name: string): Promise<string | null> {
   try {
-    return await readFile(resolve(SNAPSHOT_DIR, name), 'utf8');
+    const content = await readFile(resolve(SNAPSHOT_DIR, name), 'utf8');
+    return content.replace(/\n$/, '');
   } catch {
     return null;
   }
@@ -44,7 +45,7 @@ async function readSnapshot(name: string): Promise<string | null> {
 
 async function writeSnapshot(name: string, content: string): Promise<void> {
   await mkdir(SNAPSHOT_DIR, { recursive: true });
-  await writeFile(resolve(SNAPSHOT_DIR, name), content, 'utf8');
+  await writeFile(resolve(SNAPSHOT_DIR, name), content + '\n', 'utf8');
 }
 
 /** 将对象中的随机 ID 规范化为稳定占位符，以便 Golden 快照比对 */

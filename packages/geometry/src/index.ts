@@ -313,8 +313,10 @@ export function detectOverlaps(elements: LayoutElement[]): Array<[string, string
 
   for (let i = 0; i < elements.length; i++) {
     for (let j = i + 1; j < elements.length; j++) {
-      const rect1 = elements[i].rect;
-      const rect2 = elements[j].rect;
+      const elem1 = elements[i]!;
+      const elem2 = elements[j]!;
+      const rect1 = elem1.rect;
+      const rect2 = elem2.rect;
 
       const overlap =
         rect1.x < rect2.x + rect2.width &&
@@ -323,7 +325,7 @@ export function detectOverlaps(elements: LayoutElement[]): Array<[string, string
         rect1.y + rect1.height > rect2.y;
 
       if (overlap) {
-        overlaps.push([elements[i].id, elements[j].id]);
+        overlaps.push([elem1.id, elem2.id]);
       }
     }
   }
@@ -404,7 +406,9 @@ export function createSpacingConsistencyRule(expectedSpacing?: number): Geometry
       const spacings: number[] = [];
 
       for (let i = 0; i < elements.length - 1; i++) {
-        const spacing = horizontalSpacing(elements[i].rect, elements[i + 1].rect);
+        const elem1 = elements[i]!;
+        const elem2 = elements[i + 1]!;
+        const spacing = horizontalSpacing(elem1.rect, elem2.rect);
         spacings.push(spacing);
       }
 
@@ -563,7 +567,9 @@ export class LayoutAnalyzer {
 
     const spacings: number[] = [];
     for (let i = 0; i < elements.length - 1; i++) {
-      spacings.push(horizontalSpacing(elements[i].rect, elements[i + 1].rect));
+      const elem1 = elements[i]!;
+      const elem2 = elements[i + 1]!;
+      spacings.push(horizontalSpacing(elem1.rect, elem2.rect));
     }
 
     const avg = spacings.reduce((a, b) => a + b, 0) / spacings.length;

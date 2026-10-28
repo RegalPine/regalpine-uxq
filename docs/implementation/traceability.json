@@ -1,0 +1,17 @@
+{
+  "sourcePlan": "docs/implementation/plan.md",
+  "decisionFile": "docs/implementation/decisions.md",
+  "items": [
+    {
+      "requirementId": "M0.1",
+      "status": "VERIFIED",
+      "ownerRole": "maintainer",
+      "sourceSection": "initial-setup",
+      "implementationTargets": ["package.json"],
+      "acceptanceCriteria": ["Initial setup completed"],
+      "schemaTargets": ["schemas/uxq.schema.json"],
+      "testTargets": ["tests/architecture/dependencies.test.ts"],
+      "evidenceRefs": ["docs/implementation/plan.md"]
+    }
+  ]
+}

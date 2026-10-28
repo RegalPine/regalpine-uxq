@@ -140,8 +140,8 @@ describe('@uxq/geometry', () => {
         margin: 40,
       });
       const elements: LayoutElement[] = [
-        { id: 'a', rect: grid[0].rect },
-        { id: 'b', rect: grid[1].rect },
+        { id: 'a', rect: grid[0]!.rect },
+        { id: 'b', rect: grid[1]!.rect },
       ];
       const score = checkGridConformance(elements, grid, 5);
       expect(score).toBe(100);
@@ -196,7 +196,7 @@ describe('@uxq/geometry', () => {
         { id: 'b', rect: { x: 10, y: 10, width: 50, height: 50 } },
       ];
       const results = rule.check(elements);
-      expect(results[0].passed).toBe(true);
+      expect(results[0]!.passed).toBe(true);
     });
 
     it('应该检查重叠', () => {
@@ -206,8 +206,8 @@ describe('@uxq/geometry', () => {
         { id: 'b', rect: { x: 50, y: 0, width: 100, height: 50 } },
       ];
       const results = rule.check(elements);
-      expect(results[0].passed).toBe(false);
-      expect(results[0].severity).toBe('error');
+      expect(results[0]!.passed).toBe(false);
+      expect(results[0]!.severity).toBe('error');
     });
   });
 });

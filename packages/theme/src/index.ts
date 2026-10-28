@@ -237,8 +237,8 @@ export class ThemeManager {
       name: themeConfig.name,
       tokens: this.tokensToMap(themeConfig.tokens),
       rules: themeConfig.rules || [],
-      description: themeConfig.description,
-      extends: themeConfig.extends,
+      ...(themeConfig.description !== undefined && { description: themeConfig.description }),
+      ...(themeConfig.extends !== undefined && { extends: themeConfig.extends }),
     };
 
     // 处理继承
