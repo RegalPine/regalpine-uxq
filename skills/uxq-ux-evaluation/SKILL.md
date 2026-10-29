@@ -1,9 +1,9 @@
+---
+name: uxq-ux-evaluation
+description: Quantitatively inspect, analyze, diagnose, and verify rendered UI quality using UXQ CLI. Covers task completion, cognitive load, accessibility, metrics, scoring, diagnostic, regression, and report generation. Use when the user asks about UX quality, design evaluation, accessibility checks, cognitive load analysis, task completion metrics, regression comparison, or wants a UX evaluation report.
+---
+
 # UXQ UX Evaluation Skill
-
-## Identity
-
-Skill ID: uxq-ux-evaluation
-Version: 1.0.0
 
 ## Purpose
 
