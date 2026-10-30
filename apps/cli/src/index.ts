@@ -123,6 +123,7 @@ function printHelp(): void {
   --help, -h              显示帮助
   version                 显示版本
   doctor                  诊断环境
+  capabilities            输出当前版本支持的动作、步骤类型与提取器
   init <file>             生成示例定义
   validate <file>         校验定义
   plan <file>             编译执行计划
@@ -204,6 +205,50 @@ async function cmdDoctor(options: CliOptions): Promise<number> {
   output({ node: process.version, platform: process.platform, arch: process.arch, storage: options.root,
     browser: 'playwright', available, browserVersion, error }, options.json);
   return available ? 0 : 3;
+}
+
+async function cmdCapabilities(options: CliOptions): Promise<number> {
+  output({
+    version: VERSION,
+    actions: {
+      supported: ['NAVIGATE', 'CLICK', 'FILL', 'FILL_SECRET', 'PRESS', 'WAIT_FOR', 'CAPTURE', 'SCREENSHOT'],
+      description: '浏览器动作类型，用于 steps[].action.action 字段',
+    },
+    stepKinds: {
+      supported: ['PAGE_NAVIGATION', 'OBSERVATION_CAPTURE', 'METRIC_CALCULATION', 'RULE_EVALUATION', 'SCORING', 'TASK_EXECUTION', 'ENVIRONMENT_CHECK', 'RESULT_FINALIZATION', 'EVIDENCE_VALIDATION'],
+      description: '步骤类型，用于 steps[].kind 字段',
+    },
+    extractors: {
+      supported: ['COUNT', 'VISIBLE', 'TEXT', 'VALUE', 'ACCESSIBLE_NAME'],
+      description: 'CAPTURE 动作的数据提取方式，用于 steps[].action.extractor 字段',
+      limitations: {
+        COUNT: '仅做 DOM 计数（querySelectorAll.length），不验证内容、位置或可见性',
+        VISIBLE: '检查元素是否可见',
+        TEXT: '提取元素文本内容',
+        VALUE: '提取表单元素值',
+        ACCESSIBLE_NAME: '提取元素可访问名称',
+      },
+    },
+    conditions: {
+      supported: ['TEXT', 'VISIBLE', 'URL', 'ATTRIBUTE'],
+      unsupported: ['BUSINESS_JSON'],
+      description: '任务条件核验类型，用于 tasks[].businessConditions/feedbackConditions[].kind 字段',
+    },
+    aggregations: {
+      supported: ['LATEST', 'MEAN', 'MEDIAN', 'P95', 'SUM', 'COUNT', 'RATIO', 'SUCCESS_RATE'],
+      description: '指标聚合方式，用于 metrics[].aggregation 字段',
+      notes: {
+        RATIO: '需要配对采样（同 sampleId），连续 CAPTURE 共享 sampleId，操作或导航后开启新采样组',
+      },
+    },
+    knownLimitations: [
+      'COUNT 提取器不验证语义正确性或可见性，<h1 class="sr-only"> 与可见 <h1> 同等计数',
+      '纯静态采集（无交互动作）时 D02/D05/D06 维度为 OOS（不适用）',
+      '默认不支持 WebSocket（allowWebSocket: false），dev server 的 HMR 会导致 evaluate 失败',
+      'HTTP 重定向默认拒绝（maxRedirects: 0），需提供最终 URL 或显式配置',
+    ],
+  }, options.json);
+  return 0;
 }
 
 async function cmdInit(positional: string[], options: CliOptions): Promise<number> {
@@ -945,6 +990,9 @@ async function main(): Promise<void> {
       case 'doctor':
         exitCode = await cmdDoctor(options);
         break;
+      case 'capabilities':
+        exitCode = await cmdCapabilities(options);
+        break;
       case 'init':
         exitCode = await cmdInit(positional, options);
         break;
@@ -1004,6 +1052,14 @@ async function main(): Promise<void> {
   } catch (error) {
     if (error instanceof UxqError) {
       process.stderr.write(`错误 [${error.code}]：${error.message}\n`);
+      // 输出验证问题详情（JSON Path + 原因码），帮助定位 SCHEMA_VALIDATION 等错误
+      if (error.issues.length > 0) {
+        process.stderr.write(`验证问题（${error.issues.length} 项）：\n`);
+        for (const issue of error.issues) {
+          const path = issue.path || '(根)';
+          process.stderr.write(`  - ${path}: [${issue.code}] ${issue.message}\n`);
+        }
+      }
       exitCode =
         error.category === 'INPUT'
           ? 2
