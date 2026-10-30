@@ -48,3 +48,22 @@ export {
 export type { RunCommand, StepCommand } from './transitions.js';
 export { migrateLegacy, legacyBridgeSchema } from './migrations.js';
 export type { LegacyContractName } from './migrations.js';
+export {
+  SUPPORTED_ACTIONS,
+  SUPPORTED_STEP_KINDS,
+  SUPPORTED_EXTRACTORS,
+  SUPPORTED_CONDITIONS,
+  UNSUPPORTED_CONDITIONS,
+  SUPPORTED_AGGREGATIONS,
+  KNOWN_LIMITATIONS,
+  EXTRACTOR_LIMITATIONS,
+  buildCapabilityCatalog,
+} from './capabilities.js';
+export type {
+  SupportedAction,
+  SupportedStepKind,
+  SupportedExtractor,
+  SupportedCondition,
+  SupportedAggregation,
+  CapabilityCatalog,
+} from './capabilities.js';

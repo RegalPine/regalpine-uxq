@@ -92,3 +92,15 @@ uxq quality-gate <run-id> --root .uxq --json
 - [报告](workflows/report.md)：持久化产物、限制与 OOS 声明。
 - [认知负荷](workflows/cognitive-load.md)、[可访问性](workflows/accessibility.md)、[用户研究](workflows/research.md)、[设计系统](workflows/design-system.md)：SDK 与当前 CLI 的能力边界。
 - [完整示例](EXAMPLES.md)：真实页面、离线示例和 CI 门禁。
+
+## 参考文档
+
+概念查阅（Agent 按需引用）：
+- [维度](references/dimensions.md)：D01-D06 定义与 OOS 说明
+- [指标](references/metrics.md)：类型、聚合方式、方向
+- [步骤类型](references/step-kinds.md)：10 种 StepKind 与依赖规则
+- [浏览器动作](references/actions.md)：8 种动作与采样组规则
+- [提取器](references/extractors.md)：5 种提取器语义与局限
+- [状态与结论](references/states.md)：运行/步骤/评价/规则状态
+- [证据](references/evidence.md)：来源分类、生命周期、隐私
+- [CLI 命令](references/cli.md)：完整命令参考与退出码
