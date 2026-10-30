@@ -60,9 +60,10 @@ test.describe('E2E-04: 关键规则失败与 Finding 生成', () => {
     // 规则 2: 检查按钮是否有可访问名称
     const buttons = page.locator('button');
     const buttonCount = await buttons.count();
-    const unnamedButtonCount = await page
-      .locator('button:not([aria-label]):not([aria-labelledby]):not(:has-text(*))')
-      .count();
+    const unnamedButtonCount = await page.evaluate(() => {
+      return Array.from(document.querySelectorAll('button:not([aria-label]):not([aria-labelledby])'))
+        .filter((el) => !(el as HTMLElement).innerText.trim()).length;
+    });
 
     // 规则 3: 检查输入是否有 label
     const inputs = page.locator('input');

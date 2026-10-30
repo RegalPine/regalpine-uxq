@@ -1,3 +1,4 @@
+export { calculateMetric } from './calculate.js';
 import { digest, newId } from '@uxq/core';
 import type { MetricResult, ObservationInput } from '@uxq/contracts';
 import type { MetricExecutionContext, MetricImplementation } from '@uxq/measurement';
@@ -104,7 +105,7 @@ export class SimpleNumericMetric implements MetricImplementation {
   }
 }
 
-/** 布尔指标：统计成功比例。 */
+/** 布尔指标：返回最后一个有效布尔值，成功比例应另定义为数值指标。 */
 export class BooleanMetric implements MetricImplementation {
   constructor(
     readonly metricId: string,
@@ -116,10 +117,11 @@ export class BooleanMetric implements MetricImplementation {
     observations: readonly ObservationInput[],
     context: MetricExecutionContext,
   ): MetricResult {
-    const booleans = observations.map((observation) => observation.value as boolean);
-    const trueCount = booleans.filter((value) => value === true).length;
+    context.signal.throwIfAborted();
+    const inputs = observations.filter((observation) => !observation.excluded && observation.key === this.definition.sourceKey)
+      .sort((a, b) => a.observedAt.localeCompare(b.observedAt));
     const now = context.clock.now();
-    return {
+    const base = {
       id: newId('metric'),
       schemaVersion: '1.0.0',
       createdAt: now,
@@ -129,20 +131,22 @@ export class BooleanMetric implements MetricImplementation {
       implementationVersion: this.definition.implementationVersion,
       dimensionId: this.definition.dimensionId,
       measuredAt: now,
-      evidenceIds: [],
+      evidenceIds: [] as string[],
       observationIds: observations.map((observation) => observation.sampleId),
       excludedSampleIds: observations
         .filter((observation) => observation.excluded)
         .map((observation) => observation.sampleId),
-      sampleCount: booleans.length,
+      sampleCount: inputs.length,
       inputDigest: digest(observations),
       limitations: this.definition.limitations,
-      status: 'MEASURED',
-      value: {
-        trueCount,
-        falseCount: booleans.length - trueCount,
-        ratio: booleans.length > 0 ? trueCount / booleans.length : 0,
-      },
-    };
+    } as const;
+    if (!this.definition.applicable) return { ...base, status: 'NOT_APPLICABLE', reason: '指标不适用' };
+    if (inputs.length < Math.max(1, this.definition.minimumSamples) || this.definition.evidenceRequired) {
+      return { ...base, status: 'INSUFFICIENT_EVIDENCE', reason: '样本或关联证据不足；需要证据时请使用 calculateMetric' };
+    }
+    if (this.definition.aggregation !== 'LATEST' || inputs.some((input) => typeof input.value !== 'boolean')) {
+      return { ...base, status: 'INVALID', reason: '布尔指标需要 LATEST 聚合和布尔观测值' };
+    }
+    return { ...base, status: 'MEASURED', value: inputs.at(-1)!.value as boolean };
   }
 }

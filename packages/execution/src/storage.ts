@@ -27,6 +27,8 @@ import type {
   RunContext,
   EvaluationPlan,
   EvaluationDefinition,
+  EvaluationSnapshot,
+  ScoreResult,
 } from '@uxq/contracts';
 import { parseContract } from '@uxq/contracts';
 
@@ -48,6 +50,8 @@ export interface StoredRun {
   rules: RuleResult[];
   evidence: Evidence[];
   evaluations: EvaluationResult[];
+  snapshots?: EvaluationSnapshot[];
+  scores?: ScoreResult[];
   manifest: RunManifest;
 }
 
@@ -78,7 +82,16 @@ export interface RunStore {
 }
 
 function runDir(root: string, runId: string): string {
+  invariant(/^[A-Za-z0-9][A-Za-z0-9_-]*$/.test(runId), 'RUN_ID', '运行 ID 不能包含路径片段');
   return path.join(root, 'runs', runId);
+}
+
+function artifactPath(root: string, runId: string, relativePath: string): string {
+  invariant(relativePath.length > 0 && !relativePath.includes('\\') &&
+    !relativePath.includes(':') && !path.isAbsolute(relativePath) &&
+    relativePath.split('/').every((part) => part !== '..' && part !== '.' && part.length > 0),
+    'ARTIFACT_PATH', '工件路径必须是安全的相对路径');
+  return path.join(artifactsDir(root, runId), relativePath);
 }
 
 function artifactsDir(root: string, runId: string): string {
@@ -111,7 +124,23 @@ async function atomicWrite(filePath: string, content: string): Promise<void> {
   const dir = path.dirname(filePath);
   const tmp = path.join(dir, `.tmp-${Date.now()}-${Math.random().toString(36).slice(2)}`);
   await writeFile(tmp, content, 'utf8');
-  await rename(tmp, filePath);
+  // Windows 上 rename 覆盖已有文件时可能短暂返回 EPERM（防病毒扫描或文件系统刷新）。
+  await retryRename(tmp, filePath);
+}
+
+export async function retryRename(source: string, target: string, attempts = 5): Promise<void> {
+  for (let attempt = 0; attempt < attempts; attempt++) {
+    try {
+      await rename(source, target);
+      return;
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code === 'EPERM' && attempt < attempts - 1) {
+        await new Promise((resolve) => setTimeout(resolve, 10 * (attempt + 1)));
+        continue;
+      }
+      throw error;
+    }
+  }
 }
 
 function computeRef(content: Uint8Array, mediaType: string): ArtifactReference {
@@ -142,6 +171,13 @@ export async function openLocalStore(
     invariant(await fileExists(manifestPath), 'MANIFEST_MISSING', `运行 ${rid} 清单不存在`);
     const manifest = await readJson<RunManifest>(manifestPath);
     return parseContract('RunManifest', manifest);
+  }
+
+  let pending = Promise.resolve();
+  function enqueue<T>(operation: () => Promise<T>): Promise<T> {
+    const result = pending.then(operation);
+    pending = result.then(() => undefined, () => undefined);
+    return result;
   }
 
   const store: RunStore & { clock: Clock } = {
@@ -202,6 +238,10 @@ export async function openLocalStore(
       const rules = await readJson<RuleResult[]>(path.join(dir, 'rules.json'));
       const evidence = await readJson<Evidence[]>(path.join(dir, 'evidence.json'));
       const evaluations = await readJson<EvaluationResult[]>(path.join(dir, 'evaluations.json'));
+      const snapshots = await fileExists(path.join(dir, 'snapshots.json'))
+        ? await readJson<EvaluationSnapshot[]>(path.join(dir, 'snapshots.json')) : [];
+      const scores = await fileExists(path.join(dir, 'scores.json'))
+        ? await readJson<ScoreResult[]>(path.join(dir, 'scores.json')) : [];
       const manifest = await loadManifest(rid);
       return {
         definition,
@@ -217,11 +257,15 @@ export async function openLocalStore(
         rules,
         evidence,
         evaluations,
+        snapshots,
+        scores,
         manifest,
       };
     },
 
-    async saveRun(stored) {
+    async saveRun(input) {
+      const stored = structuredClone(input);
+      return enqueue(async () => {
       const dir = runDir(rootDir, stored.run.id);
       await writeJson(path.join(dir, 'run.json'), stored.run);
       await writeJson(path.join(dir, 'steps.json'), stored.steps);
@@ -232,27 +276,34 @@ export async function openLocalStore(
       await writeJson(path.join(dir, 'rules.json'), stored.rules);
       await writeJson(path.join(dir, 'evidence.json'), stored.evidence);
       await writeJson(path.join(dir, 'evaluations.json'), stored.evaluations);
+      await writeJson(path.join(dir, 'snapshots.json'), stored.snapshots ?? []);
+      await writeJson(path.join(dir, 'scores.json'), stored.scores ?? []);
+      await writeJson(path.join(dir, 'context.json'), stored.context);
       await writeJson(path.join(dir, MANIFEST_FILE), stored.manifest);
+      });
     },
 
     async appendEvent(rid, event) {
-      const dir = runDir(rootDir, rid);
-      const line = JSON.stringify(event) + '\n';
-      await appendFile(path.join(dir, EVENTS_FILE), line, 'utf8');
+      return enqueue(async () => {
+        const file = path.join(runDir(rootDir, rid), EVENTS_FILE);
+        const previous = await readFile(file, 'utf8');
+        const sequence = previous.split('\n').filter((line) => line.trim()).length + 1;
+        await appendFile(file, JSON.stringify({ ...event, sequence }) + '\n', 'utf8');
+      });
     },
 
     async appendArtifact(rid, relativePath, content) {
       const ref = computeRef(content, 'application/octet-stream');
-      const fullPath = path.join(artifactsDir(rootDir, rid), relativePath);
+      const fullPath = artifactPath(rootDir, rid, relativePath);
       await mkdir(path.dirname(fullPath), { recursive: true });
-      const tmp = `${fullPath}.tmp`;
+      const tmp = `${fullPath}.tmp-${Date.now()}-${Math.random().toString(36).slice(2)}`;
       await writeFile(tmp, content);
-      await rename(tmp, fullPath);
+      await retryRename(tmp, fullPath);
       return { ...ref, path: relativePath };
     },
 
     async readArtifact(rid, ref) {
-      const fullPath = path.join(artifactsDir(rootDir, rid), ref.path);
+      const fullPath = artifactPath(rootDir, rid, ref.path);
       const content = await readFile(fullPath);
       const actual = sha256(content);
       invariant(actual === ref.digest, 'ARTIFACT_DIGEST', `工件摘要不匹配：${ref.path}`);
@@ -278,12 +329,13 @@ export async function openLocalStore(
     async acquireLock(rid) {
       const dir = runDir(rootDir, rid);
       const lockPath = path.join(dir, LOCK_FILE);
-      if (await fileExists(lockPath)) {
-        const lockContent = await readFile(lockPath, 'utf8');
-        invariant(false, 'STORE_LOCKED', `运行 ${rid} 已被锁定：${lockContent}`);
+      const lockId = newId('lock');
+      try {
+        await writeFile(lockPath, lockId, { encoding: 'utf8', flag: 'wx' });
+      } catch (error) {
+        if ((error as NodeJS.ErrnoException).code === 'EEXIST') invariant(false, 'STORE_LOCKED', `运行 ${rid} 已被锁定`);
+        throw error;
       }
-      const lockId = `${process.pid}-${Date.now()}`;
-      await writeFile(lockPath, lockId, 'utf8');
       let released = false;
       return async () => {
         if (released) return;

@@ -241,7 +241,7 @@ describe('总体结算', () => {
       strictPolicy,
       [dimension],
       [],
-      [],
+      [metricResult('metric-1', 50)],
       'run-1',
       '2026-01-01T00:00:00Z',
     );
@@ -267,11 +267,18 @@ describe('总体结算', () => {
       lenientPolicy,
       [dimension],
       [],
-      [],
+      [metricResult('metric-1', 20)],
       'run-1',
       '2026-01-01T00:00:00Z',
     );
     expect(result.overallOutcome).toBe('PASS');
     expect(result.overallScore).toBe(80);
+
+    const withoutMeasurements = settleEvaluation(
+      lenientPolicy, [dimension], [], [], 'run-1', '2026-01-01T00:00:00Z',
+    );
+    expect(withoutMeasurements.overallScore).toBeNull();
+    expect(withoutMeasurements.overallOutcome).toBe('INCONCLUSIVE');
+    expect(withoutMeasurements.evaluationStatus).toBe('INSUFFICIENT_EVIDENCE');
   });
 });

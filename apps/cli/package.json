@@ -10,19 +10,20 @@
     "build": "tsup src/index.ts --format esm --dts --sourcemap"
   },
   "dependencies": {
-    "@uxq/core": "workspace:*",
-    "@uxq/contracts": "workspace:*",
-    "@uxq/execution": "workspace:*",
     "@uxq/browser": "workspace:*",
-    "@uxq/tasks": "workspace:*",
+    "@uxq/conformance": "workspace:*",
+    "@uxq/contracts": "workspace:*",
+    "@uxq/core": "workspace:*",
+    "@uxq/diagnostic": "workspace:*",
     "@uxq/evidence": "workspace:*",
+    "@uxq/execution": "workspace:*",
     "@uxq/measurement": "workspace:*",
     "@uxq/metrics": "workspace:*",
+    "@uxq/regression": "workspace:*",
+    "@uxq/reporting": "workspace:*",
     "@uxq/rules": "workspace:*",
     "@uxq/scoring": "workspace:*",
-    "@uxq/diagnostic": "workspace:*",
-    "@uxq/reporting": "workspace:*",
-    "@uxq/regression": "workspace:*",
-    "@uxq/conformance": "workspace:*"
+    "@uxq/tasks": "workspace:*",
+    "yaml": "2.8.2"
   }
 }

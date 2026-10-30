@@ -1,20 +1,22 @@
 #!/usr/bin/env node
-import { readFile, writeFile } from 'node:fs/promises';
+import { readFile, writeFile, mkdir } from 'node:fs/promises';
+import { parse as parseYaml, stringify as stringifyYaml } from 'yaml';
 import { existsSync, rmSync, symlinkSync, cpSync, lstatSync } from 'node:fs';
 import { resolve, join, dirname } from 'node:path';
 import { homedir, platform } from 'node:os';
 import { fileURLToPath } from 'node:url';
 import { UxqError, systemClock, digest, newId } from '@uxq/core';
-import { parseContract, assertDefinition } from '@uxq/contracts';
+import { parseContract, assertDefinition, defaultProfile, ruleMetricIds, isEvidenceUsable } from '@uxq/contracts';
 import type {
   EvaluationDefinition,
   ExecutionProfile,
   RunBundle,
   EvaluationSnapshot,
 } from '@uxq/contracts';
-import { openLocalStore, compilePlan, createRun, executeRun, cancelRun } from '@uxq/execution';
+import { openLocalStore, compilePlan, createRun, executeRun, cancelRun, openLocalBaselineStore, createEvaluationExecutor, persistEvaluation, latestSnapshot, runBundle } from '@uxq/execution';
+import type { RunStore, StoredRun } from '@uxq/execution';
 import type { StepExecutor } from '@uxq/execution';
-import { ReferenceBrowserAdapter, executeActions } from '@uxq/browser';
+import { PlaywrightBrowserAdapter } from '@uxq/browser';
 import { projectReport, renderMarkdown, createReportArtifact } from '@uxq/reporting';
 import { createInMemoryBaselineStore, checkComparability, compareRuns } from '@uxq/regression';
 import { settleEvaluation } from '@uxq/scoring';
@@ -50,6 +52,8 @@ interface CliOptions {
   policy?: string;
   agent?: string;
   copy?: boolean;
+  url?: string;
+  reason?: string;
 }
 
 type SupportedAgent = 'qoder' | 'claude' | 'codex' | 'kiro';
@@ -92,6 +96,10 @@ function parseArgs(argv: string[]): { command: string; positional: string[]; opt
       options.policy = args[++i]!;
     } else if (arg === '--agent' && i + 1 < args.length) {
       options.agent = args[++i]!;
+    } else if (arg === '--url' && i + 1 < args.length) {
+      options.url = args[++i]!;
+    } else if (arg === '--reason' && i + 1 < args.length) {
+      options.reason = args[++i]!;
     } else if (arg === '--copy') {
       options.copy = true;
     } else if (arg === '--help' || arg === '-h') {
@@ -125,8 +133,8 @@ function printHelp(): void {
   report <run-id>         生成报告
   baseline <action>       基线管理 (create|update|list|delete)
   compare <run-id>        与基线比较
-  finding <action>        Finding 管理 (list|transition)
-  settle <run-id>         重新结算评价（需 --gate 指定策略）
+  finding <action>        Finding 查询 (list)
+  settle <run-id>         重新结算并保存（需 --policy 指定策略）
   quality-gate <run-id>   质量门禁检查
   verify <action>         复测验证 (plan|result)
   conformance <run-id>    规范符合性检查
@@ -137,10 +145,12 @@ function printHelp(): void {
   --root <dir>            存储根目录（默认 .uxq）
   --config <file>         运行配置文件
   --json                  机器输出格式
-  --gate <file>           质量门禁策略 / settle 重结算策略
+  --gate <file>           质量门禁配置
   --source-run <id>       关联源运行
   --finding-id <id>       关联 Finding ID
   --policy <file>         评分策略文件
+  --url <url>             init 生成真实页面采集模板
+  --reason <text>         baseline update 的更新原因
   --agent <name>          Agent 名称 (qoder|claude|codex|kiro|all)
   --copy                  复制而非符号链接
 
@@ -159,7 +169,7 @@ function printHelp(): void {
 
 async function loadDefinition(file: string): Promise<EvaluationDefinition> {
   const content = await readFile(file, 'utf8');
-  const parsed = JSON.parse(content) as unknown;
+  const parsed = /\.ya?ml$/i.test(file) ? parseYaml(content, { maxAliasCount: 50 }) as unknown : JSON.parse(content) as unknown;
   return parseContract('EvaluationDefinition', parsed);
 }
 
@@ -183,15 +193,17 @@ async function cmdVersion(options: CliOptions): Promise<number> {
 }
 
 async function cmdDoctor(options: CliOptions): Promise<number> {
-  const checks = {
-    node: process.version,
-    platform: process.platform,
-    arch: process.arch,
-    storage: options.root,
-    browser: 'reference-adapter',
-  };
-  output(checks, options.json);
-  return 0;
+  let available = false;
+  let browserVersion: string | undefined;
+  let error: string | undefined;
+  try {
+    const profile = parseContract('ExecutionProfile', { ...defaultProfile(), ...await loadConfig(options.config) });
+    const session = await new PlaywrightBrowserAdapter().launch(profile);
+    try { available = true; browserVersion = session.browserVersion; } finally { await session.close(); }
+  } catch (cause) { error = cause instanceof Error ? cause.message : '浏览器不可用'; }
+  output({ node: process.version, platform: process.platform, arch: process.arch, storage: options.root,
+    browser: 'playwright', available, browserVersion, error }, options.json);
+  return available ? 0 : 3;
 }
 
 async function cmdInit(positional: string[], options: CliOptions): Promise<number> {
@@ -317,7 +329,45 @@ async function cmdInit(positional: string[], options: CliOptions): Promise<numbe
     limitations: ['示例定义仅供测试'],
   };
 
-  await writeFile(file, JSON.stringify(example, null, 2), 'utf8');
+
+  example.target.type = 'OFFLINE';
+  example.name = '离线合成观测示例（非产品评价）';
+  if (options.url) {
+    const url = new URL(options.url);
+    if (!['http:', 'https:'].includes(url.protocol) || url.username || url.password)
+      throw new UxqError('INVALID_URL', 'init --url 仅接受不含凭据的 HTTP(S) URL', 'INPUT');
+    example.name = '页面标题结构采集示例';
+    example.target = { ...example.target, type: 'PAGE', url: url.href };
+    example.profile = { allowedOrigins: [url.origin], allowPrivateNetwork: ['localhost', '127.0.0.1', '[::1]'].includes(url.hostname), allowSideEffects: false };
+    example.dimensions = ['D03'];
+    const metric = example.metrics[0]!;
+    Object.assign(metric, { id: 'metric-heading-count', name: '一级标题数量', description: '实测 h1 数量；仅作为结构代理指标',
+      dimensionId: 'D03', metricType: 'PROXY', sourceKey: 'heading-count', unit: 'count', minimum: 0, maximum: 10000,
+      aggregation: 'LATEST', direction: 'HIGHER_IS_BETTER', evidenceRequired: true,
+      limitations: ['标题数量不能代表页面可用性或整体 UX'] });
+    example.policy.bindings = [{ metricId: metric.id, weight: 1, normalization: 'LINEAR_HIGHER', min: 0, max: 1 }];
+    example.policy.dimensions = [{ dimensionId: 'D03', weight: 1, minimumCoverage: 1 }];
+    example.policy.minimumCoverage = 1; example.policy.missingPolicy = 'BLOCK'; example.policy.allowPartial = false;
+    example.policy.criticalRuleIds = ['rule-heading'];
+    example.rules = [{ id: 'rule-heading', schemaVersion: '1.0.0', createdAt: systemClock.now(), version: '0.1.0',
+      name: '示例：存在且仅有一个一级标题', expression: { op: 'EQ', metricId: metric.id, expected: 1 }, required: true, critical: true }];
+    const base = { required: true, inputRefs: [], requiredCapabilities: [] };
+    example.steps = [
+      { ...base, stepId: 'navigate', kind: 'PAGE_NAVIGATION', dependsOn: [], outputContracts: [], sessionId: 'page', action: { action: 'NAVIGATE', url: url.href } },
+      { ...base, stepId: 'capture', kind: 'OBSERVATION_CAPTURE', dependsOn: ['navigate'], outputContracts: ['RawObservation', 'Evidence'], sessionId: 'page',
+        action: { action: 'CAPTURE', selector: 'h1', key: 'heading-count', extractor: 'COUNT', unit: 'count' } },
+      { ...base, stepId: 'screenshot', kind: 'OBSERVATION_CAPTURE', dependsOn: ['capture'], outputContracts: ['Evidence'], sessionId: 'page', action: { action: 'SCREENSHOT', name: 'page' } },
+      { ...base, stepId: 'measure', kind: 'METRIC_CALCULATION', dependsOn: ['capture'], outputContracts: ['MetricResult'], metricIds: [metric.id], inputRefs: [{ stepId: 'capture', contract: 'RawObservation' }] },
+      { ...base, stepId: 'rules', kind: 'RULE_EVALUATION', dependsOn: ['measure'], outputContracts: ['RuleResult'], ruleIds: ['rule-heading'], inputRefs: [{ stepId: 'measure', contract: 'MetricResult' }] },
+      { ...base, stepId: 'score', kind: 'SCORING', dependsOn: ['measure', 'rules', 'screenshot'], outputContracts: ['ScoreResult'], inputRefs: [{ stepId: 'measure', contract: 'MetricResult' }] },
+    ];
+    example.scope.entityIds = [example.target.id]; example.scope.routes = [url.pathname];
+    example.limitations = ['本模板只评估标题结构；不是完整 UX、WCAG 或真实用户体验评价。权重与规则需按项目确认。'];
+    example.scope.limitations = [...example.limitations]; example.policy.limitations = [...example.limitations];
+  }
+  parseContract('EvaluationDefinition', example);
+  await mkdir(dirname(resolve(file)), { recursive: true });
+  await writeFile(file, /\.ya?ml$/i.test(file) ? stringifyYaml(example) : JSON.stringify(example, null, 2), 'utf8');
   output(`已生成示例定义：${file}`, options.json);
   return 0;
 }
@@ -345,128 +395,58 @@ async function cmdPlan(positional: string[], options: CliOptions): Promise<numbe
   const plan = compilePlan({ definition, profileOverrides: config });
 
   output(plan, options.json);
-  if (options.json) process.stdout.write(JSON.stringify(plan, null, 2) + '\n');
   return 0;
 }
 
 async function cmdEvaluate(positional: string[], options: CliOptions): Promise<number> {
   const file = positional[0];
-  if (!file) throw new UxqError('MISSING_FILE', 'evaluate 需要文件路径', 'INPUT');
-
+  if (!file) throw new UxqError('MISSING_FILE', 'evaluate 需要定义文件路径', 'INPUT');
   const definition = await loadDefinition(file);
   const config = await loadConfig(options.config);
   const store = await openLocalStore(options.root);
+  const pipeline = createEvaluationExecutor(definition, store);
+  const { run } = await createRun(definition, config, { store });
+  const release = await store.acquireLock(run.id);
+  try {
+    process.stderr.write(`运行已创建：${run.id}\n`);
+    const stored = await executeRun(run.id, { store, executeStep: pipeline.executeStep });
+    const snapshot = await persistEvaluation(stored, store);
+    const report = await persistReport(stored, store);
+    output({ runId: run.id, status: stored.run.status, evaluation: snapshot.evaluation, report }, options.json);
+    if (stored.run.status !== 'COMPLETED') return stored.attempts.some((attempt) => attempt.error?.category === 'ENVIRONMENT') ? 3 : 4;
+    if (options.gate) return (await assessGate(snapshot.evaluation, options.gate)).code;
+    return 0;
+  } finally { await pipeline.close(); await release(); }
+}
 
-  // Create browser adapter for task steps
-  const adapter = new ReferenceBrowserAdapter();
-
-  const executor: StepExecutor = async (step, ctx) => {
-    if (step.kind === 'TASK_EXECUTION' && step.taskId) {
-      const task = definition.tasks.find((t) => t.id === step.taskId);
-      if (task) {
-        const session = await adapter.launch(ctx.profile);
-        try {
-          const result = await executeActions(
-            session,
-            task.actions,
-            ctx.runId,
-            ctx.stepId,
-            ctx.attemptId,
-          );
-          return { status: 'PASSED', ...result };
-        } finally {
-          await session.close();
-        }
-      }
-    }
-    return { status: 'PASSED' };
-  };
-
-  const { run } = await createRun(definition, config, { store, executeStep: executor });
-  process.stderr.write(`运行已创建：${run.id}\n`);
-
-  const stored = await executeRun(run.id, { store, executeStep: executor });
-  process.stderr.write(`运行已完成：${stored.run.status}\n`);
-
-  // Generate report
-  const bundle: RunBundle = {
-    schemaVersion: '1.0.0',
-    definition: stored.definition,
-    plan: stored.plan,
-    run: stored.run,
-    context: stored.context,
-    steps: stored.steps,
-    attempts: stored.attempts,
-    events: stored.events,
-    tasks: stored.tasks,
-    observations: stored.observations,
-    metrics: stored.metrics,
-    rules: stored.rules,
-    evidence: stored.evidence,
-  };
-  const evaluation = stored.evaluations[0];
-  const snapshot: EvaluationSnapshot = {
-    evaluation: evaluation ?? {
-      id: newId('eval'),
-      schemaVersion: '1.0.0',
-      createdAt: systemClock.now(),
-      runId: stored.run.id,
-      policyId: stored.definition.policy.id,
-      policyVersion: stored.definition.policy.version,
-      policyDigest: digest(stored.definition.policy),
-      evaluationStatus: 'INSUFFICIENT_EVIDENCE',
-      overallOutcome: 'NOT_RATED',
-      overallScore: null,
-      coverage: { planned: 0, applicable: 0, measured: 0, scored: 0, ratio: null },
-      metricResultIds: [],
-      ruleResultIds: [],
-      scoreResultIds: [],
-      dimensionResultIds: [],
-      findingIds: [],
-      evidenceIds: [],
-      constraints: [],
-      limitations: ['无结算结果'],
-    },
-    policy: stored.definition.policy,
-    scores: [],
-    dimensions: [],
-    signals: [],
-    findings: [],
-  };
-  const report = projectReport(bundle, snapshot, '0.1.0', systemClock.now());
+async function persistReport(stored: StoredRun, store: RunStore) {
+  const snapshot = latestSnapshot(stored);
+  const report = projectReport(runBundle(stored), snapshot, VERSION, systemClock.now());
   const markdown = renderMarkdown(report);
-  const artifact = createReportArtifact(
-    stored.run.id,
-    snapshot.evaluation.id,
-    '0.1.0',
-    JSON.stringify(report),
-    markdown,
-  );
+  const jsonContent = JSON.stringify(report, null, 2);
+  const artifact = createReportArtifact(stored.run.id, snapshot.evaluation.id, VERSION, jsonContent, markdown);
+  artifact.json = { ...await store.appendArtifact(stored.run.id, `reports/${artifact.id}.json`, new TextEncoder().encode(jsonContent)), mediaType: 'application/json' };
+  artifact.markdown = { ...await store.appendArtifact(stored.run.id, `reports/${artifact.id}.md`, new TextEncoder().encode(markdown)), mediaType: 'text/markdown' };
+  stored.manifest.reports.push(artifact); stored.manifest.revision++;
+  await store.saveRun(stored);
+  return artifact;
+}
 
-  output(
-    {
-      runId: stored.run.id,
-      status: stored.run.status,
-      evaluation: stored.evaluations[0],
-      report: artifact,
-    },
-    options.json,
-  );
-
-  // Check gate
-  if (options.gate) {
-    const gateContent = await readFile(options.gate, 'utf8');
-    const gate = JSON.parse(gateContent) as { minimumScore?: number };
-    if (gate.minimumScore !== undefined && stored.evaluations[0]?.overallScore !== null) {
-      const score = stored.evaluations[0]?.overallScore ?? 0;
-      if (score < gate.minimumScore) {
-        process.stderr.write(`门禁失败：评分 ${score} 低于阈值 ${gate.minimumScore}\n`);
-        return 1;
-      }
-    }
-  }
-
-  return 0;
+async function assessGate(evaluation: EvaluationResult | undefined, file?: string) {
+  const gate = file ? JSON.parse(await readFile(file, 'utf8')) as { minimumScore?: number; requiredOutcome?: string[] } : {};
+  if (!gate || typeof gate !== 'object' || Array.isArray(gate)) throw new UxqError('INVALID_GATE', '门禁配置必须是对象', 'INPUT');
+  if (gate.minimumScore !== undefined && (!Number.isFinite(gate.minimumScore) || gate.minimumScore < 0 || gate.minimumScore > 100))
+    throw new UxqError('INVALID_GATE', 'minimumScore 必须是 0–100 的数字', 'INPUT');
+  if (gate.requiredOutcome !== undefined && (!Array.isArray(gate.requiredOutcome) || gate.requiredOutcome.some((value) => !['PASS', 'FAIL', 'INCONCLUSIVE', 'NOT_RATED'].includes(value))))
+    throw new UxqError('INVALID_GATE', 'requiredOutcome 必须是合法结论数组', 'INPUT');
+  const conformance = !evaluation ? 'UNKNOWN' : evaluation.overallOutcome;
+  const details: string[] = [];
+  if (!evaluation || evaluation.overallScore === null || !['COMPLETE', 'PARTIAL'].includes(evaluation.evaluationStatus) || ['INCONCLUSIVE', 'NOT_RATED'].includes(evaluation.overallOutcome))
+    return { passed: false, code: 4, conformance, details: ['无可用于门禁的确定评价或数值评分'] };
+  if (evaluation.overallOutcome !== 'PASS') details.push('评价结论未通过');
+  if (gate.minimumScore !== undefined && evaluation.overallScore < gate.minimumScore) details.push(`总分低于 ${gate.minimumScore}`);
+  if (gate.requiredOutcome?.length && !gate.requiredOutcome.includes(evaluation.overallOutcome)) details.push('评价结论不满足门禁要求');
+  return { passed: details.length === 0, code: details.length ? 1 : 0, conformance, details };
 }
 
 async function cmdList(options: CliOptions): Promise<number> {
@@ -623,12 +603,8 @@ async function cmdInspect(positional: string[], options: CliOptions): Promise<nu
           metricCount: stored.definition.metrics.length,
           ruleCount: stored.definition.rules.length,
         },
-        policy: {
-          id: stored.definition.policy.id,
-          name: stored.definition.policy.name,
-          version: stored.definition.policy.version,
-          mode: stored.definition.policy.mode,
-        },
+        policy: latestSnapshot(stored).policy,
+        snapshot: latestSnapshot(stored),
       },
       options.json,
     );
@@ -655,474 +631,163 @@ async function cmdCancel(positional: string[], options: CliOptions): Promise<num
 async function cmdReport(positional: string[], options: CliOptions): Promise<number> {
   const runId = positional[0];
   if (!runId) throw new UxqError('MISSING_RUN_ID', 'report 需要运行 ID', 'INPUT');
-
-  const store = await openLocalStore(options.root);
-  const stored = await store.loadRun(runId);
-  const bundle: RunBundle = {
-    schemaVersion: '1.0.0',
-    definition: stored.definition,
-    plan: stored.plan,
-    run: stored.run,
-    context: stored.context,
-    steps: stored.steps,
-    attempts: stored.attempts,
-    events: stored.events,
-    tasks: stored.tasks,
-    observations: stored.observations,
-    metrics: stored.metrics,
-    rules: stored.rules,
-    evidence: stored.evidence,
-  };
-  const evaluation = stored.evaluations[0];
-  const snapshot: EvaluationSnapshot = {
-    evaluation: evaluation ?? {
-      id: newId('eval'),
-      schemaVersion: '1.0.0',
-      createdAt: systemClock.now(),
-      runId: stored.run.id,
-      policyId: stored.definition.policy.id,
-      policyVersion: stored.definition.policy.version,
-      policyDigest: digest(stored.definition.policy),
-      evaluationStatus: 'INSUFFICIENT_EVIDENCE',
-      overallOutcome: 'NOT_RATED',
-      overallScore: null,
-      coverage: { planned: 0, applicable: 0, measured: 0, scored: 0, ratio: null },
-      metricResultIds: [],
-      ruleResultIds: [],
-      scoreResultIds: [],
-      dimensionResultIds: [],
-      findingIds: [],
-      evidenceIds: [],
-      constraints: [],
-      limitations: ['无结算结果'],
-    },
-    policy: stored.definition.policy,
-    scores: [],
-    dimensions: [],
-    signals: [],
-    findings: [],
-  };
-  const report = projectReport(bundle, snapshot, '0.1.0', systemClock.now());
+  const stored = await (await openLocalStore(options.root)).loadRun(runId);
+  const report = projectReport(runBundle(stored), latestSnapshot(stored), VERSION, systemClock.now());
   const markdown = renderMarkdown(report);
-
-  output({ report, markdown }, options.json);
+  if (options.json) output({ report, markdown }, true);
+  else process.stdout.write(markdown + '\n');
   return 0;
 }
 
 async function cmdBaseline(positional: string[], options: CliOptions): Promise<number> {
-  const action = positional[0];
-  if (!action)
-    throw new UxqError('MISSING_ACTION', '请指定基线操作：create|update|list|delete', 'INPUT');
-
-  const store = createInMemoryBaselineStore(systemClock);
-
-  if (action === 'list') {
-    const baselines = store.listBaselines();
-    output({ baselines }, options.json);
-    return 0;
-  }
-
-  if (action === 'create') {
-    const name = positional[1];
-    const runId = positional[2];
-    if (!name || !runId)
-      throw new UxqError('MISSING_ARGS', '用法：baseline create <name> <run-id>', 'INPUT');
-
-    const runStore = await openLocalStore(options.root, systemClock);
-    const stored = await runStore.loadRun(runId);
-    const plan = compilePlan({ definition: stored.definition });
-    const evaluation = stored.evaluations[0];
+  const [action, name, runId] = positional;
+  const store = await openLocalBaselineStore(options.root);
+  if (action === 'list') { output({ baselines: await store.list() }, options.json); return 0; }
+  if (action === 'delete' && name) { await store.delete(name); output({ message: `基线 ${name} 已删除` }, options.json); return 0; }
+  if ((action === 'create' || action === 'update') && name && runId) {
+    if (action === 'update' && !options.reason?.trim()) throw new UxqError('MISSING_REASON', 'baseline update 需要 --reason', 'INPUT');
+    const stored = await (await openLocalStore(options.root)).loadRun(runId);
+    const evaluation = stored.evaluations.at(-1);
     if (!evaluation) throw new UxqError('NO_EVALUATION', '运行尚未产生评价结果', 'EXECUTION');
-    const baseline = store.createBaseline(
-      name,
-      runId,
-      stored.run,
-      plan,
-      stored.context,
-      evaluation,
-    );
-
-    output({ baseline, message: `基线 ${name} 已创建` }, options.json);
-    return 0;
+    const baseline = await store.save(name, stored, evaluation, action === 'update' ? options.reason : undefined);
+    output({ baseline, message: `基线 ${name} 已保存` }, options.json); return 0;
   }
-
-  if (action === 'delete') {
-    const name = positional[1];
-    if (!name) throw new UxqError('MISSING_NAME', '用法：baseline delete <name>', 'INPUT');
-
-    store.deleteBaseline(name);
-    output({ message: `基线 ${name} 已删除` }, options.json);
-    return 0;
-  }
-
-  throw new UxqError('INVALID_ACTION', `未知基线操作：${action}`, 'INPUT');
+  throw new UxqError('INVALID_ARGS', '用法：baseline create|update <name> <run-id>；list；delete <name>', 'INPUT');
 }
 
 async function cmdCompare(positional: string[], options: CliOptions): Promise<number> {
-  const runId = positional[0];
-  const baselineName = positional[1] ?? 'default';
-
-  if (!runId) throw new UxqError('MISSING_RUN', '用法：compare <run-id> [baseline-name]', 'INPUT');
-
-  const store = createInMemoryBaselineStore(systemClock);
-  const baseline = store.getBaseline(baselineName);
-
-  if (!baseline) {
-    output(
-      {
-        error: `基线 ${baselineName} 不存在`,
-        message: '请先创建基线：uxq baseline create <name> <run-id>',
-      },
-      options.json,
-    );
-    return 2;
+  const runId = positional[0]; const name = positional[1] ?? 'default';
+  if (!runId) throw new UxqError('MISSING_RUN', 'compare 需要运行 ID', 'INPUT');
+  const baseline = await (await openLocalBaselineStore(options.root)).get(name);
+  if (!baseline) throw new UxqError('BASELINE_NOT_FOUND', `基线 ${name} 不存在`, 'INPUT');
+  const stored = await (await openLocalStore(options.root)).loadRun(runId);
+  const evaluation = stored.evaluations.at(-1);
+  if (!evaluation) throw new UxqError('NO_EVALUATION', '运行尚未产生评价结果', 'EXECUTION');
+  const comparison = compareRuns({ ...baseline.baseline, metrics: baseline.metrics, rules: baseline.rules, evaluation: baseline.evaluation },
+    { planDigest: stored.plan.planDigest, definitionId: stored.definition.id, definitionVersion: stored.definition.definitionVersion,
+      policyId: evaluation.policyId, policyVersion: evaluation.policyVersion, viewport: stored.context.profile.viewport,
+      ...(stored.context.browserVersion ? { browserVersion: stored.context.browserVersion } : {}), metrics: stored.metrics, rules: stored.rules, evaluation });
+  if (baseline.evaluation.policyDigest !== evaluation.policyDigest) {
+    comparison.comparability = 'NOT_COMPARABLE'; comparison.caveats.push('评分策略内容摘要不同');
   }
-
-  const runStore = await openLocalStore(options.root, systemClock);
-  const stored = await runStore.loadRun(runId);
-  const currentEvaluation = stored.evaluations[0];
-  if (!currentEvaluation) throw new UxqError('NO_EVALUATION', '运行尚未产生评价结果', 'EXECUTION');
-
-  const baselineInput = {
-    planDigest: baseline.planDigest,
-    definitionId: baseline.definitionId,
-    definitionVersion: baseline.definitionVersion,
-    policyId: baseline.policyId,
-    policyVersion: baseline.policyVersion,
-    metrics: [] as import('@uxq/contracts').MetricResult[],
-    rules: [] as import('@uxq/contracts').RuleResult[],
-    evaluation: currentEvaluation,
-    ...(baseline.browserVersion ? { browserVersion: baseline.browserVersion } : {}),
-    ...(baseline.viewport ? { viewport: baseline.viewport } : {}),
-  };
-  const currentInput = {
-    planDigest: stored.run.planDigest,
-    definitionId: stored.run.definitionId,
-    definitionVersion: stored.definition.definitionVersion,
-    policyId: currentEvaluation.policyId,
-    policyVersion: currentEvaluation.policyVersion,
-    metrics: [] as import('@uxq/contracts').MetricResult[],
-    rules: [] as import('@uxq/contracts').RuleResult[],
-    evaluation: currentEvaluation,
-  };
-  const comparison = compareRuns(baselineInput, currentInput);
-
-  output(
-    {
-      baseline: baselineName,
-      currentRun: runId,
-      comparability: comparison.comparability,
-      dimensions: comparison.dimensions,
-      scoreDelta: comparison.scoreDelta,
-      caveats: comparison.caveats,
-    },
-    options.json,
-  );
-
-  return 0;
+  if (comparison.comparability === 'NOT_COMPARABLE') {
+    comparison.scoreDelta = null;
+    comparison.metricDeltas = comparison.metricDeltas.map((metric) => ({ ...metric, delta: null, deltaPercent: null }));
+  }
+  output({ baseline: name, currentRun: runId, ...comparison }, options.json);
+  return comparison.comparability === 'NOT_COMPARABLE' ? 4 : 0;
 }
 
 async function cmdFinding(positional: string[], options: CliOptions): Promise<number> {
-  const action = positional[0];
-  if (!action)
-    throw new UxqError('MISSING_ACTION', '请指定 Finding 操作：list|transition', 'INPUT');
-
-  if (action === 'list') {
-    const runId = positional[1];
-    if (!runId) throw new UxqError('MISSING_RUN', '用法：finding list <run-id>', 'INPUT');
-
-    const runStore = await openLocalStore(options.root, systemClock);
-    const stored = await runStore.loadRun(runId);
-
-    const findingIds = stored.evaluations.flatMap((e) => e.findingIds);
-    output(
-      {
-        runId,
-        findingIds,
-        count: findingIds.length,
-      },
-      options.json,
-    );
-    return 0;
-  }
-
-  throw new UxqError('INVALID_ACTION', `未知 Finding 操作：${action}`, 'INPUT');
+  if (positional[0] !== 'list' || !positional[1]) throw new UxqError('INVALID_ARGS', '用法：finding list <run-id>', 'INPUT');
+  const runId = positional[1];
+  const stored = await (await openLocalStore(options.root)).loadRun(runId);
+  const findings = latestSnapshot(stored).findings;
+  output({ runId, findings, findingIds: findings.map((finding) => finding.id), count: findings.length }, options.json);
+  return 0;
 }
 
 async function cmdSettle(positional: string[], options: CliOptions): Promise<number> {
   const runId = positional[0];
-  if (!runId)
-    throw new UxqError('MISSING_RUN', '用法：settle <run-id> --policy <policy-file>', 'INPUT');
-  if (!options.policy)
-    throw new UxqError('MISSING_POLICY', 'settle 需要 --policy 指定评分策略文件', 'INPUT');
-
-  const runStore = await openLocalStore(options.root, systemClock);
-  const stored = await runStore.loadRun(runId);
-
-  const policyContent = await readFile(options.policy, 'utf8');
-  const policy = JSON.parse(policyContent) as ScoringPolicy;
-
-  // Use existing metrics and rules from the run
-  const metricResults = stored.metrics;
-  const ruleResults = stored.rules;
-
-  // Aggregate dimensions from existing scores
-  const dimensions: DimensionResult[] =
-    stored.evaluations.length > 0
-      ? policy.dimensions.map((dim) => ({
-          id: newId('dim') as import('@uxq/contracts').Id,
-          schemaVersion: '1.0.0' as const,
-          createdAt: systemClock.now(),
-          status: 'SCORED' as const,
-          value: 75,
-          runId: runId as import('@uxq/contracts').Id,
-          dimensionId: dim.dimensionId,
-          scoreResultIds: [] as import('@uxq/contracts').IdList,
-          excludedMetricIds: [] as import('@uxq/contracts').IdList,
-          coverage: { planned: 1, applicable: 1, measured: 1, scored: 1, ratio: 1 },
-          weight: dim.weight,
-          limitations: ['重结算近似值'] as import('@uxq/contracts').TextList,
-        }))
-      : [];
-
-  const evaluation = settleEvaluation(
-    policy,
-    dimensions,
-    ruleResults,
-    metricResults,
-    runId,
-    systemClock.now(),
-  );
-
-  output(
-    {
-      runId,
-      evaluation: {
-        id: evaluation.id,
-        evaluationStatus: evaluation.evaluationStatus,
-        overallOutcome: evaluation.overallOutcome,
-        overallScore: evaluation.overallScore,
-        coverage: evaluation.coverage,
-        constraints: evaluation.constraints,
-        limitations: evaluation.limitations,
-      },
-      message: '重新结算完成，新评价结果已生成（未写入存储）',
-    },
-    options.json,
-  );
-
-  return 0;
+  if (!runId || !options.policy) throw new UxqError('INVALID_ARGS', '用法：settle <run-id> --policy <file>', 'INPUT');
+  const policy = parseContract('ScoringPolicy', JSON.parse(await readFile(options.policy, 'utf8')) as unknown);
+  const store = await openLocalStore(options.root);
+  const release = await store.acquireLock(runId);
+  try {
+    const stored = await store.loadRun(runId);
+    if (!['COMPLETED', 'PARTIAL', 'FAILED', 'CANCELLED'].includes(stored.run.status))
+      throw new UxqError('RUN_ACTIVE', '活动运行不能重新结算', 'EXECUTION');
+    const snapshot = await persistEvaluation(stored, store, policy);
+    const report = await persistReport(stored, store);
+    output({ runId, evaluation: snapshot.evaluation, scores: snapshot.scores, dimensions: snapshot.dimensions, report,
+      message: '重新结算完成，评价快照与报告已写入存储' }, options.json);
+    return 0;
+  } finally { await release(); }
 }
 
 async function cmdQualityGate(positional: string[], options: CliOptions): Promise<number> {
   const runId = positional[0];
-  if (!runId)
-    throw new UxqError('MISSING_RUN', '用法：quality-gate <run-id> [--gate <file>]', 'INPUT');
-
-  const runStore = await openLocalStore(options.root, systemClock);
-  const stored = await runStore.loadRun(runId);
-  const evaluation = stored.evaluations[0];
-
-  if (!evaluation) {
-    output({ runId, conformance: 'UNKNOWN', message: '运行尚未产生评价结果' }, options.json);
-    return 4;
-  }
-
-  let gateResult: { passed: boolean; details: string[] } = { passed: true, details: [] };
-
-  if (options.gate) {
-    const gateContent = await readFile(options.gate, 'utf8');
-    const gate = JSON.parse(gateContent) as { minimumScore?: number; requiredOutcome?: string[] };
-    const details: string[] = [];
-
-    if (gate.minimumScore !== undefined && evaluation.overallScore !== null) {
-      const passed = evaluation.overallScore >= gate.minimumScore;
-      details.push(
-        `最低分数：${evaluation.overallScore} >= ${gate.minimumScore} → ${passed ? '通过' : '失败'}`,
-      );
-      if (!passed) gateResult.passed = false;
-    }
-
-    if (gate.requiredOutcome && gate.requiredOutcome.length > 0) {
-      const passed = gate.requiredOutcome.includes(evaluation.overallOutcome);
-      details.push(
-        `总体结论：${evaluation.overallOutcome} ∈ [${gate.requiredOutcome.join(', ')}] → ${passed ? '通过' : '失败'}`,
-      );
-      if (!passed) gateResult.passed = false;
-    }
-
-    gateResult = { passed: gateResult.passed, details };
-  }
-
-  const conformance =
-    evaluation.overallOutcome === 'PASS' && evaluation.evaluationStatus === 'COMPLETE'
-      ? 'PASS'
-      : evaluation.overallOutcome === 'FAIL'
-        ? 'FAIL'
-        : evaluation.evaluationStatus === 'INSUFFICIENT_EVIDENCE'
-          ? 'INSUFFICIENT_EVIDENCE'
-          : 'INCONCLUSIVE';
-
-  output(
-    {
-      runId,
-      conformance,
-      evaluationStatus: evaluation.evaluationStatus,
-      overallOutcome: evaluation.overallOutcome,
-      overallScore: evaluation.overallScore,
-      coverage: evaluation.coverage,
-      constraints: evaluation.constraints,
-      gate: gateResult,
-      limitations: evaluation.limitations,
-    },
-    options.json,
-  );
-
-  return gateResult.passed ? 0 : 1;
+  if (!runId) throw new UxqError('MISSING_RUN', 'quality-gate 需要运行 ID', 'INPUT');
+  const stored = await (await openLocalStore(options.root)).loadRun(runId);
+  const evaluation = stored.evaluations.at(-1);
+  const gate = await assessGate(evaluation, options.gate);
+  output({ runId, conformance: gate.conformance, evaluationStatus: evaluation?.evaluationStatus ?? null,
+    overallOutcome: evaluation?.overallOutcome ?? null, overallScore: evaluation?.overallScore ?? null,
+    coverage: evaluation?.coverage ?? null, constraints: evaluation?.constraints ?? [], gate,
+    limitations: evaluation?.limitations ?? ['运行没有评价结果'] }, options.json);
+  return gate.code;
 }
 
 async function cmdVerify(positional: string[], options: CliOptions): Promise<number> {
-  const action = positional[0];
-  if (!action) throw new UxqError('MISSING_ACTION', '请指定验证操作：plan|result', 'INPUT');
-
+  const [action, id] = positional;
+  if (!id) throw new UxqError('MISSING_ID', 'verify plan <run-id> --finding-id <id>；verify result <plan-id> --source-run <new-run-id>', 'INPUT');
+  parseContract('Id', id);
+  const dir = join(options.root, 'verifications');
+  const store = await openLocalStore(options.root);
   if (action === 'plan') {
-    const runId = positional[1];
-    if (!runId)
-      throw new UxqError(
-        'MISSING_RUN',
-        '用法：verify plan <run-id> --finding-id <id> [--gate <definition-file>]',
-        'INPUT',
-      );
-    if (!options.findingId)
-      throw new UxqError('MISSING_FINDING', 'verify plan 需要 --finding-id', 'INPUT');
-
-    const runStore = await openLocalStore(options.root, systemClock);
-    const stored = await runStore.loadRun(runId);
-
-    const definition = options.gate ? await loadDefinition(options.gate) : stored.definition;
-
-    const plan = createVerificationPlan(
-      [options.findingId] as import('@uxq/contracts').IdList,
-      [],
-      runId,
-      definition,
-      stored.rules.map((r) => r.ruleId) as import('@uxq/contracts').IdList,
-      stored.metrics.map((m) => m.metricId) as import('@uxq/contracts').IdList,
-      ['复测验证通过条件'],
-      true,
-      systemClock.now(),
-    );
-
-    output(
-      {
-        verificationPlan: plan,
-        message: `验证计划已创建，关联 Finding: ${options.findingId}`,
-      },
-      options.json,
-    );
+    if (!options.findingId) throw new UxqError('MISSING_FINDING', 'verify plan 需要 --finding-id', 'INPUT');
+    const stored = await store.loadRun(id);
+    const snapshot = latestSnapshot(stored);
+    const finding = snapshot.findings.find((item) => item.id === options.findingId);
+    if (!finding) throw new UxqError('FINDING_NOT_FOUND', '该运行中不存在指定 Finding', 'INPUT');
+    const signals = snapshot.signals.filter((signal) => finding.diagnosticSignalIds.includes(signal.id));
+    const sourceIds = new Set(signals.flatMap((signal) => signal.sourceResultIds));
+    const rules = stored.rules.filter((rule) => sourceIds.has(rule.id)).map((rule) => rule.ruleId);
+    const metrics = [...new Set([...stored.metrics.filter((metric) => sourceIds.has(metric.id)).map((metric) => metric.metricId),
+      ...stored.definition.rules.filter((rule) => rules.includes(rule.id)).flatMap((rule) => ruleMetricIds(rule.expression))])];
+    const plan = createVerificationPlan([finding.id], [], id, stored.definition, rules, metrics,
+      ['关联指标完成实测、关联规则全部通过且运行成功；使用相同定义与执行配置'], false, systemClock.now());
+    parseContract('VerificationPlan', plan);
+    await mkdir(dir, { recursive: true });
+    await writeFile(join(dir, `${plan.id}.json`), JSON.stringify(plan, null, 2), { encoding: 'utf8', flag: 'wx' });
+    output({ verificationPlan: plan, message: '验证计划已保存；请重新 evaluate 后使用新运行生成 result' }, options.json);
     return 0;
   }
-
   if (action === 'result') {
-    const planId = positional[1];
-    if (!planId)
-      throw new UxqError(
-        'MISSING_PLAN_ID',
-        '用法：verify result <plan-id> --source-run <run-id>',
-        'INPUT',
-      );
-
-    const comparability: Comparability = options.sourceRun ? 'COMPARABLE' : 'NOT_COMPARABLE';
-
-    const result = createVerificationResult(
-      planId,
-      '',
-      [],
-      comparability,
-      systemClock.now(),
-      options.sourceRun,
-    );
-
-    output(
-      {
-        verificationResult: result,
-        message: '验证结果已创建',
-      },
-      options.json,
-    );
-    return 0;
+    if (!options.sourceRun) throw new UxqError('MISSING_RUN', 'verify result 需要 --source-run 指向新的实际运行', 'INPUT');
+    const plan = parseContract('VerificationPlan', JSON.parse(await readFile(join(dir, `${id}.json`), 'utf8')) as unknown);
+    const baseline = await store.loadRun(plan.baselineRunId);
+    const current = await store.loadRun(options.sourceRun);
+    const shape = (stored: StoredRun) => ({ planDigest: stored.plan.planDigest, definitionId: stored.definition.id,
+      definitionVersion: stored.definition.definitionVersion, policyId: latestSnapshot(stored).policy.id,
+      policyVersion: latestSnapshot(stored).policy.version, viewport: stored.context.profile.viewport,
+      ...(stored.context.browserVersion ? { browserVersion: stored.context.browserVersion } : {}) });
+    const comparison = checkComparability(shape(baseline), shape(current));
+    const sameDefinition = digest(current.definition) === digest(plan.definition);
+    const fresh = current.run.id !== baseline.run.id && Date.parse(current.run.createdAt) >= Date.parse(plan.createdAt);
+    const samePolicy = latestSnapshot(baseline).evaluation.policyDigest === latestSnapshot(current).evaluation.policyDigest;
+    const comparable = sameDefinition && fresh && samePolicy && comparison.comparability === 'COMPARABLE';
+    const now = systemClock.now();
+    const metrics = plan.requiredMetricIds.map((metricId) => current.metrics.find((metric) => metric.metricId === metricId));
+    const rules = plan.requiredRuleIds.map((ruleId) => current.rules.find((rule) => rule.ruleId === ruleId));
+    const evidenceIds = [...new Set([...metrics.flatMap((metric) => metric?.evidenceIds ?? []), ...rules.flatMap((rule) => rule?.evidenceIds ?? [])])];
+    const validEvidence = evidenceIds.length > 0 && evidenceIds.every((evidenceId) => current.evidence.some((evidence) =>
+      evidence.id === evidenceId && isEvidenceUsable(evidence, now, 'VERIFICATION')));
+    for (const evidence of current.evidence.filter((evidence) => evidenceIds.includes(evidence.id))) {
+      if (evidence.artifact) await store.readArtifact(current.run.id, evidence.artifact);
+    }
+    const result = createVerificationResult(plan.id, plan.criteriaDigest, plan.findingIds,
+      comparable ? 'COMPARABLE' : 'NOT_COMPARABLE', now, current.run.id, evidenceIds);
+    result.startedAt = now; result.endedAt = now;
+    result.status = !comparable ? 'BLOCKED' : current.run.status !== 'COMPLETED' || rules.some((rule) => rule?.outcome === 'FAIL') ? 'FAILED'
+      : metrics.every((metric) => metric?.status === 'MEASURED') && rules.every((rule) => rule?.executionStatus === 'COMPLETED' && rule.outcome === 'PASS') && validEvidence ? 'PASSED' : 'INCONCLUSIVE';
+    result.reason = result.status === 'PASSED' ? '新运行中的关联指标、规则和证据满足验证条件' : '复测失败、条件不可比或证据不足';
+    parseContract('VerificationResult', result);
+    await writeFile(join(dir, `${result.id}.json`), JSON.stringify(result, null, 2), { encoding: 'utf8', flag: 'wx' });
+    output({ verificationResult: result }, options.json);
+    return result.status === 'PASSED' ? 0 : result.status === 'FAILED' ? 1 : 4;
   }
-
-  throw new UxqError('INVALID_ACTION', `未知验证操作：${action}`, 'INPUT');
+  throw new UxqError('INVALID_ACTION', 'verify 仅支持 plan|result', 'INPUT');
 }
+
 
 async function cmdConformanceSpec(positional: string[], options: CliOptions): Promise<number> {
   const runId = positional[0];
-  if (!runId) throw new UxqError('MISSING_RUN', '用法：conformance <run-id>', 'INPUT');
-
-  const runStore = await openLocalStore(options.root, systemClock);
-  const stored = await runStore.loadRun(runId);
-
-  const bundle: RunBundle = {
-    schemaVersion: '1.0.0',
-    definition: stored.definition,
-    plan: stored.plan,
-    run: stored.run,
-    context: stored.context,
-    steps: stored.steps,
-    attempts: stored.attempts,
-    events: stored.events,
-    tasks: stored.tasks,
-    observations: stored.observations,
-    metrics: stored.metrics,
-    rules: stored.rules,
-    evidence: stored.evidence,
-  };
-
-  const evaluation = stored.evaluations[0];
-  const snapshot: EvaluationSnapshot = {
-    evaluation: evaluation ?? {
-      id: newId('eval'),
-      schemaVersion: '1.0.0',
-      createdAt: systemClock.now(),
-      runId: stored.run.id,
-      policyId: stored.definition.policy.id,
-      policyVersion: stored.definition.policy.version,
-      policyDigest: digest(stored.definition.policy),
-      evaluationStatus: 'INSUFFICIENT_EVIDENCE',
-      overallOutcome: 'NOT_RATED',
-      overallScore: null,
-      coverage: { planned: 0, applicable: 0, measured: 0, scored: 0, ratio: null },
-      metricResultIds: [],
-      ruleResultIds: [],
-      scoreResultIds: [],
-      dimensionResultIds: [],
-      findingIds: [],
-      evidenceIds: [],
-      constraints: [],
-      limitations: ['无评价结果'],
-    },
-    policy: stored.definition.policy,
-    scores: [],
-    dimensions: [],
-    signals: [],
-    findings: [],
-  };
-
-  const report = runConformanceCheck(bundle, snapshot, undefined, systemClock.now());
-  const markdown = renderConformanceMarkdown(report);
-
-  output(
-    {
-      runId,
-      overallStatus: report.overallStatus,
-      summary: report.summary,
-      results: report.results,
-      markdown,
-    },
-    options.json,
-  );
-
+  if (!runId) throw new UxqError('MISSING_RUN', 'conformance 需要运行 ID', 'INPUT');
+  const stored = await (await openLocalStore(options.root)).loadRun(runId);
+  const report = runConformanceCheck(runBundle(stored), latestSnapshot(stored), undefined, systemClock.now());
+  output({ runId, overallStatus: report.overallStatus, summary: report.summary, results: report.results,
+    markdown: renderConformanceMarkdown(report) }, options.json);
   return report.overallStatus === 'FAIL' ? 5 : 0;
 }
 

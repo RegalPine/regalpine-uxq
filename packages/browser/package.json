@@ -17,7 +17,8 @@
     "build": "tsup src/index.ts --format esm --dts --sourcemap"
   },
   "dependencies": {
+    "@uxq/contracts": "workspace:*",
     "@uxq/core": "workspace:*",
-    "@uxq/contracts": "workspace:*"
+    "playwright": "1.64.1"
   }
 }

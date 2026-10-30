@@ -31,6 +31,9 @@ export class BrowserTaskRunner implements TaskRunner {
     const session = await this.adapter.launch(profile);
 
     try {
+      if (task.sideEffect === 'WRITE' && (!task.authorized || !profile.allowSideEffects)) {
+        throw new Error('写入任务同时需要任务授权与 allowSideEffects');
+      }
       const { observations: _observations, evidence } = await executeActions(
         session,
         task.actions,
@@ -43,9 +46,10 @@ export class BrowserTaskRunner implements TaskRunner {
       const endedAt = this.clock.now();
       const durationMs = Date.parse(endedAt) - Date.parse(startedAt);
 
-      // Check conditions (simplified - in real impl would check against session state)
-      const businessSuccess = true;
-      const feedbackSuccess = true;
+      if (!session.checkCondition) throw new Error('浏览器适配器不支持任务条件核验');
+      const businessSuccess = (await Promise.all(task.businessConditions.map((condition) => session.checkCondition!(condition)))).every(Boolean);
+      const feedbackSuccess = (await Promise.all(task.feedbackConditions.map((condition) => session.checkCondition!(condition)))).every(Boolean);
+      session.assertHealthy?.();
       const outcome: 'SUCCESS' | 'PARTIAL_SUCCESS' | 'FAILURE' | 'ABORTED' | 'TIMEOUT' | 'INVALID' =
         businessSuccess && feedbackSuccess ? 'SUCCESS' : 'FAILURE';
 

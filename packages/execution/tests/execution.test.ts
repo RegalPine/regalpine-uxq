@@ -4,7 +4,8 @@ import path from 'node:path';
 import { describe, expect, it, beforeEach, afterEach } from 'vitest';
 import type { Clock, Timestamp } from '@uxq/core';
 import type { EvaluationDefinition, EvaluationRun, RunContext, PlannedStep } from '@uxq/contracts';
-import { openLocalStore, compilePlan, createRun, executeRun, cancelRun } from '@uxq/execution';
+import { openLocalStore, compilePlan, createRun, executeRun, cancelRun, createEvaluationExecutor, persistEvaluation, runBundle } from '@uxq/execution';
+import { validateEvaluation } from '@uxq/contracts';
 import type { RunStore } from '@uxq/execution';
 
 const fixedTime = '2025-01-01T00:00:00Z' as Timestamp;
@@ -440,10 +441,51 @@ describe('执行引擎', () => {
     const { run } = await createRun(definition, undefined, { store, clock });
     expect(run.status).toBe('CREATED');
 
-    const stored = await executeRun(run.id, { store, clock });
+    const pipeline = createEvaluationExecutor(definition, store, undefined, clock);
+    const stored = await executeRun(run.id, { store, clock, executeStep: pipeline.executeStep });
+    const snapshot = await persistEvaluation(stored, store, definition.policy, clock);
+    await pipeline.close();
     expect(stored.run.status).toBe('COMPLETED');
     expect(stored.steps.length).toBe(3);
-    expect(stored.events.length).toBeGreaterThan(0);
+    expect(stored.metrics[0]).toMatchObject({ status: 'MEASURED', value: 1500 });
+    expect(snapshot.evaluation.overallScore).toBe(85);
+    expect(stored.events.map((event) => event.sequence)).toEqual(stored.events.map((_, index) => index + 1));
+    expect(() => validateEvaluation(runBundle(stored), snapshot)).not.toThrow();
+    expect((await store.loadRun(run.id)).snapshots?.[0]?.evaluation.overallScore).toBe(85);
+  });
+
+  it('执行错误仍提交失败事实，结算后可以重新读取且不能出分', async () => {
+    const definition = makeDefinition();
+    const { run } = await createRun(definition, undefined, { store, clock });
+    const stored = await executeRun(run.id, { store, clock });
+    expect(stored.run.status).toBe('FAILED');
+    expect(stored.run.executionCommitted).toBe(true);
+    const snapshot = await persistEvaluation(stored, store, definition.policy, clock);
+    expect(snapshot.evaluation).toMatchObject({ evaluationStatus: 'EXECUTION_FAILED', overallScore: null, overallOutcome: 'INCONCLUSIVE' });
+    const reloaded = await store.loadRun(run.id);
+    expect(reloaded.manifest.evaluations).toHaveLength(1);
+    expect(() => validateEvaluation(runBundle(reloaded), snapshot)).not.toThrow();
+  });
+
+  it('证据过期后重结算不出分，保留历史测量和快照', async () => {
+    const definition = makeDefinition();
+    definition.metrics[0]!.evidenceRequired = true;
+    const { run } = await createRun(definition, undefined, { store, clock });
+    const pipeline = createEvaluationExecutor(definition, store, undefined, clock);
+    try {
+      const stored = await executeRun(run.id, { store, clock, executeStep: pipeline.executeStep });
+      const original = await persistEvaluation(stored, store, definition.policy, clock);
+      const metrics = structuredClone(stored.metrics);
+      const expiredClock: Clock = { now: () => '2025-03-01T00:00:00Z' as Timestamp, monotonic: () => 0 };
+      const expired = await persistEvaluation(stored, store, definition.policy, expiredClock);
+      expect(expired.evaluation).toMatchObject({ overallOutcome: 'INCONCLUSIVE', overallScore: null, evaluationStatus: 'INSUFFICIENT_EVIDENCE' });
+      expect(expired.scores.every((score) => score.status !== 'SCORED')).toBe(true);
+      expect(stored.metrics).toEqual(metrics);
+      expect(original.evaluation.overallScore).toBe(85);
+      const reloaded = await store.loadRun(run.id);
+      expect(reloaded.snapshots).toHaveLength(2);
+      expect(() => validateEvaluation(runBundle(reloaded), expired)).not.toThrow();
+    } finally { await pipeline.close(); }
   });
 
   it('步骤失败导致 PARTIAL', async () => {

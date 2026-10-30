@@ -39,7 +39,7 @@
     "verify": "node scripts/verify.mjs",
     "check": "pnpm format:check && pnpm contracts:check && pnpm lint && pnpm typecheck && pnpm test && pnpm build",
     "schemas:extract": "node scripts/extract-schemas.mjs",
-    "test:browser": "playwright test"
+    "test:browser": "pnpm build && playwright test"
   },
   "devDependencies": {
     "@eslint/js": "9.39.5",

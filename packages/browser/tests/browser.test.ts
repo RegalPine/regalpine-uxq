@@ -112,7 +112,7 @@ describe('executeActions', () => {
     ];
     await expect(
       executeActions(session, actions, 'run-1', 'step-1', 'attempt-1', clock),
-    ).rejects.toThrow('reference 适配器不支持秘密填充');
+    ).rejects.toThrow('此适配器不支持秘密填充');
     await session.close();
   });
 });

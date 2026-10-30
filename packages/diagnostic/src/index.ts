@@ -1,4 +1,5 @@
 import { digest, invariant, newId } from '@uxq/core';
+import { verificationDigest } from '@uxq/contracts';
 import type {
   Finding,
   DiagnosticSignal,
@@ -104,17 +105,18 @@ export function createFinding(
   now: string,
   evidence: readonly Evidence[] = [],
 ): Finding {
+  const findingId = newId('finding');
   const evidenceLinks: EvidenceLink[] = evidence
     .filter((item) => signal.evidenceIds.includes(item.id))
     .map((item) => ({
       evidenceId: item.id,
-      subjectId: signal.id,
+      subjectId: findingId,
       subjectType: 'Finding' as const,
       relation: 'SUPPORTS' as const,
       purpose: signal.reason,
     }));
   return {
-    id: newId('finding'),
+    id: findingId,
     schemaVersion: '1.0.0',
     createdAt: now,
     problemKey: signal.problemKey,
@@ -293,12 +295,7 @@ export function createVerificationPlan(
     acceptanceCriteria,
     allowCaveats,
   };
-  const criteriaDigest = digest({
-    findingIds,
-    requiredRuleIds,
-    requiredMetricIds,
-    acceptanceCriteria,
-  });
+  const criteriaDigest = verificationDigest(base);
   return { ...base, criteriaDigest };
 }
 

@@ -1,4 +1,4 @@
-import { invariant, newId, systemClock, digest, sha256 } from '@uxq/core';
+import { invariant, newId, systemClock, digest, sha256, UxqError } from '@uxq/core';
 import type { Clock } from '@uxq/core';
 import type {
   EvaluationDefinition,
@@ -18,6 +18,7 @@ import type {
   RunStatus,
   StepStatus,
   ErrorRecord,
+  ScoreResult,
 } from '@uxq/contracts';
 import { transitionRun } from '@uxq/contracts';
 import type { RunStore, StoredRun } from './storage.js';
@@ -41,6 +42,8 @@ export interface ExecutionContext {
   profile: ExecutionProfile;
   observations: RawObservation[];
   evidence: Evidence[];
+  metrics?: MetricResult[];
+  rules?: RuleResult[];
   signal: AbortSignal;
 }
 
@@ -51,6 +54,8 @@ export interface StepExecutionResult {
   metrics?: MetricResult[];
   rules?: RuleResult[];
   taskExecution?: TaskExecution;
+  scores?: ScoreResult[];
+  browserVersion?: string;
   error?: { code: string; message: string; category: ErrorRecord['category'] };
 }
 
@@ -60,9 +65,11 @@ interface SchedulerState {
   stepDefs: Map<string, PlannedStep>;
   cancelled: boolean;
   cancelSignal: AbortController;
+  deadline: number;
 }
 
-const defaultExecutor: StepExecutor = async () => ({ status: 'PASSED' });
+const defaultExecutor: StepExecutor = async () => ({ status: 'ERROR',
+  error: { code: 'EXECUTOR_REQUIRED', message: '未提供步骤执行器，不能宣称执行成功', category: 'EXECUTION' } });
 
 export async function createRun(
   definition: EvaluationDefinition,
@@ -172,6 +179,7 @@ export async function executeRun(runId: string, ports: ExecutionPorts): Promise<
     stepDefs: new Map(stored.plan.steps.map((s) => [s.stepId, s])),
     cancelled: false,
     cancelSignal: new AbortController(),
+    deadline: Date.now() + stored.plan.profile.runTimeoutMs,
   };
 
   await scheduleDAG(schedulerState, stored, executor, store, clock, runId);
@@ -185,7 +193,7 @@ export async function executeRun(runId: string, ports: ExecutionPorts): Promise<
     expectedRevision: stored.run.revision,
     at: clock.now(),
     reason: `所有步骤已完成，最终状态：${finalStatus}`,
-    executionCommitted: finalStatus === 'COMPLETED' || finalStatus === 'PARTIAL',
+    executionCommitted: ['COMPLETED', 'PARTIAL', 'FAILED', 'CANCELLED'].includes(finalStatus),
   });
   await store.saveRun(stored);
 
@@ -199,15 +207,17 @@ export async function executeRun(runId: string, ports: ExecutionPorts): Promise<
           : 'RunCancelled';
   await recordEvent(store, runId, clock, { type: eventType, runId });
 
+  const events = (await store.loadRun(runId)).events;
+  const eventBytes = new TextEncoder().encode(events.map((event) => JSON.stringify(event) + '\n').join(''));
   await store.updateManifest(runId, (m) => {
-    const committed = finalStatus === 'COMPLETED' || finalStatus === 'PARTIAL';
+    const committed = ['COMPLETED', 'PARTIAL', 'FAILED', 'CANCELLED'].includes(finalStatus);
     const files =
       committed && m.files.length === 0
         ? [
             {
               path: 'events.jsonl',
-              digest: sha256('events'),
-              bytes: 0,
+              digest: sha256(eventBytes),
+              bytes: eventBytes.byteLength,
               mediaType: 'application/x-jsonl',
             },
           ]
@@ -306,6 +316,9 @@ async function scheduleDAG(
       };
       stored.attempts.push(attempt);
 
+      const taskTimeout = stored.definition.tasks.find((task) => task.id === planned.taskId)?.timeoutMs;
+      const timeoutMs = Math.min(planned.timeoutMs ?? taskTimeout ?? stored.plan.profile.stepTimeoutMs,
+        Math.max(1, state.deadline - Date.now()));
       const context: ExecutionContext = {
         runId,
         stepId: planned.stepId,
@@ -313,20 +326,25 @@ async function scheduleDAG(
         profile: stored.plan.profile,
         observations: stored.observations,
         evidence: stored.evidence,
-        signal: state.cancelSignal.signal,
+        metrics: stored.metrics,
+        rules: stored.rules,
+        signal: AbortSignal.any([state.cancelSignal.signal,
+          AbortSignal.timeout(timeoutMs)]),
       };
 
       let result: StepExecutionResult;
       try {
-        const timeoutMs = planned.timeoutMs ?? stored.plan.profile.stepTimeoutMs;
+        if (Date.now() >= state.deadline) throw new UxqError('RUN_TIMEOUT', '运行总时限已到', 'EXECUTION');
+        context.signal.throwIfAborted();
         result = await withTimeout(executor(planned, context), timeoutMs);
+        context.signal.throwIfAborted();
       } catch (error) {
         result = {
           status: 'ERROR',
           error: {
-            code: 'STEP_TIMEOUT',
-            message: error instanceof Error ? error.message : '步骤执行超时',
-            category: 'EXECUTION',
+            code: error instanceof UxqError ? error.code : context.signal.aborted ? 'STEP_TIMEOUT' : 'STEP_EXECUTION',
+            message: error instanceof Error ? error.message : '步骤执行失败',
+            category: error instanceof UxqError ? error.category : 'EXECUTION',
           },
         };
       }
@@ -350,6 +368,14 @@ async function scheduleDAG(
       if (result.metrics) stored.metrics.push(...result.metrics);
       if (result.rules) stored.rules.push(...result.rules);
       if (result.taskExecution) stored.tasks.push(result.taskExecution);
+      if (result.scores) (stored.scores ??= []).push(...result.scores);
+      if (result.browserVersion) stored.context.browserVersion = result.browserVersion;
+      const outputs = [...(result.observations ?? []), ...(result.evidence ?? []),
+        ...(result.metrics ?? []), ...(result.rules ?? []), ...(result.scores ?? []),
+        ...(result.taskExecution ? [result.taskExecution] : [])];
+      step.outputIds = outputs.map((item) => item.id);
+      attempt.outputIds = step.outputIds;
+      attempt.evidenceIds = (result.evidence ?? []).map((item) => item.id);
 
       // Update step status
       step.status = result.status as StepStatus;

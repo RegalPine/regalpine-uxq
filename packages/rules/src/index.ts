@@ -1,5 +1,6 @@
 import { digest, invariant, newId } from '@uxq/core';
 import type { RuleDefinition, RuleExpression, RuleResult, MetricResult } from '@uxq/contracts';
+import { ruleMetricIds } from '@uxq/contracts';
 
 /** 从指标结果中查找数值；非 MEASURED 状态返回 undefined。 */
 function numericValue(result: MetricResult): number | undefined {
@@ -39,6 +40,9 @@ export function evaluateExpression(
   if (!metric) return 'INDETERMINATE';
   if (metric.status === 'NOT_APPLICABLE') return 'NOT_APPLICABLE';
   if (metric.status !== 'MEASURED') return 'INDETERMINATE';
+  if (expression.op === 'EQ') return metric.value === expression.expected ? 'PASS' : 'FAIL';
+  if (expression.op === 'NE') return metric.value !== expression.expected ? 'PASS' : 'FAIL';
+  if (expression.op === 'IN') return expression.expected.some((value) => value === metric.value) ? 'PASS' : 'FAIL';
   const value = numericValue(metric);
   if (value === undefined) return 'INDETERMINATE';
   switch (expression.op) {
@@ -50,14 +54,8 @@ export function evaluateExpression(
       return value > expression.expected ? 'PASS' : 'FAIL';
     case 'GTE':
       return value >= expression.expected ? 'PASS' : 'FAIL';
-    case 'EQ':
-      return value === expression.expected ? 'PASS' : 'FAIL';
-    case 'NE':
-      return value !== expression.expected ? 'PASS' : 'FAIL';
     case 'BETWEEN':
       return value >= expression.lower && value <= expression.upper ? 'PASS' : 'FAIL';
-    case 'IN':
-      return expression.expected.includes(value) ? 'PASS' : 'FAIL';
     default:
       return 'INDETERMINATE';
   }
@@ -100,7 +98,8 @@ export function evaluateRule(
   now: string,
 ): RuleResult {
   const outcome = evaluateExpression(rule.expression, metrics);
-  const inputMetricResultIds = [...metrics.keys()];
+  const inputs = [...ruleMetricIds(rule.expression)].flatMap((id) => metrics.has(id) ? [metrics.get(id)!] : []);
+  const inputMetricResultIds = inputs.map((metric) => metric.id);
   return {
     id: newId('rule'),
     schemaVersion: '1.0.0',
@@ -110,7 +109,7 @@ export function evaluateRule(
     ruleVersion: rule.version,
     configurationDigest: digest(rule.expression),
     inputMetricResultIds,
-    evidenceIds: [],
+    evidenceIds: [...new Set(inputs.flatMap((metric) => metric.evidenceIds))],
     evaluatedAt: now,
     reason: `表达式 ${rule.expression.op} 结果 ${outcome}`,
     executionStatus: 'COMPLETED',

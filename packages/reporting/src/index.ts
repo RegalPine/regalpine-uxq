@@ -1,4 +1,5 @@
 import { digest, newId } from '@uxq/core';
+import { dimensionName } from '@uxq/contracts';
 import type { ReportDocument, ReportArtifact, RunBundle, EvaluationSnapshot } from '@uxq/contracts';
 
 /**
@@ -41,7 +42,8 @@ export interface RegressionReport {
 }
 
 function escapeMarkdown(text: string): string {
-  return text.replace(/[\\`*_{}[\]()#+\-.!|]/g, (character) => `\\${character}`);
+  return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/[\r\n]+/g, ' ').replace(/[\\`*_[\]|]/g, (character) => `\\${character}`);
 }
 
 function unavailableLabel(value: number | null): string {
@@ -95,7 +97,7 @@ export function projectReport(
     dimensions: snapshot.dimensions,
     findings: snapshot.findings,
     evidenceIndex: bundle.evidence,
-    limitations: bundle.definition.limitations,
+    limitations: [...new Set([...bundle.definition.limitations, ...snapshot.evaluation.limitations])],
     contentDigest,
   };
 }
@@ -126,7 +128,7 @@ export function renderMarkdown(report: ReportDocument): string {
   lines.push('');
   lines.push(`## 维度结果`);
   for (const dimension of report.dimensions) {
-    lines.push(`### ${escapeMarkdown(dimension.dimensionId)}`);
+    lines.push(`### ${escapeMarkdown(dimension.dimensionId)} · ${escapeMarkdown(dimensionName(dimension.dimensionId))}`);
     lines.push(`- 状态：${escapeMarkdown(dimension.status)}`);
     lines.push(
       `- 分数：${dimension.status === 'SCORED' ? unavailableLabel(dimension.value) : '_不可用_'}`,

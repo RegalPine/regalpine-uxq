@@ -37,7 +37,7 @@ const SNAPSHOT_DIR = resolve(__dirname, '__snapshots__');
 async function readSnapshot(name: string): Promise<string | null> {
   try {
     const content = await readFile(resolve(SNAPSHOT_DIR, name), 'utf8');
-    return content.replace(/\n$/, '');
+    return content.replace(/\r\n/g, '\n').replace(/\n$/, '');
   } catch {
     return null;
   }
@@ -152,6 +152,10 @@ describe('Golden: 评分结算', () => {
 
     const dimension = aggregateDimension(policy, 'D02', scores, RUN_ID, NOW);
     const settlement = settleEvaluation(policy, [dimension], rules, results, RUN_ID, NOW);
+    // 修复：覆盖计数按两项指标统计，保留证据；风险筛选本身不能生成实际风险。
+    expect(settlement.overallScore).toBe(77);
+    expect(settlement.coverage).toMatchObject({ planned: 2, measured: 2, scored: 2 });
+    expect(settlement.constraints).toEqual([]);
 
     const snapshot = JSON.stringify(stabilizeIds(settlement), null, 2);
     const existing = await readSnapshot('scoring-settlement.json');

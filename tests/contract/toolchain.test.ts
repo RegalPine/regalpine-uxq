@@ -55,7 +55,7 @@ describe('Schema-first 工具链兼容性', () => {
       }
       void [measured, missing, read];
     `;
-    const filename = `${process.cwd()}/__schema_probe__.ts`;
+    const filename = `${process.cwd().replace(/\\/g, '/')}/__schema_probe__.ts`;
     const options: ts.CompilerOptions = {
       strict: true,
       noEmit: true,

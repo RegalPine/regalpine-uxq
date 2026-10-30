@@ -8,6 +8,7 @@
 
 import { Command } from 'commander';
 import chalk from 'chalk';
+import { dimensionName } from '@uxq/contracts';
 import { readdirSync, readFileSync, existsSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -127,16 +128,8 @@ program
 
     if (data.dimensions) {
       subheader('评价维度');
-      const dimNames: Record<string, string> = {
-        D01: '任务效率',
-        D02: '交互质量',
-        D03: '认知负担',
-        D04: '可访问性',
-        D05: '包容性',
-        D06: '主观体验',
-      };
       for (const dim of data.dimensions) {
-        console.log(`  ${chalk.cyan(dim)} — ${dimNames[dim] ?? '未知'}`);
+        console.log(`  ${chalk.cyan(dim)} — ${dimensionName(dim)}`);
       }
     }
 

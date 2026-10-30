@@ -1,418 +1,66 @@
 ---
 name: uxq-ux-evaluation
-description: Quantitatively inspect, analyze, diagnose, and verify rendered UI quality using UXQ CLI. Covers task completion, cognitive load, accessibility, metrics, scoring, diagnostic, regression, and report generation. Use when the user asks about UX quality, design evaluation, accessibility checks, cognitive load analysis, task completion metrics, regression comparison, or wants a UX evaluation report.
+description: 使用 UXQ 的定义文件驱动 CLI，采集已授权页面的 DOM 和截图，计算声明的指标、规则与评分，保存报告并比较基线。用于 UX 评价、任务流程核验、证据追溯、回归比较和报告请求。认知负荷、可访问性、用户研究与设计系统需求须先确认采集能力和证据，不承诺一键完成全领域评价。
 ---
 
-# UXQ UX Evaluation Skill
+# UXQ 评价工作流
 
-## Purpose
+## 先确认范围和能力
+1. 确认目标 URL、允许的 origin、任务、环境、测试账号授权和是否允许写操作。
+2. 确认用户需要的是结构检查、自动化任务核验，还是实际用户研究。自动化操作耗时不等于用户任务耗时，DOM 数量不等于认知负荷。
+3. 检查 `uxq version`、`uxq --help`。在本仓库验证时先 `pnpm build`，将下文的 `uxq` 替换为 `node apps/cli/dist/index.js`，避免使用陈旧的全局安装。
+4. 真实浏览器需要 Node 24、对应版本的 Playwright 浏览器。运行 `uxq doctor --json`；缺浏览器时按错误提示安装。不可降级为内存数据后声称评价了页面。
+5. CLI 没有领域专用的 task/cognition/accessibility/research/design-system 命令，也没有 `latest` 运行别名、`--format`、`--output` 或 `@uxq/cli-client`。使用下列实际入口。
 
-Use UXQ to quantitatively evaluate, measure, and improve user experience quality.
-
-UXQ provides deterministic evidence for:
-
-- Task Completion Analysis
-- Cognitive Load Measurement
-- Accessibility Evaluation
-- User Research Integration
-- Evidence Management & Traceability
-- UX Metrics & Scoring
-- Diagnostic & Recommendations
-- Regression Testing
-- Report Generation
-
-## Source of Truth
-
-UXQ is the source of truth for deterministic UX quality results.
-
-Do not independently calculate or override:
-
-- task completion rates
-- cognitive load scores
-- accessibility metrics
-- evaluation states
-- regression classifications
-- user research findings
-
-## Core Workflow
-
-Resolve:
-
-1. User intent (evaluate/measure/diagnose/compare)
-2. Target (URL/page/component/task flow)
-3. Scope (task-focused/cognitive/accessibility/comprehensive)
-4. User profile (novice/expert/special needs)
-5. Baseline if required
-6. Evidence sources
-
-Then execute the corresponding UXQ CLI workflow.
-
-Prefer JSON output for programmatic consumption.
-
-## Workflows
-
-Detailed workflow documentation is available in the `workflows/` directory.
-
-### Task Evaluation
-
-Use for analyzing user task completion and interaction quality.
-
-📖 [Detailed Documentation](./workflows/task-evaluation.md)
-
-**Commands:**
-
+## 最小真实页面闭环
 ```bash
-# Evaluate task flow
-uxq task evaluate --url <target> --task <task-definition>
-
-# Measure completion metrics
-uxq task measure --run-id <id> --metrics time,errors,success-rate
-
-# Analyze interaction patterns
-uxq task analyze --run-id <id> --focus interactions
+uxq init evaluation/page.yaml --url https://example.com --json
+uxq validate evaluation/page.yaml --json
+uxq plan evaluation/page.yaml --json
+uxq evaluate evaluation/page.yaml --root .uxq --json
 ```
 
-**Outputs:**
+`init --url` 只生成 h1 数量采集、截图和规则的 D03 演示，不是完整 UX 或 WCAG 评价。执行前按需求检查和修改定义中的指标、阈值、权重及限制。未提供 `--url` 的 init 是明确标注的离线合成示例。
 
-- Task completion rate
-- Time-on-task metrics
-- Error frequency & severity
-- Interaction efficiency score
-- Task difficulty index
-
-### Cognitive Load Measurement
-
-Use for measuring user cognitive burden and mental effort.
-
-📖 [Detailed Documentation](./workflows/cognitive-load.md)
-
-**Commands:**
-
+取得 evaluate 输出中的真实 `runId` 后：
 ```bash
-# Measure cognitive load
-uxq cognition measure --url <target> --methods nasa-tlx,secondary-task
-
-# Analyze information complexity
-uxq cognition analyze --page <url> --metrics complexity,clarity
-
-# Compare design alternatives
-uxq cognition compare --baseline <a> --candidate <b>
+uxq inspect <run-id> metrics --root .uxq --json
+uxq inspect <run-id> rules --root .uxq --json
+uxq inspect <run-id> evidence --root .uxq --json
+uxq inspect <run-id> evaluation --root .uxq --json
+uxq finding list <run-id> --root .uxq --json
+uxq report <run-id> --root .uxq --json
+uxq quality-gate <run-id> --root .uxq --json
 ```
 
-**Outputs:**
-
-- NASA-TLX scores (6 dimensions)
-- Information complexity index
-- Cognitive demand breakdown
-- Mental effort ratio
-- Design comparison matrix
-
-### Accessibility Evaluation
-
-Use for assessing accessibility compliance and inclusivity.
-
-📖 [Detailed Documentation](./workflows/accessibility.md)
-
-**Commands:**
-
-```bash
-# WCAG compliance check
-uxq accessibility audit --url <target> --standard WCAG21-AA
-
-# Screen reader compatibility
-uxq accessibility screen-reader --url <target> --readers nvda,voiceover
-
-# Keyboard navigation test
-uxq accessibility keyboard --url <target> --test tab-order,shortcuts
-```
-
-**Outputs:**
-
-- WCAG success criteria compliance
-- Accessibility violations (by severity)
-- Screen reader compatibility score
-- Keyboard navigability index
-- Inclusive design percentage
-
-### Evidence Management
-
-Use for collecting, linking, and tracing evaluation evidence.
-
-📖 [Detailed Documentation](./workflows/evidence.md)
-
-**Commands:**
-
-```bash
-# Collect evidence
-uxq evidence collect --run-id <id> --type screenshot,video,metrics
-
-# Link evidence to findings
-uxq evidence link --evidence-id <id> --finding-id <id>
-
-# Generate traceability report
-uxq evidence trace --run-id <id> --format matrix
-```
-
-**Outputs:**
-
-- Evidence catalog with metadata
-- Finding-evidence linkages
-- Traceability matrix
-- Evidence completeness score
-- Audit trail
-
-### User Research Integration
-
-Use for integrating qualitative user research data.
-
-📖 [Detailed Documentation](./workflows/research.md)
-
-**Commands:**
-
-```bash
-# Import research data
-uxq research import --source <file> --format csv,json
-
-# Code qualitative data
-uxq research code --data <file> --method thematic
-
-# Synthesize findings
-uxq research synthesize --studies <ids> --output report
-```
-
-**Outputs:**
-
-- Coded themes & patterns
-- User persona insights
-- Qualitative-quantitative correlation
-- Research synthesis report
-- Actionable recommendations
-
-### Metrics & Scoring
-
-Use for computing UX metrics and overall scores.
-
-📖 [Detailed Documentation](./workflows/metrics-scoring.md)
-
-**Commands:**
-
-```bash
-# Calculate metrics
-uxq metrics calculate --run-id <id> --metrics all
-
-# Compute weighted scores
-uxq scoring compute --run-id <id> --weights task:0.4,cognition:0.3,a11y:0.3
-
-# Benchmark against standards
-uxq scoring benchmark --run-id <id> --industry <sector>
-```
-
-**Outputs:**
-
-- Metric values with confidence intervals
-- Weighted UX score (0-100)
-- Dimension breakdown
-- Industry percentile ranking
-- Trend analysis
-
-### Diagnostic & Recommendations
-
-Use for diagnosing issues and generating improvement suggestions.
-
-📖 [Detailed Documentation](./workflows/diagnostic.md)
-
-**Commands:**
-
-```bash
-# Diagnose problems
-uxq diagnostic analyze --run-id <id> --severity critical,high
-
-# Generate recommendations
-uxq diagnostic recommend --finding-ids <ids> --prioritize impact,effort
-
-# Create improvement plan
-uxq diagnostic plan --recommendations <ids> --timeline short,mid,long
-```
-
-**Outputs:**
-
-- Root cause hypotheses
-- Issue severity classification
-- Prioritized recommendations
-- Improvement roadmap
-- Expected impact estimates
-
-### Regression Testing
-
-Use for comparing current UX against baselines.
-
-📖 [Detailed Documentation](./workflows/regression.md)
-
-**Commands:**
-
-```bash
-# Create baseline
-uxq regression baseline --run-id <id> --label <version>
-
-# Compare runs
-uxq regression compare --baseline <id> --current <id>
-
-# Detect regressions
-uxq regression detect --comparison <id> --thresholds score:-5,metrics:+10%
-```
-
-**Outputs:**
-
-- Baseline snapshot
-- Comparison matrix
-- Regression alerts (by severity)
-- Improvement highlights
-- Change impact analysis
-
-### Report Generation
-
-Use for generating comprehensive UX evaluation reports.
-
-📖 [Detailed Documentation](./workflows/report.md)
-
-**Commands:**
-
-```bash
-# Generate full report
-uxq report generate --run-id <id> --format markdown,pdf
-
-# Create executive summary
-uxq report summary --run-id <id> --audience stakeholders
-
-# Export findings
-uxq report export --run-id <id> --format json,csv
-```
-
-**Outputs:**
-
-- Comprehensive evaluation report
-- Executive summary
-- Technical findings document
-- Stakeholder presentation
-- Raw data export
-
-### Design System Evaluation
-
-Use for evaluating design system conformance and consistency.
-
-📖 [Detailed Documentation](./workflows/design-system.md)
-
-**Commands:**
-
-```bash
-# Token compliance
-uxq design-system tokens --url <target> --spec <token-file>
-
-# Theme consistency
-uxq design-system theme --url <target> --themes light,dark
-
-# Component usage
-uxq design-system components --url <target> --library <name>
-```
-
-**Outputs:**
-
-- Token conformance score
-- Theme consistency index
-- Component usage coverage
-- Design system violations
-- Alignment recommendations
-
-## Integration Patterns
-
-### With Playwright MCP
-
-```typescript
-// 1. Navigate to target
-await playwright.navigate({ url: 'https://example.com' });
-
-// 2. Run UXQ evaluation
-const result = await uxq.evaluate({
-  target: 'https://example.com',
-  scope: 'comprehensive',
-});
-
-// 3. Extract evidence
-const evidence = await uxq.evidence.collect({
-  runId: result.runId,
-  types: ['screenshot', 'metrics'],
-});
-```
-
-### With Browser MCP
-
-```javascript
-// 1. Take snapshot
-const snapshot = await browser.takeSnapshot();
-
-// 2. Analyze with UXQ
-const analysis = await uxq.analyze({
-  snapshot,
-  focus: 'cognitive-load',
-});
-
-// 3. Get recommendations
-const recommendations = analysis.recommendations;
-```
-
-### CI/CD Integration
-
-```yaml
-# GitHub Actions example
-- name: UXQ Evaluation
-  run: |
-    uxq task evaluate --url ${{ env.URL }} --task smoke-test
-    uxq scoring compute --run-id latest --threshold 80
-    uxq regression detect --baseline main --thresholds score:-5
-```
-
-## Best Practices
-
-1. **Define Clear Tasks**: Task definitions should be specific, measurable, and user-centric
-2. **Collect Multiple Evidence Types**: Combine screenshots, metrics, and user data
-3. **Use Weighted Scoring**: Adjust weights based on your product priorities
-4. **Establish Baselines**: Create baselines before major releases for regression tracking
-5. **Iterate on Recommendations**: Prioritize by impact and effort
-6. **Integrate Early**: Run evaluations in design review, not just after implementation
-7. **Document User Profiles**: Different user types may have different UX patterns
-8. **Track Trends**: Monitor UX scores over time to identify degradation
-
-## Output Formats
-
-All commands support:
-
-- `--format json` - Machine-readable (default for automation)
-- `--format markdown` - Human-readable reports
-- `--format csv` - Tabular data export
-- `--format html` - Interactive reports (when applicable)
-
-## Error Handling
-
-UXQ commands return structured errors:
-
-```json
-{
-  "error": {
-    "code": "TASK_TIMEOUT",
-    "message": "Task completion exceeded threshold",
-    "details": {
-      "threshold": 30000,
-      "actual": 45000
-    },
-    "suggestion": "Consider breaking task into smaller steps"
-  }
-}
-```
-
-## Versioning
-
-This skill follows semantic versioning:
-
-- Major: Breaking changes to workflows or outputs
-- Minor: New workflows or enhanced capabilities
-- Patch: Bug fixes and documentation updates
+所有后续命令使用同一 `--root`。`report` 无 `--json` 时将 Markdown 写到 stdout；JSON 输出是 `{ report, markdown }`。评价时报告和快照已经写入运行的 artifacts，具体路径见 manifest。日志和错误写到 stderr，不能把 stderr 拼入 JSON。
+
+## 定义与证据
+- 定义接受 JSON 或真正的 YAML；公共结构以 `schemas/uxq.schema.json` 和 `uxq validate` 为准。
+- 步骤通过 `dependsOn` 和 `inputRefs` 显式连接；观测键对应 `sourceKey`。指标按声明单位、类型和聚合计算；规则只消费声明输入。
+- 真实动作支持 NAVIGATE、CLICK、FILL、FILL_SECRET、PRESS、WAIT_FOR、CAPTURE、SCREENSHOT。CAPTURE 支持 COUNT、VISIBLE、TEXT、VALUE、ACCESSIBLE_NAME。
+- 同一浏览器会话的步骤设置相同 `sessionId` 并串行依赖。任务使用业务及反馈条件核验；当前支持 TEXT、VISIBLE、URL、ATTRIBUTE，不支持 BUSINESS_JSON。
+- `allowedOrigins` 列明页面和资源 origin。HTTP 请求通过不自动跟随重定向的请求层获取后交给浏览器渲染；当前拒绝 HTTP 重定向，请提供最终授权 URL，不用于测量原生网络时序或流式响应。私网需要 `allowPrivateNetwork`；非只读请求需要 `allowSideEffects`；WRITE 任务还需要 `authorized`。这些是应用层检查，不是网络隔离沙箱；只评价可信测试目标。
+- 登录秘密用 FILL_SECRET 的 `secretRef` 引用由用户配置的环境变量。不在定义、日志或报告中写密码；不自动导入浏览器登录状态。截图遮罩密码和秘密输入框，但不能保证页面其他位置没有个人信息，采集前仍需确认范围与脱敏。
+- 不支持 WebSocket 和多页面弹窗；遇到明确错误停止，不伪造任务成功。
+- 定义内 observation 是外部/合成输入，不是本次浏览器实测。E4 用户研究证据需要有效同意记录，当前定义输入不能代替完整研究导入流程。
+
+## 验收与解释
+运行 `COMPLETED` 只证明步骤执行结束，还需核对：
+- metrics 非空且相应项为 MEASURED；数值、单位和观测/证据 ID 合理。
+- scores、维度覆盖率和 evaluation 来自实际结果；无样本、缺证据或非法值不能补零或给固定分数。
+- 关键规则失败、任务失败、证据不足均不能宣称门禁通过。门禁退出 1 是确定不通过，4 是没有可用的确定评价；其他非零按错误处理。
+- 报告同时写明范围、来源、策略版本、运行 ID、未覆盖维度和限制。不得把未执行的领域写成“通过”。
+- 建议和根因假设由证据支持，和工具实测结果分开；不承诺未经复测的分数收益。
+
+统一六维名称：D01 任务有效性；D02 操作效率；D03 可理解性与认知支持；D04 可访问性与包容性；D05 交互可靠性与错误恢复；D06 主观体验。未采集维度不等于零分，也不等于通过。
+
+## 按需深入
+- [任务核验](workflows/task-evaluation.md)：动作、条件与自动化边界。
+- [证据](workflows/evidence.md)：追溯、有效性及隐私。
+- [指标和评分](workflows/metrics-scoring.md)：声明、重结算、门禁。
+- [诊断和复测](workflows/diagnostic.md)：Finding 查询与新运行验证。
+- [回归](workflows/regression.md)：跨进程基线与可比性。
+- [报告](workflows/report.md)：持久化产物及限制。
+- [认知负荷](workflows/cognitive-load.md)、[可访问性](workflows/accessibility.md)、[用户研究](workflows/research.md)、[设计系统](workflows/design-system.md)：SDK 与当前 CLI 的能力边界。
+- [完整示例](EXAMPLES.md)：真实页面、离线示例和 CI 门禁。

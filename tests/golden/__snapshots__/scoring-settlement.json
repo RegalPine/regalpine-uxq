@@ -10,10 +10,10 @@
   "overallOutcome": "PASS",
   "overallScore": 77,
   "coverage": {
-    "planned": 1,
-    "applicable": 1,
-    "measured": 1,
-    "scored": 1,
+    "planned": 2,
+    "applicable": 2,
+    "measured": 2,
+    "scored": 2,
     "ratio": 1
   },
   "metricResultIds": [
@@ -31,18 +31,9 @@
     "dimension-<UUID>"
   ],
   "findingIds": [],
-  "evidenceIds": [],
-  "constraints": [
-    {
-      "kind": "FINDING_SEVERITY",
-      "sourceIds": [],
-      "reason": "策略声明关注 S1 级别问题"
-    },
-    {
-      "kind": "FINDING_SEVERITY",
-      "sourceIds": [],
-      "reason": "策略声明关注 S2 级别问题"
-    }
+  "evidenceIds": [
+    "ev-001"
   ],
+  "constraints": [],
   "limitations": []
 }

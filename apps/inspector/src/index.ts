@@ -11,6 +11,7 @@ import inquirer from 'inquirer';
 import { readFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 import type { EvaluationResult, Finding, Evidence, ScoreResult } from '@uxq/contracts';
+import { dimensionName } from '@uxq/contracts';
 
 const program = new Command();
 
@@ -125,15 +126,7 @@ function displayDimensionScores(result: EvaluationResult, scores: ScoreResult[])
  * 获取维度名称
  */
 function getDimensionName(dimensionId: string): string {
-  const dimensionMap: Record<string, string> = {
-    D01: '任务有效性',
-    D02: '操作效率',
-    D03: '可理解性与认知支持',
-    D04: '可访问性与包容性',
-    D05: '交互可靠性与错误恢复',
-    D06: '主观体验',
-  };
-  return dimensionMap[dimensionId] ?? dimensionId;
+  return dimensionName(dimensionId);
 }
 
 /**

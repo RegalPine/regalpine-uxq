@@ -1,167 +1,17 @@
-# Task Evaluation Workflow
+# 任务核验
 
-## Purpose
-
-Use for analyzing user task completion and interaction quality.
-
-## When to Use
-
-- Evaluating task completion rates
-- Measuring time-on-task metrics
-- Analyzing interaction patterns
-- Assessing task difficulty
-
-## Commands
-
-### Evaluate Task Flow
+在 EvaluationDefinition.tasks 定义动作、版本、scenarioId、sideEffect、authorized、businessConditions 和 feedbackConditions；用 TASK_EXECUTION 步骤的 taskId 引用任务。动作成功不代表任务成功，业务和反馈条件都需满足。
 
 ```bash
-uxq task evaluate --url <target> --task <task-definition>
+uxq validate evaluation/task.json --json
+uxq plan evaluation/task.json --json
+uxq evaluate evaluation/task.json --root .uxq --json
+uxq inspect <run-id> steps --root .uxq --json
+uxq report <run-id> --root .uxq --json
 ```
 
-**Parameters:**
+RATIO 指标需要同一任务动作序列中的连续 CAPTURE，分别采集 numeratorKey 和 denominatorKey；这些动作共享 sampleId。操作、等待、截图或导航会开始新采样组，不能跨组配对。同组每个 key 只能采集一次；分子分母使用相同单位，结果是比值。
 
-- `--url`: Target URL to evaluate
-- `--task`: Task definition (name, steps, success criteria)
-- `--timeout`: Maximum task completion time (default: 30000ms)
-- `--retries`: Number of retry attempts (default: 3)
+目前核验 TEXT、VISIBLE、URL、ATTRIBUTE；BUSINESS_JSON 不支持。共享 sessionId 的步骤需要串行依赖。页面状态异步变化时先 WAIT_FOR 再检查条件。
 
-**Example:**
-
-```bash
-uxq task evaluate \
-  --url "https://shop.example.com/checkout" \
-  --task "完成购买流程：添加商品 → 填写地址 → 支付"
-```
-
-### Measure Task Metrics
-
-```bash
-uxq task measure --run-id <id> --metrics <metric-list>
-```
-
-**Parameters:**
-
-- `--run-id`: Evaluation run ID
-- `--metrics`: Comma-separated list (time,errors,success-rate,completion-rate)
-
-**Example:**
-
-```bash
-uxq task measure --run-id latest --metrics time,errors,success-rate
-```
-
-### Analyze Interactions
-
-```bash
-uxq task analyze --run-id <id> --focus <focus-area>
-```
-
-**Parameters:**
-
-- `--run-id`: Evaluation run ID
-- `--focus`: Analysis focus (interactions,patterns,efficiency)
-
-**Example:**
-
-```bash
-uxq task analyze --run-id latest --focus interactions
-```
-
-## Outputs
-
-### JSON Output
-
-```json
-{
-  "taskEvaluation": {
-    "taskId": "checkout-flow",
-    "status": "completed",
-    "metrics": {
-      "completionRate": 0.92,
-      "avgTimeOnTask": 145000,
-      "errorRate": 0.08,
-      "successRate": 0.92
-    },
-    "interactions": {
-      "totalClicks": 23,
-      "totalInputs": 12,
-      "navigationSteps": 5
-    },
-    "difficulty": {
-      "index": 6.5,
-      "classification": "moderate"
-    }
-  }
-}
-```
-
-### Markdown Report
-
-```markdown
-## 任务评价报告
-
-### 任务：完成购买流程
-
-**状态**: ✅ 完成
-
-#### 核心指标
-
-- 完成率: 92%
-- 平均时间: 145 秒
-- 错误率: 8%
-- 成功率: 92%
-
-#### 交互分析
-
-- 总点击数: 23
-- 总输入数: 12
-- 导航步骤: 5
-
-#### 任务难度
-
-- 难度指数: 6.5/10
-- 分类: 中等
-```
-
-## Integration Example
-
-### With Playwright
-
-```typescript
-import { test } from '@playwright/test';
-import { UXQClient } from '@uxq/cli-client';
-
-test('task evaluation', async ({ page }) => {
-  const uxq = new UXQClient();
-
-  await page.goto('https://shop.example.com/checkout');
-
-  const run = await uxq.task.evaluate({
-    url: page.url(),
-    task: {
-      name: '完成购买',
-      steps: ['添加商品', '填写地址', '支付'],
-      successCriteria: {
-        completionRate: 0.9,
-        avgTime: 180000,
-      },
-    },
-  });
-
-  expect(run.metrics.completionRate).toBeGreaterThanOrEqual(0.9);
-});
-```
-
-## Best Practices
-
-1. **定义清晰的任务步骤**: 任务应该包含明确的步骤和成功标准
-2. **设置合理的超时时间**: 根据任务复杂度设置超时
-3. **收集多次运行数据**: 至少运行 5 次以获得统计意义
-4. **分析失败原因**: 对失败任务进行根因分析
-
-## Related Workflows
-
-- [Cognitive Load](./cognitive-load.md) - 测量任务认知负担
-- [Accessibility](./accessibility.md) - 检查任务可访问性
-- [Metrics & Scoring](./metrics-scoring.md) - 计算综合评分
+任务产生 TaskExecution，但不会自动创建任务耗时/成功率指标；需要显式观测和指标步骤，不能把空指标报告当作成功率报告。自动化执行耗时只反映机器脚本，不等于用户耗时。WRITE 任务需要任务授权及 profile.allowSideEffects，登录秘密使用环境变量引用。失败步骤及下游阻塞必须在报告中保留。

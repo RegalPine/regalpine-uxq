@@ -6,13 +6,21 @@ import type {
   RawObservation,
   ExecutionProfile,
   SuccessCondition,
+  ArtifactReference,
 } from '@uxq/contracts';
+
+export { PlaywrightBrowserAdapter, assertBrowserUrl } from './playwright.js';
 
 export interface BrowserAdapter {
   launch(profile: ExecutionProfile): Promise<BrowserSession>;
 }
 
 export interface BrowserSession {
+  readonly kind?: 'reference' | 'playwright';
+  readonly browserVersion?: string;
+  fillSecret?(selector: string, reference: string): Promise<void>;
+  checkCondition?(condition: SuccessCondition): Promise<boolean>;
+  assertHealthy?(): void;
   navigate(url: string): Promise<void>;
   click(selector: string): Promise<void>;
   fill(selector: string, value: string): Promise<void>;
@@ -57,6 +65,10 @@ export interface ReferenceElement {
 }
 
 class ReferenceBrowserSession implements BrowserSession {
+  readonly kind = 'reference';
+  async checkCondition(condition: SuccessCondition): Promise<boolean> {
+    return checkConditions([condition], this.currentPage);
+  }
   private currentPage: ReferencePage | undefined;
   private closed = false;
 
@@ -78,7 +90,7 @@ class ReferenceBrowserSession implements BrowserSession {
     this.ensureOpen();
     this.ensurePage();
     const el = this.currentPage!.elements.get(selector);
-    invariant(el?.visible !== false, 'ELEMENT_NOT_VISIBLE', `元素不可见：${selector}`);
+    invariant(Boolean(el) && el?.visible !== false, 'ELEMENT_NOT_VISIBLE', `元素不可见：${selector}`);
   }
 
   async fill(selector: string, value: string): Promise<void> {
@@ -100,7 +112,7 @@ class ReferenceBrowserSession implements BrowserSession {
     this.ensurePage();
     const el = this.currentPage!.elements.get(selector);
     if (state === 'visible')
-      invariant(el?.visible !== false, 'WAIT_TIMEOUT', `等待可见超时：${selector}`);
+      invariant(Boolean(el) && el?.visible !== false, 'WAIT_TIMEOUT', `等待可见超时：${selector}`);
     if (state === 'hidden')
       invariant(!el || el.visible === false, 'WAIT_TIMEOUT', `等待隐藏超时：${selector}`);
     if (state === 'attached') invariant(Boolean(el), 'WAIT_TIMEOUT', `等待附加超时：${selector}`);
@@ -123,7 +135,7 @@ class ReferenceBrowserSession implements BrowserSession {
     this.ensureOpen();
     this.ensurePage();
     const el = this.currentPage!.elements.get(selector);
-    return el?.visible !== false;
+    return Boolean(el) && el?.visible !== false;
   }
 
   async captureValue(selector: string): Promise<string> {
@@ -159,7 +171,14 @@ class ReferenceBrowserSession implements BrowserSession {
   }
 }
 
-/** 执行浏览器动作序列，返回采集到的观测和证据。 */
+export interface CaptureOptions {
+  entityId?: string;
+  scenarioId?: string;
+  signal?: AbortSignal;
+  saveArtifact?: (path: string, data: Uint8Array) => Promise<ArtifactReference>;
+}
+
+/** 执行浏览器动作序列，返回可追溯的观测和证据。 */
 export async function executeActions(
   session: BrowserSession,
   actions: readonly BrowserAction[],
@@ -167,11 +186,16 @@ export async function executeActions(
   stepId: string,
   attemptId: string,
   clock: Clock = systemClock,
+  options: CaptureOptions = {},
 ): Promise<{ observations: RawObservation[]; evidence: Evidence[] }> {
   const observations: RawObservation[] = [];
   const evidence: Evidence[] = [];
+  // 连续 CAPTURE 属于一个采样组；操作或导航之后开始新组，禁止跨状态混配。
+  let sampleId = newId('sample');
 
   for (const action of actions) {
+    if (action.action !== 'CAPTURE') sampleId = newId('sample');
+    options.signal?.throwIfAborted();
     switch (action.action) {
       case 'NAVIGATE':
         await session.navigate(action.url);
@@ -183,7 +207,8 @@ export async function executeActions(
         await session.fill(action.selector, action.value);
         break;
       case 'FILL_SECRET':
-        invariant(false, 'SECRET_IN_REFERENCE', 'reference 适配器不支持秘密填充');
+        invariant(session.fillSecret, 'SECRET_IN_REFERENCE', '此适配器不支持秘密填充');
+        await session.fillSecret(action.selector, action.secretRef);
         break;
       case 'PRESS':
         await session.pressKey(action.key);
@@ -215,13 +240,13 @@ export async function executeActions(
           schemaVersion: '1.0.0',
           createdAt: clock.now(),
           key: action.key,
-          value: value as never,
-          entityId: 'reference',
-          scenarioId: 'reference',
+          value,
+          entityId: options.entityId ?? 'reference',
+          scenarioId: options.scenarioId ?? 'reference',
           source: 'E1',
           method: 'AUTOMATED',
           observedAt: clock.now(),
-          sampleId: newId('sample'),
+          sampleId,
           excluded: false,
           runId,
           stepId,
@@ -229,11 +254,24 @@ export async function executeActions(
           evidenceIds: [],
         };
         if (action.unit) (obs as unknown as Record<string, unknown>).unit = action.unit;
+        const ev: Evidence = {
+          id: newId('evidence'), schemaVersion: '1.0.0', createdAt: clock.now(),
+          runId, stepId, attemptId, sourceCategory: 'E1', materialType: 'DOM',
+          sourceMethod: `${session.kind ?? 'reference'}.capture`,
+          lifecycle: 'VALIDATED', validity: 'VALID', summary: `DOM 采集 ${action.key}`,
+          content: { selector: action.selector, extractor: action.extractor, value },
+          derivedFromIds: [], observedAt: obs.observedAt,
+          privacy: { classification: 'INTERNAL', redacted: false, allowedPurposes: ['EVALUATION', 'VERIFICATION'],
+            retentionUntil: new Date(Date.parse(clock.now()) + 30 * 86400000).toISOString() },
+          limitations: session.kind === 'playwright' ? ['自动化 DOM 观测不代表真实用户体验'] : ['内存测试数据'],
+        };
+        obs.evidenceIds.push(ev.id);
         observations.push(obs);
+        evidence.push(ev);
         break;
       }
       case 'SCREENSHOT': {
-        await session.screenshot(action.name);
+        const bytes = await session.screenshot(action.name);
         const ev: Evidence = {
           id: newId('evidence'),
           schemaVersion: '1.0.0',
@@ -241,20 +279,25 @@ export async function executeActions(
           runId,
           sourceCategory: 'E1',
           materialType: 'SCREENSHOT',
-          sourceMethod: 'browser.screenshot',
-          lifecycle: 'CAPTURED',
-          validity: 'UNVERIFIED',
+          sourceMethod: `${session.kind ?? 'reference'}.screenshot`,
+          lifecycle: session.kind === 'playwright' ? 'VALIDATED' : 'CAPTURED',
+          validity: session.kind === 'playwright' ? 'VALID' : 'UNVERIFIED',
           summary: `截图 ${action.name}`,
           derivedFromIds: [],
           observedAt: clock.now(),
           privacy: {
             classification: 'INTERNAL',
             redacted: false,
-            allowedPurposes: ['EVALUATION'],
-            retentionUntil: '2099-12-31T23:59:59Z',
+            allowedPurposes: ['EVALUATION', 'VERIFICATION'],
+            retentionUntil: new Date(Date.parse(clock.now()) + 30 * 86400000).toISOString(),
           },
-          limitations: ['reference 适配器截图为占位数据'],
+          limitations: session.kind === 'playwright' ? ['截图不代表完整用户体验'] : ['reference 适配器截图为占位数据'],
         };
+        if (options.saveArtifact) {
+          ev.artifact = { ...await options.saveArtifact(`screenshots/${ev.id}.png`, bytes), mediaType: 'image/png' };
+        } else {
+          ev.content = { encoding: 'base64', data: Buffer.from(bytes).toString('base64') };
+        }
         if (stepId) (ev as unknown as Record<string, unknown>).stepId = stepId;
         if (attemptId) (ev as unknown as Record<string, unknown>).attemptId = attemptId;
         evidence.push(ev);

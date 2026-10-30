@@ -10,6 +10,7 @@ import type {
 } from '@uxq/contracts';
 import {
   assertDefinition,
+  parseContract,
   assertPlanSteps,
   planDigest as computePlanDigest,
   defaultProfile,
@@ -26,7 +27,7 @@ export function compilePlan(input: PlanInput, clock: Clock = systemClock): Evalu
   const { definition } = input;
   assertDefinition(definition);
 
-  const profile = mergeProfile(defaultProfile(), definition.profile, input.profileOverrides);
+  const profile = parseContract('ExecutionProfile', mergeProfile(defaultProfile(), definition.profile, input.profileOverrides));
 
   const steps = definition.steps.map((step) => ({ ...step }));
 
