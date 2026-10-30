@@ -59,11 +59,13 @@ export class PlaywrightBrowserAdapter implements BrowserAdapter {
           await assertBrowserUrl(route.request().url(), profile);
           invariant(profile.allowSideEffects || ['GET', 'HEAD', 'OPTIONS'].includes(route.request().method()),
             'SIDE_EFFECT_DENIED', '非只读网络请求需要 allowSideEffects 授权');
-          // 浏览器内部的重定向不会再次经过 route；禁止自动跟随，避免越权请求。
-          const response = await route.fetch({ maxRedirects: 0, timeout: profile.stepTimeoutMs });
+          // 浏览器内部的重定向不会再次经过 route；按 profile.maxRedirects 控制是否自动跟随。
+          const response = await route.fetch({ maxRedirects: profile.maxRedirects, timeout: profile.stepTimeoutMs });
           try {
-            invariant(response.status() < 300 || response.status() >= 400 || response.status() === 304,
-              'REDIRECT_UNSUPPORTED', '当前采集拒绝 HTTP 重定向；请提供最终授权 URL');
+            if (profile.maxRedirects === 0) {
+              invariant(response.status() < 300 || response.status() >= 400 || response.status() === 304,
+                'REDIRECT_UNSUPPORTED', '当前采集拒绝 HTTP 重定向；请提供最终授权 URL 或设置 maxRedirects > 0');
+            }
             await route.fulfill({ response });
           } finally { await response.dispose(); }
         } catch (error) {
@@ -71,16 +73,20 @@ export class PlaywrightBrowserAdapter implements BrowserAdapter {
           await route.abort('blockedbyclient');
         }
       });
-      await context.routeWebSocket(/.*/, (socket) => {
-        session.networkError = new Error('当前采集不支持 WebSocket，请使用明确的 HTTP 测试流程');
-        socket.close();
-      });
-      context.on('page', (popup) => {
-        if (popup !== page) {
-          session.networkError = new Error('当前采集不支持多页面弹窗');
-          void popup.close();
-        }
-      });
+      if (!profile.allowWebSocket) {
+        await context.routeWebSocket(/.*/, (socket) => {
+          session.networkError = new Error('当前采集不支持 WebSocket，请使用明确的 HTTP 测试流程或设置 allowWebSocket: true');
+          socket.close();
+        });
+      }
+      if (!profile.allowPopup) {
+        context.on('page', (popup) => {
+          if (popup !== page) {
+            session.networkError = new Error('当前采集不支持多页面弹窗，请设置 allowPopup: true');
+            void popup.close();
+          }
+        });
+      }
       return session;
     } catch (error) {
       await browser.close();

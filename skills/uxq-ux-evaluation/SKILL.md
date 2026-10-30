@@ -40,9 +40,9 @@ uxq quality-gate <run-id> --root .uxq --json
 - 步骤通过 `dependsOn` 和 `inputRefs` 显式连接；观测键对应 `sourceKey`。指标按声明单位、类型和聚合计算；规则只消费声明输入。
 - 真实动作支持 NAVIGATE、CLICK、FILL、FILL_SECRET、PRESS、WAIT_FOR、CAPTURE、SCREENSHOT。CAPTURE 支持 COUNT、VISIBLE、TEXT、VALUE、ACCESSIBLE_NAME。
 - 同一浏览器会话的步骤设置相同 `sessionId` 并串行依赖。任务使用业务及反馈条件核验；当前支持 TEXT、VISIBLE、URL、ATTRIBUTE，不支持 BUSINESS_JSON。
-- `allowedOrigins` 列明页面和资源 origin。HTTP 请求通过不自动跟随重定向的请求层获取后交给浏览器渲染；当前拒绝 HTTP 重定向，请提供最终授权 URL，不用于测量原生网络时序或流式响应。私网需要 `allowPrivateNetwork`；非只读请求需要 `allowSideEffects`；WRITE 任务还需要 `authorized`。这些是应用层检查，不是网络隔离沙箱；只评价可信测试目标。
+- `allowedOrigins` 列明页面和资源 origin。HTTP 请求通过请求层获取后交给浏览器渲染；默认拒绝 HTTP 重定向（`maxRedirects: 0`），可配置 `maxRedirects: N`（0-10）允许自动跟随重定向，但仍需验证目标 origin 在 `allowedOrigins` 内。私网需要 `allowPrivateNetwork`；非只读请求需要 `allowSideEffects`；WRITE 任务还需要 `authorized`。这些是应用层检查，不是网络隔离沙箱；只评价可信测试目标。
 - 登录秘密用 FILL_SECRET 的 `secretRef` 引用由用户配置的环境变量。不在定义、日志或报告中写密码；不自动导入浏览器登录状态。截图遮罩密码和秘密输入框，但不能保证页面其他位置没有个人信息，采集前仍需确认范围与脱敏。
-- 不支持 WebSocket 和多页面弹窗；遇到明确错误停止，不伪造任务成功。
+- 默认不支持 WebSocket（`allowWebSocket: false`）和多页面弹窗（`allowPopup: false`）；遇到明确错误停止，不伪造任务成功。如需评估依赖 WebSocket 的实时功能或弹窗交互，可在 profile 中显式开启。
 - 定义内 observation 是外部/合成输入，不是本次浏览器实测。E4 用户研究证据需要有效同意记录，当前定义输入不能代替完整研究导入流程。
 
 ## 验收与解释

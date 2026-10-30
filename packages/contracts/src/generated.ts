@@ -831,6 +831,9 @@ export interface ExecutionProfile {
   maxTotalArtifactBytes: number;
   cacheEnabled: boolean;
   headless: boolean;
+  allowWebSocket: boolean;
+  maxRedirects: number;
+  allowPopup: boolean;
 }
 export interface ProfileOverrides {
   maxConcurrency?: number;
@@ -856,6 +859,9 @@ export interface ProfileOverrides {
   maxTotalArtifactBytes?: number;
   cacheEnabled?: boolean;
   headless?: boolean;
+  allowWebSocket?: boolean;
+  maxRedirects?: number;
+  allowPopup?: boolean;
 }
 export interface RetryPolicy {
   maxAttempts: number;

@@ -132,7 +132,7 @@ function printHelp(): void {
   cancel <run-id>         取消运行
   report <run-id>         生成报告
   baseline <action>       基线管理 (create|update|list|delete)
-  compare <run-id>        与基线比较
+  compare <run-id> [baseline-name]  与基线比较（默认基线名：default）
   finding <action>        Finding 查询 (list)
   settle <run-id>         重新结算并保存（需 --policy 指定策略）
   quality-gate <run-id>   质量门禁检查

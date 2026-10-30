@@ -228,7 +228,10 @@
           "default": 26214400
         },
         "cacheEnabled": { "type": "boolean", "default": false },
-        "headless": { "type": "boolean", "default": true }
+        "headless": { "type": "boolean", "default": true },
+        "allowWebSocket": { "type": "boolean", "default": false },
+        "maxRedirects": { "type": "integer", "minimum": 0, "maximum": 10, "default": 0 },
+        "allowPopup": { "type": "boolean", "default": false }
       },
       "required": [
         "maxConcurrency",
@@ -253,7 +256,10 @@
         "maxArtifactBytes",
         "maxTotalArtifactBytes",
         "cacheEnabled",
-        "headless"
+        "headless",
+        "allowWebSocket",
+        "maxRedirects",
+        "allowPopup"
       ]
     },
     "ProfileOverrides": {
@@ -288,7 +294,10 @@
           "$ref": "#/$defs/ExecutionProfile/properties/maxTotalArtifactBytes"
         },
         "cacheEnabled": { "type": "boolean" },
-        "headless": { "type": "boolean" }
+        "headless": { "type": "boolean" },
+        "allowWebSocket": { "type": "boolean" },
+        "maxRedirects": { "type": "integer" },
+        "allowPopup": { "type": "boolean" }
       }
     },
     "RetryPolicy": {

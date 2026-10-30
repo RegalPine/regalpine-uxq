@@ -144,6 +144,9 @@ describe('唯一 Schema 与判别联合', () => {
     expect(profile.maxAttempts).toBe(1);
     expect(profile.allowedOrigins).toEqual([]);
     expect(profile.allowSideEffects).toBe(false);
+    expect(profile.allowWebSocket).toBe(false);
+    expect(profile.maxRedirects).toBe(0);
+    expect(profile.allowPopup).toBe(false);
     rejectsCode(
       () => parseContract('ExecutionProfile', { ...profile, maxConcurrency: 0 }),
       'SCHEMA_VALIDATION',
@@ -160,6 +163,14 @@ describe('唯一 Schema 与判别联合', () => {
           allowedOrigins: ['https://user:secret@example.org'],
         }),
       'INVALID_ORIGIN',
+    );
+    rejectsCode(
+      () => parseContract('ExecutionProfile', { ...profile, maxRedirects: -1 }),
+      'SCHEMA_VALIDATION',
+    );
+    rejectsCode(
+      () => parseContract('ExecutionProfile', { ...profile, maxRedirects: 11 }),
+      'SCHEMA_VALIDATION',
     );
   });
 });
