@@ -140,12 +140,14 @@ export function assertMigrationSchema(schema: Record<string, unknown>, input: un
 export function defaultProfile(): ExecutionProfile {
   const properties = definitions.ExecutionProfile!.properties as Record<
     string,
-    { default: unknown }
+    { default?: unknown }
   >;
   return parseContract(
     'ExecutionProfile',
     Object.fromEntries(
-      Object.entries(properties).map(([key, property]) => [key, cloneJson(property.default)]),
+      Object.entries(properties)
+        .filter(([, property]) => property.default !== undefined)
+        .map(([key, property]) => [key, cloneJson(property.default)]),
     ),
   );
 }

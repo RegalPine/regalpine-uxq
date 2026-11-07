@@ -231,7 +231,8 @@
         "headless": { "type": "boolean", "default": true },
         "allowWebSocket": { "type": "boolean", "default": false },
         "maxRedirects": { "type": "integer", "minimum": 0, "maximum": 10, "default": 0 },
-        "allowPopup": { "type": "boolean", "default": false }
+        "allowPopup": { "type": "boolean", "default": false },
+        "authStatePath": { "type": "string", "description": "Playwright storageState JSON 文件路径，用于加载认证状态（cookies + localStorage）" }
       },
       "required": [
         "maxConcurrency",
@@ -297,7 +298,8 @@
         "headless": { "type": "boolean" },
         "allowWebSocket": { "type": "boolean" },
         "maxRedirects": { "type": "integer" },
-        "allowPopup": { "type": "boolean" }
+        "allowPopup": { "type": "boolean" },
+        "authStatePath": { "type": "string" }
       }
     },
     "RetryPolicy": {

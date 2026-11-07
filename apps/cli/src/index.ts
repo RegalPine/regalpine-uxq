@@ -34,6 +34,8 @@ import * as qualityGateCmd from './commands/quality-gate.js';
 import * as verifyCmd from './commands/verify.js';
 import * as conformanceCmd from './commands/conformance.js';
 import * as installSkillCmd from './commands/install-skill.js';
+import * as authSaveCmd from './commands/auth-save.js';
+import * as authCleanCmd from './commands/auth-clean.js';
 
 /** 支持的命令列表。 */
 const SUPPORTED_COMMANDS = new Set([
@@ -41,6 +43,7 @@ const SUPPORTED_COMMANDS = new Set([
   'evaluate', 'list', 'inspect', 'cancel', 'report', 'baseline',
   'compare', 'finding', 'settle', 'quality-gate', 'verify',
   'conformance', 'install-skill', 'uninstall-skill',
+  'auth-save', 'auth-clean',
 ]);
 
 /** 命令路由表。 */
@@ -65,6 +68,8 @@ const COMMAND_ROUTERS: Record<string, (ctx: CommandContext) => Promise<CommandRe
   conformance: conformanceCmd.run,
   'install-skill': installSkillCmd.runInstall,
   'uninstall-skill': installSkillCmd.runUninstall,
+  'auth-save': authSaveCmd.run,
+  'auth-clean': authCleanCmd.run,
 };
 
 /** CLI 主运行逻辑（可注入 IO 便于测试）。 */

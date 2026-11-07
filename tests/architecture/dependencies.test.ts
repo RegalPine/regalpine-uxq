@@ -160,7 +160,7 @@ describe('公开导出与依赖边界', () => {
           expect(declared[dep], `${file} 未声明依赖 ${dep}`).toBeDefined();
           if (dep.startsWith('@uxq/')) expect(specifier, '跨包仅使用公开根入口').toBe(dep);
           if (dep.includes('playwright'))
-            expect(['browser', 'reference'].includes(shortName), `${name} 泄漏浏览器依赖`).toBe(
+            expect(['browser', 'reference', 'cli'].includes(shortName), `${name} 泄漏浏览器依赖`).toBe(
               true,
             );
         }

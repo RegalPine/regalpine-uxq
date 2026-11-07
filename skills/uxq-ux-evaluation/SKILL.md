@@ -60,6 +60,7 @@ uxq evaluate evaluation/page.yaml --root .uxq --json
 | 质量门禁 | `quality-gate`, `settle` |
 | 验证符合性 | `verify plan`, `verify result`, `conformance`, `finding list` |
 | Skill 管理 | `install-skill`, `uninstall-skill` |
+| 认证状态 | `auth-save`, `auth-clean` |
 
 详细用法见 [CLI 命令参考](references/cli.md)。
 
@@ -99,7 +100,7 @@ uxq quality-gate <run-id> --root .uxq --json
 - 同一浏览器会话的步骤设置相同 `sessionId` 并**串行依赖**（链式 dependsOn），否则触发 SHARED_SESSION_RACE。不同 sessionId 的步骤才允许并行。
 - 任务使用业务及反馈条件核验；当前支持 TEXT、VISIBLE、URL、ATTRIBUTE，不支持 BUSINESS_JSON。
 - `allowedOrigins` 列明页面和资源 origin。HTTP 请求通过请求层获取后交给浏览器渲染；默认拒绝 HTTP 重定向（`maxRedirects: 0`），可配置 `maxRedirects: N`（0-10）允许自动跟随重定向，但仍需验证目标 origin 在 `allowedOrigins` 内。私网需要 `allowPrivateNetwork`；非只读请求需要 `allowSideEffects`；WRITE 任务还需要 `authorized`。这些是应用层检查，不是网络隔离沙箱；只评价可信测试目标。
-- 登录秘密用 FILL_SECRET 的 `secretRef` 引用由用户配置的环境变量。不在定义、日志或报告中写密码；不自动导入浏览器登录状态。截图遮罩密码和秘密输入框，但不能保证页面其他位置没有个人信息，采集前仍需确认范围与脱敏。
+- 登录秘密用 FILL_SECRET 的 `secretRef` 引用由用户配置的环境变量。不在定义、日志或报告中写密码。支持通过 `--auth-state <file>` 加载预存的认证状态（cookies + localStorage），见 [认证状态管理](workflows/auth.md)。截图遮罩密码和秘密输入框，但不能保证页面其他位置没有个人信息，采集前仍需确认范围与脱敏。
 - 默认不支持 WebSocket（`allowWebSocket: false`）和多页面弹窗（`allowPopup: false`）；遇到明确错误停止，不伪造任务成功。如需评估依赖 WebSocket 的实时功能或弹窗交互，可在 profile 中显式开启。
 - 定义内 observation 是外部/合成输入，不是本次浏览器实测。E4 用户研究证据需要有效同意记录，当前定义输入不能代替完整研究导入流程。
 - **validate 报错排障**：SCHEMA_VALIDATION 笼统报错时，先用 `uxq capabilities --json` 核对当前版本支持的动作/步骤类型，再逐字段二分定位。CLI 会输出 JSON Path（如 `steps[3].action`）和原因码帮助定位。
@@ -127,6 +128,7 @@ uxq quality-gate <run-id> --root .uxq --json
 
 ## 按需深入
 - [环境编排](workflows/site-setup.md)：静态服务器、登录态、WebSocket/dev server、前置检查清单。
+- [认证状态管理](workflows/auth.md)：保存、加载、清理浏览器认证状态（cookies + localStorage）。
 - [任务核验](workflows/task-evaluation.md)：动作、条件、自动化边界与链式依赖模板。
 - [证据](workflows/evidence.md)：追溯、有效性及隐私。
 - [指标和评分](workflows/metrics-scoring.md)：声明、重结算、门禁。

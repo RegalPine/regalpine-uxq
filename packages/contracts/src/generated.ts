@@ -883,6 +883,10 @@ export interface ExecutionProfile {
   allowWebSocket: boolean;
   maxRedirects: number;
   allowPopup: boolean;
+  /**
+   * Playwright storageState JSON 文件路径，用于加载认证状态（cookies + localStorage）
+   */
+  authStatePath?: string;
 }
 export interface ProfileOverrides {
   maxConcurrency?: number;
@@ -911,6 +915,7 @@ export interface ProfileOverrides {
   allowWebSocket?: boolean;
   maxRedirects?: number;
   allowPopup?: boolean;
+  authStatePath?: string;
 }
 export interface RetryPolicy {
   maxAttempts: number;

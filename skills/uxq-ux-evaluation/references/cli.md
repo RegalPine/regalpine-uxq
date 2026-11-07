@@ -79,6 +79,13 @@ stdout 只输出 JSON，stderr 只输出 `[uxq]` 前缀的日志。
 | `install-skill` | 安装 Skill | `uxq install-skill --agent qoder --copy` |
 | `uninstall-skill` | 卸载 Skill | `uxq uninstall-skill --agent qoder` |
 
+### 认证状态管理
+
+| 命令 | 说明 | 示例 |
+|---|---|---|
+| `auth-save` | 保存浏览器认证状态 | `uxq auth-save --url https://example.com/login --file .uxq/auth.json` |
+| `auth-clean` | 删除认证状态文件 | `uxq auth-clean --file .uxq/auth.json` |
+
 ## 通用选项
 
 | 选项 | 说明 | 默认值 |
@@ -90,10 +97,12 @@ stdout 只输出 JSON，stderr 只输出 `[uxq]` 前缀的日志。
 | `--source-run <id>` | 关联源运行 | - |
 | `--finding-id <id>` | 关联 Finding ID | - |
 | `--policy <file>` | 评分策略文件 | - |
-| `--url <url>` | init 页面模板 URL | - |
+| `--url <url>` | init/auth-save 的目标 URL | - |
 | `--reason <text>` | 基线更新原因 | - |
 | `--agent <name>` | Agent 名称 | `qoder` |
 | `--copy` | 复制而非符号链接 | false |
+| `--file <path>` | auth-save/auth-clean 的文件路径 | `.uxq/auth.json` |
+| `--auth-state <file>` | 加载认证状态（cookies + localStorage） | - |
 
 ## 退出码
 

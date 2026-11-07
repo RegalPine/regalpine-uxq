@@ -1,11 +1,48 @@
 import { lookup } from 'node:dns/promises';
 import { isIP } from 'node:net';
+import { existsSync, readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { chromium, firefox, webkit } from 'playwright';
 import type { Browser, Page } from 'playwright';
 import { invariant, UxqError } from '@uxq/core';
 import { assertProfile } from '@uxq/contracts';
 import type { ExecutionProfile, SuccessCondition } from '@uxq/contracts';
 import type { BrowserAdapter, BrowserSession } from './index.js';
+
+/**
+ * 校验并解析 authStatePath 文件路径。
+ * Playwright storageState JSON 由 `browserContext.storageState()` 导出，
+ * 包含 cookies 与 origins（localStorage）。
+ */
+function resolveAuthState(authStatePath: string): string {
+  const resolved = resolve(authStatePath);
+  if (!existsSync(resolved)) {
+    throw new UxqError('INPUT_ERROR', `认证状态文件不存在：${resolved}`, 'INPUT');
+  }
+  try {
+    const content = readFileSync(resolved, 'utf-8');
+    const parsed = JSON.parse(content) as unknown;
+    if (typeof parsed !== 'object' || parsed === null) {
+      throw new UxqError('INPUT_ERROR', `认证状态文件格式错误：不是有效的 JSON 对象：${resolved}`, 'INPUT');
+    }
+    const state = parsed as Record<string, unknown>;
+    if (!Array.isArray(state.cookies) && !Array.isArray(state.origins)) {
+      throw new UxqError(
+        'INPUT_ERROR',
+        `认证状态文件格式错误：缺少 cookies 或 origins 数组：${resolved}\n` +
+          '提示：使用 `uxq auth-save` 或 Playwright `context.storageState()` 生成有效文件',
+        'INPUT',
+      );
+    }
+  } catch (error) {
+    if (error instanceof UxqError) throw error;
+    if (error instanceof SyntaxError) {
+      throw new UxqError('INPUT_ERROR', `认证状态文件不是有效的 JSON：${resolved}\n${error.message}`, 'INPUT');
+    }
+    throw new UxqError('INPUT_ERROR', `读取认证状态文件失败：${resolved}\n${String(error)}`, 'INPUT');
+  }
+  return resolved;
+}
 
 /** 私网默认拒绝；本地测试必须同时声明 origin 和 allowPrivateNetwork。 */
 function privateAddress(address: string): boolean {
@@ -46,9 +83,12 @@ export class PlaywrightBrowserAdapter implements BrowserAdapter {
         `无法启动 ${profile.browser}；请先安装对应 Playwright 浏览器（pnpm exec playwright install ${profile.browser}）`, 'ENVIRONMENT');
     }
     try {
+      const authStatePath = profile.authStatePath;
+      const resolvedAuthState = authStatePath !== undefined ? resolveAuthState(authStatePath) : undefined;
       const context = await browser.newContext({
         viewport: profile.viewport, locale: profile.locale, colorScheme: profile.colorScheme,
         serviceWorkers: 'block', acceptDownloads: false,
+        ...(resolvedAuthState !== undefined ? { storageState: resolvedAuthState } : {}),
       });
       const page = await context.newPage();
       page.setDefaultTimeout(profile.stepTimeoutMs);

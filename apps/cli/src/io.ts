@@ -53,6 +53,8 @@ export function printHelp(io: CliIO, version: string): void {
   conformance <run-id>    规范符合性检查
   install-skill           安装 UXQ Skill 到 Agent
   uninstall-skill         从 Agent 卸载 UXQ Skill
+  auth-save <file>        打开浏览器，手动登录后保存认证状态
+  auth-clean <file>       删除认证状态文件，清理敏感数据
 
 通用选项：
   --root <dir>            存储根目录（默认 .uxq）
@@ -62,9 +64,10 @@ export function printHelp(io: CliIO, version: string): void {
   --source-run <id>       关联源运行
   --finding-id <id>       关联 Finding ID
   --policy <file>         评分策略文件
-  --url <url>             init 生成真实页面采集模板
+  --url <url>             init/auth-save 的目标 URL
   --reason <text>         baseline update 的更新原因
   --agent <name>          Agent 名称 (qoder|claude|codex|kiro|all)
+  --auth-state <file>     认证状态文件（Playwright storageState JSON）
   --copy                  复制而非符号链接
 
 退出码：

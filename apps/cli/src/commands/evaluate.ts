@@ -28,6 +28,10 @@ export async function run(ctx: CommandContext): Promise<CommandResult> {
 
   const definition = await loadDefinition(file);
   const config = await loadConfig(ctx.options.config);
+  // CLI --auth-state 覆盖配置文件中的 authStatePath
+  if (ctx.options.authState) {
+    config.authStatePath = ctx.options.authState;
+  }
   const store = await openLocalStore(ctx.options.root);
   const pipeline = createEvaluationExecutor(definition, store);
   const { run: runRecord } = await createRun(definition, config, { store });
