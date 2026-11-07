@@ -10,7 +10,7 @@ description: 使用 UXQ 的定义文件驱动 CLI，采集已授权页面的 DOM
 2. 确认用户需要的是结构检查、自动化任务核验，还是实际用户研究。自动化操作耗时不等于用户任务耗时，DOM 数量不等于认知负荷。
 3. 检查 `uxq version`、`uxq capabilities --json`、`uxq --help`。在本仓库验证时先 `pnpm build`，将下文的 `uxq` 替换为 `node apps/cli/dist/index.js`，避免使用陈旧的全局安装。
 4. 真实浏览器需要 Node 24、对应版本的 Playwright 浏览器。运行 `uxq doctor --json`；缺浏览器时按错误提示安装。不可降级为内存数据后声称评价了页面。
-5. CLI 没有领域专用的 task/cognition/accessibility/research/design-system 命令，也没有 `latest` 运行别名、`--format`、`--output` 或 `@uxq/cli-client`。使用下列实际入口。
+5. CLI 没有 `--format`、`--output` 或 `@uxq/cli-client`。完整命令集见 [CLI 命令参考](references/cli.md)。
 
 ## 版本能力矩阵
 
@@ -19,7 +19,7 @@ description: 使用 UXQ 的定义文件驱动 CLI，采集已授权页面的 DOM
 | 类别 | 已实现 | 说明 |
 |---|---|---|
 | **动作 (action)** | NAVIGATE, CLICK, FILL, FILL_SECRET, PRESS, WAIT_FOR, CAPTURE, SCREENSHOT | 全部通过 Playwright 真实浏览器执行 |
-| **步骤类型 (step kind)** | PAGE_NAVIGATION, OBSERVATION_CAPTURE, METRIC_CALCULATION, RULE_EVALUATION, SCORING, TASK_EXECUTION, ENVIRONMENT_CHECK, RESULT_FINALIZATION, EVIDENCE_VALIDATION | 合约类型定义可能包含更多（BROWSER_SETUP 等），但 CLI 执行器仅处理上述类型 |
+| **步骤类型 (step kind)** | ENVIRONMENT_CHECK, BROWSER_SETUP, PAGE_NAVIGATION, TASK_EXECUTION, OBSERVATION_CAPTURE, METRIC_CALCULATION, RULE_EVALUATION, SCORING, EVIDENCE_VALIDATION, RESULT_FINALIZATION | 全部 10 种均已实现（见 packages/execution/src/evaluation.ts） |
 | **CAPTURE 提取器** | COUNT, VISIBLE, TEXT, VALUE, ACCESSIBLE_NAME | COUNT 仅做 DOM 计数，不验证语义或可见性 |
 | **条件核验** | TEXT, VISIBLE, URL, ATTRIBUTE | BUSINESS_JSON 未实现 |
 | **聚合** | LATEST, MEAN, MEDIAN, P95, SUM, COUNT, RATIO, SUCCESS_RATE | RATIO 需配对采样（同 sampleId） |
@@ -28,6 +28,7 @@ description: 使用 UXQ 的定义文件驱动 CLI，采集已授权页面的 DOM
 
 - **COUNT 提取器只做 DOM 计数**：`document.querySelectorAll('h1').length`，不检查内容、位置或可见性。`<h1 class="sr-only">` 与可见 `<h1>` 同等计数，无法识别"为指标优化"。
 - **h1/结构类指标不等于 UX 评估**：计数通过 ≠ 页面可理解。当评估仅含 STRUCT 类计数指标时，报告必须声明"本次为结构合规性检查，非用户体验评估"。
+- **h1 不是所有页面的必需项**：交互式工具（画布编辑器、IDE）、仪表盘、数据大屏等页面类型不以标题层级组织内容，h1 指标对此类页面不适用。定义中包含 h1 规则但页面类型不需要时，应标记 `required: false` 或移除，不要把"无 h1"报为缺陷。
 - **纯静态采集（无交互动作）时**：D02 操作效率（无任务耗时测量手段）、D05 交互可靠性（无法触发错误路径）、D06 主观体验（无用户研究证据）均为 OOS（不适用），未采集维度不等于通过。
 
 ## 环境警示：WebSocket 与 Dev Server
@@ -40,13 +41,44 @@ description: 使用 UXQ 的定义文件驱动 CLI，采集已授权页面的 DOM
 
 ## 最小真实页面闭环
 ```bash
-uxq init evaluation/page.yaml --url https://example.com --json
+uxq init evaluation/page.yaml --url https://example.com --profile content --json
 uxq validate evaluation/page.yaml --json
 uxq plan evaluation/page.yaml --json
 uxq evaluate evaluation/page.yaml --root .uxq --json
 ```
 
-`init --url` 只生成 h1 数量采集、截图和规则的 D03 演示，不是完整 UX 或 WCAG 评价。执行前按需求检查和修改定义中的指标、阈值、权重及限制。未提供 `--url` 的 init 是明确标注的离线合成示例。
+`init --url --profile <type>` 按页面类型自动生成匹配的指标、规则和步骤，**不需要手写定义**。
+
+### 完整 CLI 命令集
+
+| 类别 | 命令 |
+|---|---|
+| 基础 | `version`, `doctor`, `capabilities` |
+| 定义管理 | `init`, `validate`, `plan` |
+| 执行查询 | `evaluate`, `list`, `inspect`, `cancel`, `report` |
+| 基线比较 | `baseline create/update/list/delete`, `compare` |
+| 质量门禁 | `quality-gate`, `settle` |
+| 验证符合性 | `verify plan`, `verify result`, `conformance`, `finding list` |
+| Skill 管理 | `install-skill`, `uninstall-skill` |
+
+详细用法见 [CLI 命令参考](references/cli.md)。
+
+### 支持的页面类型（--profile）
+
+| profile | 页面类型 | 典型指标 | h1 |
+|---|---|---|---|
+| `content` | 文档、博客、文章 | h1 数量、标题层级、图片 alt、地标区域 | 有 |
+| `tool` | 编辑器、IDE、画布 | 带标签交互元素、ARIA 角色、面板区域、DOM 总量 | **无** |
+| `dashboard` | 仪表盘、数据大屏、BI | 数据区块数、带标签区域、图表/表格、动态更新区域 | **无** |
+| `form` | 注册、结账、多步骤表单 | 表单元素、带标签输入框、必填标识、错误提示、步骤指示器 | 无 |
+| `landing` | 产品页、营销着陆页、首页 | h1 数量、CTA 按钮、图片 alt、导航链接 | 有 |
+| `settings` | 设置、偏好、账户管理 | 设置控件数、分组区域、带标签控件、状态反馈区域 | **无** |
+
+所有 profile 自动生成时均包含通用可访问性指标：跳过导航链接（D04）、HTML lang 属性（D04）、focus-visible 元素（D05）。
+
+不提供 `--profile` 时，`init` 根据 URL 路径自动推断（editor/canvas → tool，dashboard/admin → dashboard，settings/account → settings 等），默认 fallback 为 `content`。
+
+不提供 `--url` 的 `init` 生成离线合成示例，仅供测试。
 
 取得 evaluate 输出中的真实 `runId` 后：
 ```bash
@@ -81,6 +113,17 @@ uxq quality-gate <run-id> --root .uxq --json
 - 建议和根因假设由证据支持，和工具实测结果分开；不承诺未经复测的分数收益。
 
 统一六维名称：D01 任务有效性；D02 操作效率；D03 可理解性与认知支持；D04 可访问性与包容性；D05 交互可靠性与错误恢复；D06 主观体验。未采集维度不等于零分，也不等于通过。
+
+## 禁止
+
+编写或审查评估定义时，不得：
+
+- 不审查页面功能特性就直接套用 `init --url` 生成的演示模板
+- 对不需要 h1 的页面类型（交互式工具、仪表盘、数据大屏等）将 h1 缺失报为缺陷
+- 为了让指标通过而建议添加无语义价值的 DOM 元素（如仅为计数而加的 `sr-only` h1）
+- 在定义中包含与目标页面功能无关的指标或规则
+- 把 COUNT 计数结果等同于语义合规（h1 数量 = 0 不等于"可理解性不合格"）
+- 发明 CLI 不支持的指标、动作或命令
 
 ## 按需深入
 - [环境编排](workflows/site-setup.md)：静态服务器、登录态、WebSocket/dev server、前置检查清单。

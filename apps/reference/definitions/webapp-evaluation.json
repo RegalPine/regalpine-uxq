@@ -212,30 +212,34 @@
       {
         "metricId": "metric-task-completion-rate",
         "weight": 2.0,
-        "normalization": "LINEAR_HIGHER",
+        "normalization": "PIECEWISE_LINEAR",
         "min": 0,
-        "max": 100
+        "max": 100,
+        "controlPoints": [{"x": 0, "y": 0}, {"x": 100, "y": 100}]
       },
       {
         "metricId": "metric-task-time",
         "weight": 1.5,
-        "normalization": "LINEAR_LOWER",
+        "normalization": "PIECEWISE_LINEAR",
         "min": 0,
-        "max": 30000
+        "max": 30000,
+        "controlPoints": [{"x": 0, "y": 100}, {"x": 30000, "y": 0}]
       },
       {
         "metricId": "metric-error-rate",
         "weight": 1.5,
-        "normalization": "LINEAR_LOWER",
+        "normalization": "PIECEWISE_LINEAR",
         "min": 0,
-        "max": 10
+        "max": 10,
+        "controlPoints": [{"x": 0, "y": 100}, {"x": 10, "y": 0}]
       },
       {
         "metricId": "metric-img-alt-missing",
         "weight": 2.0,
-        "normalization": "LINEAR_LOWER",
+        "normalization": "PIECEWISE_LINEAR",
         "min": 0,
-        "max": 5
+        "max": 5,
+        "controlPoints": [{"x": 0, "y": 100}, {"x": 5, "y": 0}]
       },
       {
         "metricId": "metric-color-contrast-ratio",
@@ -249,9 +253,10 @@
       {
         "metricId": "metric-sus-score",
         "weight": 1.0,
-        "normalization": "LINEAR_HIGHER",
+        "normalization": "PIECEWISE_LINEAR",
         "min": 0,
-        "max": 100
+        "max": 100,
+        "controlPoints": [{"x": 0, "y": 0}, {"x": 100, "y": 100}]
       }
     ],
     "dimensions": [
@@ -262,7 +267,7 @@
       { "dimensionId": "D05", "weight": 0.1, "minimumCoverage": 0.5 },
       { "dimensionId": "D06", "weight": 0.15, "minimumCoverage": 0.5 }
     ],
-    "missingPolicy": "EXCLUDE",
+    "missingPolicy": "EXCLUDE_WITH_DISCLOSURE",
     "minimumCoverage": 0.7,
     "allowPartial": true,
     "overallThreshold": 70,

@@ -60,7 +60,7 @@ function stabilizeIds(obj: unknown): unknown {
 
 // ─── 固定输入 ────────────────────────────────────────────
 
-function goldenMetricResult(id: string, value: number): MetricResult {
+function goldenMetricResult(id: string, value: number, obsId: string): MetricResult {
   return {
     id,
     schemaVersion: '1.0.0',
@@ -72,7 +72,7 @@ function goldenMetricResult(id: string, value: number): MetricResult {
     dimensionId: 'D02',
     measuredAt: '2026-01-15T10:00:00Z',
     evidenceIds: ['ev-001'],
-    observationIds: ['obs-001'],
+    observationIds: [obsId],
     excludedSampleIds: [],
     sampleCount: 10,
     inputDigest: 'golden-digest',
@@ -113,11 +113,11 @@ function goldenPolicy(): ScoringPolicy {
     name: 'Golden 标准策略',
     mode: 'SCORE',
     bindings: [
-      { metricId: 'metric-mr-001', weight: 0.6, normalization: 'LINEAR_LOWER', min: 0, max: 1000 },
-      { metricId: 'metric-mr-002', weight: 0.4, normalization: 'LINEAR_HIGHER', min: 0, max: 100 },
+      { metricId: 'metric-mr-001', weight: 0.6, normalization: 'PIECEWISE_LINEAR', min: 0, max: 1000, controlPoints: [{x: 0, y: 100}, {x: 1000, y: 0}] },
+      { metricId: 'metric-mr-002', weight: 0.4, normalization: 'PIECEWISE_LINEAR', min: 0, max: 100, controlPoints: [{x: 0, y: 0}, {x: 100, y: 100}] },
     ],
     dimensions: [{ dimensionId: 'D02', weight: 1, minimumCoverage: 0 }],
-    missingPolicy: 'EXCLUDE',
+    missingPolicy: 'EXCLUDE_WITH_DISCLOSURE',
     minimumCoverage: 0,
     allowPartial: true,
     overallThreshold: 60,
@@ -137,8 +137,8 @@ describe('Golden: 评分结算', () => {
   it('固定输入产生稳定的评分结果', async () => {
     const policy = goldenPolicy();
     const results: MetricResult[] = [
-      goldenMetricResult('mr-001', 250),
-      goldenMetricResult('mr-002', 80),
+      goldenMetricResult('mr-001', 250, 'obs-001'),
+      goldenMetricResult('mr-002', 80, 'obs-002'),
     ];
     const rules: RuleResult[] = [goldenRuleResult('rr-001', 'PASS')];
 
@@ -170,40 +170,43 @@ describe('Golden: 评分结算', () => {
 
   it('标准化函数在边界值稳定', () => {
     expect(
-      normalize(0, { metricId: 'm', weight: 1, normalization: 'LINEAR_LOWER', min: 0, max: 1000 }),
+      normalize(0, { metricId: 'm', weight: 1, normalization: 'PIECEWISE_LINEAR', min: 0, max: 1000, controlPoints: [{x: 0, y: 100}, {x: 1000, y: 0}] }),
     ).toBe(100);
     expect(
       normalize(1000, {
         metricId: 'm',
         weight: 1,
-        normalization: 'LINEAR_LOWER',
+        normalization: 'PIECEWISE_LINEAR',
         min: 0,
         max: 1000,
+        controlPoints: [{x: 0, y: 100}, {x: 1000, y: 0}],
       }),
     ).toBe(0);
     expect(
       normalize(500, {
         metricId: 'm',
         weight: 1,
-        normalization: 'LINEAR_LOWER',
+        normalization: 'PIECEWISE_LINEAR',
         min: 0,
         max: 1000,
+        controlPoints: [{x: 0, y: 100}, {x: 1000, y: 0}],
       }),
     ).toBe(50);
     expect(
-      normalize(0, { metricId: 'm', weight: 1, normalization: 'LINEAR_HIGHER', min: 0, max: 100 }),
+      normalize(0, { metricId: 'm', weight: 1, normalization: 'PIECEWISE_LINEAR', min: 0, max: 100, controlPoints: [{x: 0, y: 0}, {x: 100, y: 100}] }),
     ).toBe(0);
     expect(
       normalize(100, {
         metricId: 'm',
         weight: 1,
-        normalization: 'LINEAR_HIGHER',
+        normalization: 'PIECEWISE_LINEAR',
         min: 0,
         max: 100,
+        controlPoints: [{x: 0, y: 0}, {x: 100, y: 100}],
       }),
     ).toBe(100);
     expect(
-      normalize(50, { metricId: 'm', weight: 1, normalization: 'LINEAR_HIGHER', min: 0, max: 100 }),
+      normalize(50, { metricId: 'm', weight: 1, normalization: 'PIECEWISE_LINEAR', min: 0, max: 100, controlPoints: [{x: 0, y: 0}, {x: 100, y: 100}] }),
     ).toBe(50);
   });
 });

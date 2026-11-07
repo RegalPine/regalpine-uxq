@@ -15,6 +15,8 @@ import type {
   EvaluationDefinition,
   IdList,
   Comparability,
+  DeduplicationDecision,
+  DeduplicationStrategy,
 } from '@uxq/contracts';
 
 /** 从规则失败和异常指标生成基础诊断信号；不修改原始测量事实。 */
@@ -174,6 +176,73 @@ export function deduplicateFindings(findings: readonly Finding[]): Finding[] {
   return [...byKey.values()];
 }
 
+/** 可配置的去重策略，返回去重决策记录。 */
+export function deduplicateWithStrategy(
+  findings: readonly Finding[],
+  strategy: DeduplicationStrategy = 'MERGE_INTO_EXISTING',
+  now: string,
+): { findings: Finding[]; decisions: DeduplicationDecision[] } {
+  const decisions: DeduplicationDecision[] = [];
+  const byKey = new Map<string, Finding>();
+
+  for (const finding of findings) {
+    const existing = byKey.get(finding.deduplicationKey);
+    if (!existing) {
+      byKey.set(finding.deduplicationKey, finding);
+      continue;
+    }
+
+    const decision: DeduplicationDecision = {
+      decisionId: newId('dedup'),
+      findingId: finding.id,
+      relatedFindingIds: [existing.id],
+      strategy,
+      reason: `基于 deduplicationKey ${finding.deduplicationKey} 的去重决策`,
+      decidedAt: now,
+    };
+
+    switch (strategy) {
+      case 'KEEP_SEPARATE':
+        // 保留独立，不合并
+        byKey.set(finding.deduplicationKey + '_' + finding.id, finding);
+        break;
+      case 'LINK_AS_RELATED':
+        // 建立关联但不合并
+        byKey.set(finding.deduplicationKey + '_' + finding.id, finding);
+        break;
+      case 'MERGE_INTO_EXISTING':
+        decision.strategy = 'MERGE_INTO_EXISTING';
+        byKey.set(finding.deduplicationKey, {
+          ...existing,
+          diagnosticSignalIds: [...new Set([...existing.diagnosticSignalIds, ...finding.diagnosticSignalIds])],
+          evidenceLinks: [...existing.evidenceLinks, ...finding.evidenceLinks],
+          evaluationRunIds: [...new Set([...existing.evaluationRunIds, ...finding.evaluationRunIds])],
+          lastObservedAt: finding.lastObservedAt > existing.lastObservedAt ? finding.lastObservedAt : existing.lastObservedAt,
+          revision: existing.revision + 1,
+        });
+        break;
+      case 'CREATE_NEW':
+        // 创建新的独立 Finding
+        byKey.set(finding.deduplicationKey + '_' + finding.id, finding);
+        break;
+      case 'REVIEW_REQUIRED':
+        // 标记需要人工审查
+        byKey.set(finding.deduplicationKey + '_' + finding.id, {
+          ...finding,
+          limitations: [...finding.limitations, '需要人工审查去重决策'],
+        });
+        break;
+    }
+    decisions.push(decision);
+  }
+
+  return { findings: [...byKey.values()], decisions };
+}
+
+function findingId(finding: Finding): string {
+  return finding.id;
+}
+
 /** Finding 生命周期合法转换。 */
 const findingTransitions: Record<FindingLifecycleStatus, readonly FindingLifecycleStatus[]> = {
   NEW: ['TRIAGED', 'INVALID', 'CLOSED'],
@@ -212,7 +281,7 @@ export function transitionFinding(
   };
 }
 
-/** 创建根因假设。 */
+/** 创建根因假设。初始状态为 PROPOSED。 */
 export function createRootCauseHypothesis(
   findingIds: IdList,
   description: string,
@@ -226,7 +295,7 @@ export function createRootCauseHypothesis(
     createdAt: now,
     findingIds,
     description,
-    status: 'HYPOTHESIS',
+    status: 'PROPOSED',
     confidence: 'LOW',
     evidenceLinks: evidence.map((e) => ({
       evidenceId: e.id,
@@ -239,10 +308,37 @@ export function createRootCauseHypothesis(
   };
 }
 
+/** 更新根因假设状态。 */
+export function transitionHypothesis(
+  hypothesis: RootCauseHypothesis,
+  to: RootCauseHypothesis['status'],
+  reason: string,
+  now: string,
+): RootCauseHypothesis {
+  const validTransitions: Record<RootCauseHypothesis['status'], readonly RootCauseHypothesis['status'][]> = {
+    PROPOSED: ['UNDER_INVESTIGATION', 'REJECTED', 'UNRESOLVED'],
+    UNDER_INVESTIGATION: ['SUPPORTED', 'REJECTED', 'UNRESOLVED'],
+    SUPPORTED: ['REJECTED'],
+    REJECTED: ['UNDER_INVESTIGATION'],
+    UNRESOLVED: ['UNDER_INVESTIGATION'],
+  };
+  invariant(
+    validTransitions[hypothesis.status]?.includes(to),
+    'HYPOTHESIS_TRANSITION',
+    `不允许从 ${hypothesis.status} 转换到 ${to}`,
+  );
+  return {
+    ...hypothesis,
+    status: to,
+    limitations: [...hypothesis.limitations, `状态转换为 ${to}：${reason}`],
+  };
+}
+
 /** 创建改进建议。 */
 export function createRecommendation(
   findingIds: IdList,
   rootCauseHypothesisIds: IdList,
+  category: Recommendation['category'],
   description: string,
   expectedOutcomes: string[],
   verificationPlanIds: IdList = [],
@@ -255,6 +351,7 @@ export function createRecommendation(
     createdAt: now,
     findingIds,
     rootCauseHypothesisIds,
+    category,
     description,
     expectedOutcomes,
     verificationPlanIds,

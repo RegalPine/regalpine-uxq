@@ -63,7 +63,7 @@ describe('唯一 Schema 与判别联合', () => {
     const source = JSON.parse(await readFile('schemas/uxq.schema.json', 'utf8')) as unknown;
     expect(getSchemaSource()).toEqual(source);
     expect(contractEnum('OverallOutcome')).toEqual(['PASS', 'FAIL', 'INCONCLUSIVE', 'NOT_RATED']);
-    expect(contractEnum('MetricDirection')).toContain('CONTEXT_DEPENDENT');
+    expect(contractEnum('MetricDirection')).toContain('DESCRIPTIVE');
   });
   it('合法完整 Run 与结算通过；校验不修改输入', () => {
     const bundle = makeBundle();
@@ -379,7 +379,7 @@ describe('版本桥接与原件保护', () => {
     const legacy = oldRecord({ ...metric, direction: 'DESCRIPTIVE' });
     const before = digest(legacy);
     const result = migrateLegacy('MetricDefinition', legacy);
-    expect(result.value.direction).toBe('DESCRIPTIVE_ONLY');
+    expect(result.value.direction).toBe('DESCRIPTIVE');
     expect(result.value.id).toBe(metric.id);
     expect(result.originalDigest).toBe(before);
     expect(digest(legacy)).toBe(before);

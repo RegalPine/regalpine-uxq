@@ -48,7 +48,7 @@ describe('Legacy Fixture: MetricDefinition', () => {
     expect(result.warnings.length).toBeGreaterThanOrEqual(1);
   });
 
-  it('DESCRIPTIVE 方向正确映射为 DESCRIPTIVE_ONLY', () => {
+  it('DESCRIPTIVE 方向保留为 DESCRIPTIVE', () => {
     const original = bundle.definition.metrics[0]!;
     const legacy = toLegacy({ ...original, direction: 'DESCRIPTIVE' } as unknown as Record<
       string,
@@ -57,8 +57,8 @@ describe('Legacy Fixture: MetricDefinition', () => {
 
     const result = migrateLegacy('MetricDefinition', legacy);
 
-    expect(result.value.direction).toBe('DESCRIPTIVE_ONLY');
-    expect(result.warnings.some((w) => w.includes('DESCRIPTIVE_ONLY'))).toBe(true);
+    expect(result.value.direction).toBe('DESCRIPTIVE');
+    expect(result.warnings.some((w) => w.includes('DESCRIPTIVE'))).toBe(true);
   });
 
   it('原始数据不被修改', () => {

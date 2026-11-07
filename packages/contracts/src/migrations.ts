@@ -119,8 +119,7 @@ export function migrateLegacy<K extends LegacyContractName>(
   converted.schemaVersion = '1.0.0';
   const warnings = ['仅转换已登记的顶层字段；原件与原始摘要保留，未声称支持所有历史 Draft 示例'];
   if (name === 'MetricDefinition' && converted.direction === 'DESCRIPTIVE') {
-    converted.direction = 'DESCRIPTIVE_ONLY';
-    warnings.push('DESCRIPTIVE 显式映射为 DESCRIPTIVE_ONLY，未修改指标 ID');
+    warnings.push('DESCRIPTIVE 方向保留为当前枚举值，未修改指标 ID');
   }
   return {
     original,

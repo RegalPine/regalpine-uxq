@@ -78,6 +78,7 @@ export type SupportedAggregation = (typeof SUPPORTED_AGGREGATIONS)[number];
 /** 已知局限。 */
 export const KNOWN_LIMITATIONS = Object.freeze([
   'COUNT 提取器不验证语义正确性或可见性，<h1 class="sr-only"> 与可见 <h1> 同等计数',
+  'h1 指标仅适用于内容型页面（文档、博客、文章），交互式工具/仪表盘/数据大屏等页面不需要 h1，不应将"无 h1"报为缺陷',
   '纯静态采集（无交互动作）时 D02/D05/D06 维度为 OOS（不适用）',
   '默认不支持 WebSocket（allowWebSocket: false），dev server 的 HMR 会导致 evaluate 失败',
   'HTTP 重定向默认拒绝（maxRedirects: 0），需提供最终 URL 或显式配置',

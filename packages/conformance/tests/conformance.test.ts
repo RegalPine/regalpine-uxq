@@ -85,10 +85,10 @@ function makeDefinition(overrides?: Partial<EvaluationDefinition>): EvaluationDe
       name: '测试评分策略',
       mode: 'SCORE',
       bindings: [
-        { metricId: 'metric-1', weight: 1, normalization: 'LINEAR_LOWER', min: 0, max: 60000 },
+        { metricId: 'metric-1', weight: 1, normalization: 'PIECEWISE_LINEAR', min: 0, max: 60000, controlPoints: [{x: 0, y: 100}, {x: 60000, y: 0}] },
       ],
       dimensions: [{ dimensionId: 'D01', weight: 1, minimumCoverage: 0 }],
-      missingPolicy: 'EXCLUDE',
+      missingPolicy: 'EXCLUDE_WITH_DISCLOSURE',
       minimumCoverage: 0,
       allowPartial: true,
       criticalRuleIds: [],

@@ -22,7 +22,7 @@
       ]
     },
     "relation": {
-      "enum": ["SUPPORTS", "CONTRADICTS", "CONTEXT", "DERIVED_FROM"]
+      "enum": ["SUPPORTS", "CONTRADICTS", "CONTEXTUALIZES", "DERIVED_FROM", "DUPLICATES"]
     },
     "purpose": {
       "$ref": "#/$defs/Text"

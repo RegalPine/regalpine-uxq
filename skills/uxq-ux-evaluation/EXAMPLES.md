@@ -4,19 +4,43 @@
 
 > **前置核对**：运行示例前先 `node apps/cli/dist/index.js capabilities --json` 确认当前版本支持示例中使用的动作类型。若某动作不在 capabilities 输出中，写进定义会被 validate 拒绝。
 
-## 真实页面：仅标题结构演示
+## 真实页面：按类型生成定义
 ```bash
-node apps/cli/dist/index.js init evaluation/page.yaml --url https://example.com --json
-node apps/cli/dist/index.js validate evaluation/page.yaml --json
-node apps/cli/dist/index.js plan evaluation/page.yaml --json
-node apps/cli/dist/index.js evaluate evaluation/page.yaml --root .uxq --json
+# 内容页面（文档、博客）— 包含 h1 指标
+node apps/cli/dist/index.js init evaluation/page.yaml --url https://example.com --profile content --json
+
+# 交互式工具（编辑器、画布）— 不包含 h1 指标
+node apps/cli/dist/index.js init evaluation/tool.yaml --url http://localhost:8090/canvas/new --profile tool --json
+
+# 仪表盘/数据大屏 — 不包含 h1 指标
+node apps/cli/dist/index.js init evaluation/dashboard.yaml --url http://localhost:8090/dashboard --profile dashboard --json
+
+# 表单页 — 关注输入框标签和错误提示
+node apps/cli/dist/index.js init evaluation/form.yaml --url https://example.com/checkout --profile form --json
+
+# 落地页/营销页 — 包含 h1 和 CTA 按钮指标
+node apps/cli/dist/index.js init evaluation/landing.yaml --url https://example.com --profile landing --json
+
+# 设置/配置页 — 关注控件标签和分组结构
+node apps/cli/dist/index.js init evaluation/settings.yaml --url http://localhost:8090/settings/general --profile settings --json
+
+# 不提供 --profile 时根据 URL 路径自动推断
+node apps/cli/dist/index.js init evaluation/auto.yaml --url http://localhost:8090/canvas/new --json
+node apps/cli/dist/index.js init evaluation/auto.yaml --url http://localhost:8090/settings/appearance --json
+node apps/cli/dist/index.js init evaluation/auto.yaml --url http://localhost:8090/blog/post-1 --json
+
+node apps/cli/dist/index.js validate evaluation/tool.yaml --json
+node apps/cli/dist/index.js plan evaluation/tool.yaml --json
+node apps/cli/dist/index.js evaluate evaluation/tool.yaml --root .uxq --json
 node apps/cli/dist/index.js inspect <run-id> metrics --root .uxq --json
 node apps/cli/dist/index.js inspect <run-id> evidence --root .uxq --json
 node apps/cli/dist/index.js report <run-id> --root .uxq --json
 ```
-预期核验的是实测 h1 数量、关联 DOM 证据、真实 PNG 工件、规则和数值评分。不要预先编造 78 分、用户满意度、NASA-TLX、WCAG 合规率等输出。此模板即使得到 100，也只表示该演示策略满足，不表示网站 UX 完美。
+`init --url --profile <type>` 按页面类型自动生成匹配的指标、规则和步骤。不需要手写定义。
 
-> **h1 计数局限**：此演示仅做 DOM 计数检查。`<h1 class="sr-only">` 与可见 `<h1>` 同等计数，不验证语义正确性或可见性。得到 100 分不代表页面可理解。
+> **profile 选择**：`content`/`landing` 包含 h1 指标（适用于内容型页面）；`tool`/`dashboard`/`form`/`settings` 不包含 h1（交互式工具、仪表盘、表单、设置页面不以标题层级组织内容）。所有 profile 均包含通用可访问性指标（跳过导航、lang 属性、focus-visible）。不提供 `--profile` 时根据 URL 路径自动推断。
+
+> **COUNT 计数局限**：所有 COUNT 提取器仅做 DOM 计数，不验证语义正确性或可见性。
 
 ## 离线合成示例
 ```bash

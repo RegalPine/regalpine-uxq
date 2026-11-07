@@ -136,8 +136,7 @@
         "HIGHER_IS_BETTER",
         "LOWER_IS_BETTER",
         "TARGET_RANGE",
-        "CONTEXT_DEPENDENT",
-        "DESCRIPTIVE_ONLY"
+        "DESCRIPTIVE"
       ]
     },
     "ValueKind": {

@@ -290,79 +290,116 @@ async function scheduleDAG(
       const step = state.steps.get(planned.stepId)!;
       running.add(planned.stepId);
 
-      const attemptId = newId('attempt');
-      step.status = 'RUNNING';
-      step.startedAt = clock.now();
-      step.attemptIds = [attemptId];
-      await store.saveRun(stored);
-
-      await recordEvent(store, runId, clock, {
-        type: 'StepStarted',
-        runId,
-        stepId: planned.stepId,
-      });
-
-      const attempt: StepAttempt = {
-        id: attemptId,
-        schemaVersion: '1.0.0',
-        createdAt: clock.now(),
-        runId,
-        stepId: planned.stepId,
-        number: 1,
-        status: 'RUNNING',
-        startedAt: clock.now(),
-        evidenceIds: [],
-        outputIds: [],
-      };
-      stored.attempts.push(attempt);
-
-      const taskTimeout = stored.definition.tasks.find((task) => task.id === planned.taskId)?.timeoutMs;
-      const timeoutMs = Math.min(planned.timeoutMs ?? taskTimeout ?? stored.plan.profile.stepTimeoutMs,
-        Math.max(1, state.deadline - Date.now()));
-      const context: ExecutionContext = {
-        runId,
-        stepId: planned.stepId,
-        attemptId,
-        profile: stored.plan.profile,
-        observations: stored.observations,
-        evidence: stored.evidence,
-        metrics: stored.metrics,
-        rules: stored.rules,
-        signal: AbortSignal.any([state.cancelSignal.signal,
-          AbortSignal.timeout(timeoutMs)]),
-      };
-
+      const profile = stored.plan.profile;
+      const maxAttempts = Math.max(1, Math.min(profile.maxAttempts, 10));
+      let attemptCount = 0;
       let result: StepExecutionResult;
-      try {
-        if (Date.now() >= state.deadline) throw new UxqError('RUN_TIMEOUT', '运行总时限已到', 'EXECUTION');
-        context.signal.throwIfAborted();
-        result = await withTimeout(executor(planned, context), timeoutMs);
-        context.signal.throwIfAborted();
-      } catch (error) {
-        result = {
-          status: 'ERROR',
-          error: {
-            code: error instanceof UxqError ? error.code : context.signal.aborted ? 'STEP_TIMEOUT' : 'STEP_EXECUTION',
-            message: error instanceof Error ? error.message : '步骤执行失败',
-            category: error instanceof UxqError ? error.category : 'EXECUTION',
-          },
-        };
-      }
+      let currentAttempt: StepAttempt;
 
-      // Complete attempt
-      attempt.status = result.status === 'PASSED' ? 'PASSED' : 'FAILED';
-      attempt.endedAt = clock.now();
-      attempt.durationMs = Date.parse(attempt.endedAt) - Date.parse(attempt.startedAt);
-      if (result.error) {
-        const errRecord: ErrorRecord = {
-          code: result.error.code,
-          message: result.error.message,
-          category: result.error.category,
-        };
-        attempt.error = errRecord;
-      }
+      // ── 重试循环 ──
+      do {
+        attemptCount++;
+        const attemptId = newId('attempt');
 
-      // Collect results
+        if (attemptCount === 1) {
+          step.status = 'RUNNING';
+          step.startedAt = clock.now();
+          step.attemptIds = [attemptId];
+          await store.saveRun(stored);
+          await recordEvent(store, runId, clock, {
+            type: 'StepStarted',
+            runId,
+            stepId: planned.stepId,
+          });
+        } else {
+          step.attemptIds.push(attemptId);
+        }
+
+        currentAttempt = {
+          id: attemptId,
+          schemaVersion: '1.0.0',
+          createdAt: clock.now(),
+          runId,
+          stepId: planned.stepId,
+          number: attemptCount,
+          status: 'RUNNING',
+          startedAt: clock.now(),
+          evidenceIds: [],
+          outputIds: [],
+        };
+        stored.attempts.push(currentAttempt);
+
+        const taskTimeout = stored.definition.tasks.find((task) => task.id === planned.taskId)?.timeoutMs;
+        const timeoutMs = Math.min(planned.timeoutMs ?? taskTimeout ?? profile.stepTimeoutMs,
+          Math.max(1, state.deadline - Date.now()));
+        const context: ExecutionContext = {
+          runId,
+          stepId: planned.stepId,
+          attemptId,
+          profile,
+          observations: stored.observations,
+          evidence: stored.evidence,
+          metrics: stored.metrics,
+          rules: stored.rules,
+          signal: AbortSignal.any([state.cancelSignal.signal,
+            AbortSignal.timeout(timeoutMs)]),
+        };
+
+        try {
+          if (Date.now() >= state.deadline) throw new UxqError('RUN_TIMEOUT', '运行总时限已到', 'EXECUTION');
+          context.signal.throwIfAborted();
+          result = await withTimeout(executor(planned, context), timeoutMs);
+          context.signal.throwIfAborted();
+        } catch (error) {
+          result = {
+            status: 'ERROR',
+            error: {
+              code: error instanceof UxqError ? error.code : context.signal.aborted ? 'STEP_TIMEOUT' : 'STEP_EXECUTION',
+              message: error instanceof Error ? error.message : '步骤执行失败',
+              category: error instanceof UxqError ? error.category : 'EXECUTION',
+            },
+          };
+        }
+
+        // Complete attempt
+        currentAttempt.status = result.status === 'PASSED' ? 'PASSED' : 'FAILED';
+        currentAttempt.endedAt = clock.now();
+        currentAttempt.durationMs = Date.parse(currentAttempt.endedAt) - Date.parse(currentAttempt.startedAt);
+        if (result.error) {
+          currentAttempt.error = {
+            code: result.error.code,
+            message: result.error.message,
+            category: result.error.category,
+          };
+        }
+
+        // Determine if retry is warranted
+        const errorCode = result.error?.code ?? '';
+        const isRetryable = result.status !== 'PASSED'
+          && attemptCount < maxAttempts
+          && (profile.retryableErrorCodes.includes(errorCode) || result.status === 'ERROR');
+
+        if (isRetryable) {
+          const baseDelay = profile.initialDelayMs;
+          const delay = profile.backoff === 'EXPONENTIAL'
+            ? Math.min(baseDelay * Math.pow(2, attemptCount - 1), profile.maxDelayMs)
+            : baseDelay;
+          currentAttempt.retryReason = `第 ${attemptCount} 次尝试失败，${delay}ms 后重试（错误码: ${errorCode || 'N/A'}）`;
+          await store.saveRun(stored);
+          await recordEvent(store, runId, clock, {
+            type: 'AttemptFinished',
+            runId,
+            stepId: planned.stepId,
+            attemptId,
+            reason: currentAttempt.retryReason,
+          } as Partial<ExecutionEvent> & { type: ExecutionEvent['type']; runId: string });
+          await new Promise((resolve) => setTimeout(resolve, Math.min(delay, Math.max(1, state.deadline - Date.now()))));
+        }
+      } while (result.status !== 'PASSED'
+        && attemptCount < maxAttempts
+        && (profile.retryableErrorCodes.includes(result.error?.code ?? '') || result.status === 'ERROR'));
+
+      // Collect results from the final attempt
       if (result.observations) stored.observations.push(...result.observations);
       if (result.evidence) stored.evidence.push(...result.evidence);
       if (result.metrics) stored.metrics.push(...result.metrics);
@@ -374,14 +411,17 @@ async function scheduleDAG(
         ...(result.metrics ?? []), ...(result.rules ?? []), ...(result.scores ?? []),
         ...(result.taskExecution ? [result.taskExecution] : [])];
       step.outputIds = outputs.map((item) => item.id);
-      attempt.outputIds = step.outputIds;
-      attempt.evidenceIds = (result.evidence ?? []).map((item) => item.id);
+      currentAttempt.outputIds = step.outputIds;
+      currentAttempt.evidenceIds = (result.evidence ?? []).map((item) => item.id);
 
       // Update step status
       step.status = result.status as StepStatus;
       step.endedAt = clock.now();
       if (result.status !== 'PASSED') {
         step.reason = result.error?.message ?? '步骤未通过';
+        if (attemptCount > 1) {
+          step.reason = `[重试 ${attemptCount} 次后] ${step.reason}`;
+        }
       }
 
       running.delete(planned.stepId);
@@ -409,6 +449,9 @@ async function scheduleDAG(
             category: result.error.category,
           };
         }
+        if (attemptCount > 1) {
+          evtPayload.attemptCount = attemptCount;
+        }
         await recordEvent(
           store,
           runId,
@@ -416,7 +459,7 @@ async function scheduleDAG(
           evtPayload as Partial<ExecutionEvent> & { type: ExecutionEvent['type']; runId: string },
         );
 
-        if (planned.required && stored.plan.profile.failureMode === 'STOP_ON_REQUIRED_FAILURE') {
+        if (planned.required && profile.failureMode === 'STOP_ON_REQUIRED_FAILURE') {
           state.cancelled = true;
           state.cancelSignal.abort();
         }

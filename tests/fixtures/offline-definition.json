@@ -68,13 +68,14 @@
       {
         "metricId": "metric-duration",
         "weight": 1,
-        "normalization": "LINEAR_LOWER",
+        "normalization": "PIECEWISE_LINEAR",
         "min": 0,
-        "max": 100
+        "max": 100,
+        "controlPoints": [{"x": 0, "y": 100}, {"x": 100, "y": 0}]
       }
     ],
     "dimensions": [{ "dimensionId": "D02", "weight": 1, "minimumCoverage": 1 }],
-    "missingPolicy": "BLOCK",
+    "missingPolicy": "BLOCK_AGGREGATION",
     "minimumCoverage": 1,
     "allowPartial": false,
     "overallThreshold": 70,

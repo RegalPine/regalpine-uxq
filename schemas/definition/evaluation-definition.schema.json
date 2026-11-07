@@ -519,7 +519,7 @@
           "exclusiveMinimum": 0
         },
         "normalization": {
-          "enum": ["LINEAR_HIGHER", "LINEAR_LOWER", "TARGET_RANGE", "BOOLEAN"]
+          "enum": ["FIXED_THRESHOLD", "PIECEWISE_LINEAR", "TARGET_RANGE", "BENCHMARK", "STATISTICAL", "NONE"]
         },
         "min": {
           "type": "number"
@@ -533,6 +533,27 @@
         "targetMax": {
           "type": "number"
         },
+        "thresholds": {
+          "type": "array",
+          "items": { "type": "number" }
+        },
+        "scores": {
+          "type": "array",
+          "items": { "type": "number" }
+        },
+        "controlPoints": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": { "x": { "type": "number" }, "y": { "type": "number" } },
+            "required": ["x", "y"]
+          }
+        },
+        "benchmarkValue": { "type": "number" },
+        "benchmarkSource": { "$ref": "#/$defs/Text" },
+        "statisticalMean": { "type": "number" },
+        "statisticalStdDev": { "type": "number", "exclusiveMinimum": 0 },
+        "normalizationParams": { "type": "object" },
         "contextRationale": {
           "$ref": "#/$defs/Text"
         },
@@ -594,7 +615,7 @@
           "maxItems": 6
         },
         "missingPolicy": {
-          "enum": ["BLOCK", "EXCLUDE"]
+          "enum": ["EXCLUDE_WITH_DISCLOSURE", "BLOCK_AGGREGATION", "IMPUTE_WITH_METHOD", "REPORT_STATUS_ONLY"]
         },
         "minimumCoverage": {
           "type": "number",

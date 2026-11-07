@@ -109,8 +109,7 @@
         "HIGHER_IS_BETTER",
         "LOWER_IS_BETTER",
         "TARGET_RANGE",
-        "CONTEXT_DEPENDENT",
-        "DESCRIPTIVE_ONLY"
+        "DESCRIPTIVE"
       ]
     },
     "ValueKind": { "enum": ["NUMBER", "BOOLEAN", "CATEGORY", "STRUCTURED"] },
@@ -165,7 +164,8 @@
             "CONTRACT",
             "ARTIFACT",
             "CANCELLED",
-            "QUALITY"
+            "QUALITY",
+            "INTERRUPTED"
           ]
         },
         "path": { "type": "string" }
@@ -513,11 +513,26 @@
       "properties": {
         "metricId": { "$ref": "#/$defs/Id" },
         "weight": { "type": "number", "exclusiveMinimum": 0 },
-        "normalization": { "enum": ["LINEAR_HIGHER", "LINEAR_LOWER", "TARGET_RANGE", "BOOLEAN"] },
+        "normalization": { "enum": ["FIXED_THRESHOLD", "PIECEWISE_LINEAR", "TARGET_RANGE", "BENCHMARK", "STATISTICAL", "NONE"] },
         "min": { "type": "number" },
         "max": { "type": "number" },
         "targetMin": { "type": "number" },
         "targetMax": { "type": "number" },
+        "thresholds": { "type": "array", "items": { "type": "number" } },
+        "scores": { "type": "array", "items": { "type": "number" } },
+        "controlPoints": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": { "x": { "type": "number" }, "y": { "type": "number" } },
+            "required": ["x", "y"]
+          }
+        },
+        "benchmarkValue": { "type": "number" },
+        "benchmarkSource": { "$ref": "#/$defs/Text" },
+        "statisticalMean": { "type": "number" },
+        "statisticalStdDev": { "type": "number", "exclusiveMinimum": 0 },
+        "normalizationParams": { "type": "object" },
         "contextRationale": { "$ref": "#/$defs/Text" },
         "countingGroup": { "$ref": "#/$defs/Id" }
       },
@@ -551,7 +566,7 @@
           "items": { "$ref": "#/$defs/DimensionWeight" },
           "maxItems": 6
         },
-        "missingPolicy": { "enum": ["BLOCK", "EXCLUDE"] },
+        "missingPolicy": { "enum": ["EXCLUDE_WITH_DISCLOSURE", "BLOCK_AGGREGATION", "IMPUTE_WITH_METHOD", "REPORT_STATUS_ONLY"] },
         "minimumCoverage": { "type": "number", "minimum": 0, "maximum": 1 },
         "allowPartial": { "type": "boolean" },
         "overallThreshold": { "type": "number", "minimum": 0, "maximum": 100 },
@@ -562,7 +577,8 @@
           "uniqueItems": true
         },
         "rationale": { "$ref": "#/$defs/Text" },
-        "limitations": { "$ref": "#/$defs/TextList" }
+        "limitations": { "$ref": "#/$defs/TextList" },
+        "passCriteria": { "$ref": "#/$defs/PassCriteria" }
       },
       "required": [
         "version",
@@ -1374,7 +1390,7 @@
             "Recommendation"
           ]
         },
-        "relation": { "enum": ["SUPPORTS", "CONTRADICTS", "CONTEXT", "DERIVED_FROM"] },
+        "relation": { "enum": ["SUPPORTS", "CONTRADICTS", "CONTEXTUALIZES", "DERIVED_FROM", "DUPLICATES"] },
         "purpose": { "$ref": "#/$defs/Text" }
       },
       "required": ["evidenceId", "subjectId", "subjectType", "relation", "purpose"]
@@ -1464,7 +1480,7 @@
       "properties": {
         "runId": { "$ref": "#/$defs/Id" },
         "sourceResultIds": { "$ref": "#/$defs/IdList" },
-        "sourceType": { "enum": ["RULE", "METRIC", "EXPERT", "RESEARCH"] },
+        "sourceType": { "enum": ["RULE", "METRIC", "TASK", "ACCESSIBILITY", "USER_FEEDBACK", "EXPERT_REVIEW", "REGRESSION"] },
         "valid": { "type": "boolean" },
         "reason": { "$ref": "#/$defs/Text" },
         "evidenceIds": { "$ref": "#/$defs/IdList" }
@@ -1539,7 +1555,7 @@
       "properties": {
         "findingIds": { "$ref": "#/$defs/IdList" },
         "description": { "$ref": "#/$defs/Text" },
-        "status": { "enum": ["HYPOTHESIS", "SUPPORTED", "REJECTED"] },
+        "status": { "enum": ["PROPOSED", "UNDER_INVESTIGATION", "SUPPORTED", "REJECTED", "UNRESOLVED"] },
         "confidence": { "$ref": "#/$defs/Confidence" },
         "evidenceLinks": { "type": "array", "items": { "$ref": "#/$defs/EvidenceLink" } },
         "limitations": { "$ref": "#/$defs/TextList" }
@@ -1560,6 +1576,19 @@
       "properties": {
         "findingIds": { "$ref": "#/$defs/IdList" },
         "rootCauseHypothesisIds": { "$ref": "#/$defs/IdList" },
+        "category": {
+          "enum": [
+            "INTERACTION_DESIGN",
+            "INFORMATION_ARCHITECTURE",
+            "CONTENT_AND_COPY",
+            "ACCESSIBILITY",
+            "ERROR_RECOVERY",
+            "PERFORMANCE",
+            "VISUAL_CONSISTENCY",
+            "RESEARCH_REQUIRED",
+            "TECHNICAL_INVESTIGATION"
+          ]
+        },
         "description": { "$ref": "#/$defs/Text" },
         "expectedOutcomes": { "$ref": "#/$defs/TextList" },
         "verificationPlanIds": { "$ref": "#/$defs/IdList" },
@@ -1569,6 +1598,7 @@
       "required": [
         "findingIds",
         "rootCauseHypothesisIds",
+        "category",
         "description",
         "expectedOutcomes",
         "verificationPlanIds",
@@ -1883,6 +1913,86 @@
         "evaluations",
         "reports",
         "failures"
+      ]
+    },
+    "PassCriteria": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "minimumOverallScore": { "type": "number", "minimum": 0, "maximum": 100 },
+        "requiredDimensions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "dimensionId": { "$ref": "#/$defs/DimensionId" },
+              "minimumScore": { "type": "number", "minimum": 0, "maximum": 100 },
+              "minimumCoverage": { "type": "number", "minimum": 0, "maximum": 1 }
+            },
+            "required": ["dimensionId"]
+          }
+        },
+        "requiredRuleIds": { "$ref": "#/$defs/IdList" },
+        "allowPartialEvaluation": { "type": "boolean" },
+        "allowImputedScores": { "type": "boolean" }
+      },
+      "required": ["requiredDimensions", "requiredRuleIds", "allowPartialEvaluation", "allowImputedScores"]
+    },
+    "Reproducibility": {
+      "enum": ["REPLAYABLE", "RECONSTRUCTABLE", "AUDITABLE", "LIMITED"]
+    },
+    "DeduplicationStrategy": {
+      "enum": ["KEEP_SEPARATE", "LINK_AS_RELATED", "MERGE_INTO_EXISTING", "CREATE_NEW", "REVIEW_REQUIRED"]
+    },
+    "DeduplicationDecision": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "decisionId": { "$ref": "#/$defs/Id" },
+        "findingId": { "$ref": "#/$defs/Id" },
+        "relatedFindingIds": { "$ref": "#/$defs/IdList" },
+        "strategy": { "$ref": "#/$defs/DeduplicationStrategy" },
+        "reason": { "$ref": "#/$defs/Text" },
+        "decidedAt": { "$ref": "#/$defs/Timestamp" }
+      },
+      "required": ["decisionId", "findingId", "relatedFindingIds", "strategy", "reason", "decidedAt"]
+    },
+    "NormalizationResult": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "status": { "const": "SCORED" },
+            "value": { "type": "number" },
+            "method": { "type": "string" },
+            "explanation": { "$ref": "#/$defs/Text" }
+          },
+          "required": ["status", "value", "method", "explanation"]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "status": { "const": "NOT_SCORED" },
+            "reason": { "$ref": "#/$defs/Text" }
+          },
+          "required": ["status", "reason"]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "status": { "const": "INSUFFICIENT_INPUTS" },
+            "reason": { "$ref": "#/$defs/Text" }
+          },
+          "required": ["status", "reason"]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "status": { "const": "CALCULATION_FAILED" },
+            "errorCode": { "$ref": "#/$defs/Id" }
+          },
+          "required": ["status", "errorCode"]
+        }
       ]
     }
   }

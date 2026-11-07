@@ -41,8 +41,8 @@ describe('M0 工作基线的原文收敛', () => {
     expect(evidence).toContain('| E5 | 间接推断 |');
     expect(evidence).not.toContain('| E5 | 外部或业务约束证据 |');
     const metrics = await spec('UXQ-ARCH-007-');
-    expect(metrics).toContain('| "CONTEXT_DEPENDENT"');
-    expect(metrics).toContain('| "DESCRIPTIVE_ONLY"');
+    expect(metrics).toContain('| "DESCRIPTIVE"');
+    expect(metrics).not.toContain('| "CONTEXT_DEPENDENT"');
     const scoring = await spec('UXQ-008-评分、标准化与综合评价规范-v0.2.0');
     expect(scoring).not.toContain('overall_outcome: "CONSTRAINED"');
     expect(scoring).toContain('`NOT_RATED`');

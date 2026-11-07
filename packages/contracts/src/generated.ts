@@ -71,11 +71,7 @@ export type VerificationStatus =
   'PENDING' | 'RUNNING' | 'PASSED' | 'FAILED' | 'INCONCLUSIVE' | 'BLOCKED' | 'CANCELLED';
 export type Comparability = 'COMPARABLE' | 'COMPARABLE_WITH_CAVEATS' | 'NOT_COMPARABLE';
 export type MetricDirection =
-  | 'HIGHER_IS_BETTER'
-  | 'LOWER_IS_BETTER'
-  | 'TARGET_RANGE'
-  | 'CONTEXT_DEPENDENT'
-  | 'DESCRIPTIVE_ONLY';
+  'HIGHER_IS_BETTER' | 'LOWER_IS_BETTER' | 'TARGET_RANGE' | 'DESCRIPTIVE';
 export type ValueKind = 'NUMBER' | 'BOOLEAN' | 'CATEGORY' | 'STRUCTURED';
 export type StepKind =
   | 'ENVIRONMENT_CHECK'
@@ -188,7 +184,8 @@ export type ScoringPolicy = BaseRecord & {
    * @maxItems 6
    */
   dimensions: DimensionWeight[];
-  missingPolicy: 'BLOCK' | 'EXCLUDE';
+  missingPolicy:
+    'EXCLUDE_WITH_DISCLOSURE' | 'BLOCK_AGGREGATION' | 'IMPUTE_WITH_METHOD' | 'REPORT_STATUS_ONLY';
   minimumCoverage: number;
   allowPartial: boolean;
   overallThreshold?: number;
@@ -196,6 +193,7 @@ export type ScoringPolicy = BaseRecord & {
   riskSeverities: Severity[];
   rationale: Text;
   limitations: TextList;
+  passCriteria?: PassCriteria;
 };
 export type BrowserAction =
   | {
@@ -566,7 +564,14 @@ export type DiagnosticSignal = BaseRecord &
   FindingTemplateBase & {
     runId: Id;
     sourceResultIds: IdList;
-    sourceType: 'RULE' | 'METRIC' | 'EXPERT' | 'RESEARCH';
+    sourceType:
+      | 'RULE'
+      | 'METRIC'
+      | 'TASK'
+      | 'ACCESSIBILITY'
+      | 'USER_FEEDBACK'
+      | 'EXPERT_REVIEW'
+      | 'REGRESSION';
     valid: boolean;
     reason: Text;
     evidenceIds: IdList;
@@ -591,7 +596,7 @@ export type Finding = BaseRecord &
 export type RootCauseHypothesis = BaseRecord & {
   findingIds: IdList;
   description: Text;
-  status: 'HYPOTHESIS' | 'SUPPORTED' | 'REJECTED';
+  status: 'PROPOSED' | 'UNDER_INVESTIGATION' | 'SUPPORTED' | 'REJECTED' | 'UNRESOLVED';
   confidence: Confidence;
   evidenceLinks: EvidenceLink[];
   limitations: TextList;
@@ -599,6 +604,16 @@ export type RootCauseHypothesis = BaseRecord & {
 export type Recommendation = BaseRecord & {
   findingIds: IdList;
   rootCauseHypothesisIds: IdList;
+  category:
+    | 'INTERACTION_DESIGN'
+    | 'INFORMATION_ARCHITECTURE'
+    | 'CONTENT_AND_COPY'
+    | 'ACCESSIBILITY'
+    | 'ERROR_RECOVERY'
+    | 'PERFORMANCE'
+    | 'VISUAL_CONSISTENCY'
+    | 'RESEARCH_REQUIRED'
+    | 'TECHNICAL_INVESTIGATION';
   description: Text;
   expectedOutcomes: TextList;
   verificationPlanIds: IdList;
@@ -692,6 +707,28 @@ export type RunManifest = BaseRecord & {
   reports: ReportArtifact[];
   failures: ManifestFailure[];
 };
+export type Reproducibility = 'REPLAYABLE' | 'RECONSTRUCTABLE' | 'AUDITABLE' | 'LIMITED';
+export type DeduplicationStrategy =
+  'KEEP_SEPARATE' | 'LINK_AS_RELATED' | 'MERGE_INTO_EXISTING' | 'CREATE_NEW' | 'REVIEW_REQUIRED';
+export type NormalizationResult =
+  | {
+      status: 'SCORED';
+      value: number;
+      method: string;
+      explanation: Text;
+    }
+  | {
+      status: 'NOT_SCORED';
+      reason: Text;
+    }
+  | {
+      status: 'INSUFFICIENT_INPUTS';
+      reason: Text;
+    }
+  | {
+      status: 'CALCULATION_FAILED';
+      errorCode: Id;
+    };
 
 export interface ContractMap {
   Id: Id;
@@ -790,6 +827,11 @@ export interface ContractMap {
   ManifestEvaluation: ManifestEvaluation;
   ManifestFailure: ManifestFailure;
   RunManifest: RunManifest;
+  PassCriteria: PassCriteria;
+  Reproducibility: Reproducibility;
+  DeduplicationStrategy: DeduplicationStrategy;
+  DeduplicationDecision: DeduplicationDecision;
+  NormalizationResult: NormalizationResult;
 }
 export interface BaseRecord {
   id: Id;
@@ -800,7 +842,14 @@ export interface ErrorRecord {
   code: Id;
   message: Text;
   category:
-    'INPUT' | 'ENVIRONMENT' | 'EXECUTION' | 'CONTRACT' | 'ARTIFACT' | 'CANCELLED' | 'QUALITY';
+    | 'INPUT'
+    | 'ENVIRONMENT'
+    | 'EXECUTION'
+    | 'CONTRACT'
+    | 'ARTIFACT'
+    | 'CANCELLED'
+    | 'QUALITY'
+    | 'INTERRUPTED';
   path?: string;
 }
 export interface Viewport {
@@ -905,11 +954,23 @@ export interface FindingTemplate {
 export interface ScoreBinding {
   metricId: Id;
   weight: number;
-  normalization: 'LINEAR_HIGHER' | 'LINEAR_LOWER' | 'TARGET_RANGE' | 'BOOLEAN';
+  normalization:
+    'FIXED_THRESHOLD' | 'PIECEWISE_LINEAR' | 'TARGET_RANGE' | 'BENCHMARK' | 'STATISTICAL' | 'NONE';
   min?: number;
   max?: number;
   targetMin?: number;
   targetMax?: number;
+  thresholds?: number[];
+  scores?: number[];
+  controlPoints?: {
+    x: number;
+    y: number;
+  }[];
+  benchmarkValue?: number;
+  benchmarkSource?: Text;
+  statisticalMean?: number;
+  statisticalStdDev?: number;
+  normalizationParams?: {};
   contextRationale?: Text;
   countingGroup?: Id;
 }
@@ -917,6 +978,17 @@ export interface DimensionWeight {
   dimensionId: DimensionId;
   weight: number;
   minimumCoverage: number;
+}
+export interface PassCriteria {
+  minimumOverallScore?: number;
+  requiredDimensions: {
+    dimensionId: DimensionId;
+    minimumScore?: number;
+    minimumCoverage?: number;
+  }[];
+  requiredRuleIds: IdList;
+  allowPartialEvaluation: boolean;
+  allowImputedScores: boolean;
 }
 export interface SuccessCondition {
   kind: 'TEXT' | 'VISIBLE' | 'ATTRIBUTE' | 'URL' | 'BUSINESS_JSON';
@@ -1010,7 +1082,7 @@ export interface EvidenceLink {
     | 'VerificationResult'
     | 'RootCauseHypothesis'
     | 'Recommendation';
-  relation: 'SUPPORTS' | 'CONTRADICTS' | 'CONTEXT' | 'DERIVED_FROM';
+  relation: 'SUPPORTS' | 'CONTRADICTS' | 'CONTEXTUALIZES' | 'DERIVED_FROM' | 'DUPLICATES';
   purpose: Text;
 }
 export interface Coverage {
@@ -1084,4 +1156,12 @@ export interface ManifestFailure {
   stage: 'EXECUTION' | 'CLEANUP' | 'PERSISTENCE' | 'SETTLEMENT' | 'REPORT' | 'RECOVERY';
   at: Timestamp;
   error: ErrorRecord;
+}
+export interface DeduplicationDecision {
+  decisionId: Id;
+  findingId: Id;
+  relatedFindingIds: IdList;
+  strategy: DeduplicationStrategy;
+  reason: Text;
+  decidedAt: Timestamp;
 }

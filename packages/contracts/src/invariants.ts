@@ -170,7 +170,9 @@ export function assertMetricValue(metric: MetricDefinition, value: unknown): voi
 }
 
 function assertBinding(binding: ScoreBinding): void {
-  if (binding.normalization !== 'BOOLEAN')
+  // NONE 和 STATISTICAL 不需要 min/max
+  const needsRange = !['NONE', 'STATISTICAL'].includes(binding.normalization);
+  if (needsRange)
     invariant(
       binding.min !== undefined && binding.max !== undefined && binding.min < binding.max,
       'SCORE_RANGE',
@@ -185,6 +187,30 @@ function assertBinding(binding: ScoreBinding): void {
         binding.targetMax <= binding.max!,
       'SCORE_TARGET_RANGE',
       '目标范围必须位于评分范围内',
+    );
+  if (binding.normalization === 'FIXED_THRESHOLD')
+    invariant(
+      binding.thresholds && binding.scores && binding.thresholds.length === binding.scores.length && binding.thresholds.length >= 2,
+      'SCORE_THRESHOLD',
+      '固定阈值需要等长的 thresholds 和 scores 数组（至少 2 个）',
+    );
+  if (binding.normalization === 'PIECEWISE_LINEAR')
+    invariant(
+      binding.controlPoints && binding.controlPoints.length >= 2,
+      'SCORE_CONTROL_POINTS',
+      '分段线性需要至少 2 个控制点',
+    );
+  if (binding.normalization === 'BENCHMARK')
+    invariant(
+      binding.benchmarkValue !== undefined,
+      'SCORE_BENCHMARK',
+      '基准比较需要声明 benchmarkValue',
+    );
+  if (binding.normalization === 'STATISTICAL')
+    invariant(
+      binding.statisticalMean !== undefined && binding.statisticalStdDev !== undefined && binding.statisticalStdDev > 0,
+      'SCORE_STATISTICAL',
+      '统计标准化需要声明 mean 和正数 stdDev',
     );
 }
 
@@ -352,15 +378,13 @@ export function assertDefinition(definition: EvaluationDefinition): void {
       '评分指标必须有显式维度权重',
     );
     invariant(
-      metric.direction !== 'DESCRIPTIVE_ONLY',
+      metric.direction !== 'DESCRIPTIVE',
       'DESCRIPTIVE_METRIC_SCORE',
       '描述性指标不可评分',
     );
-    if (metric.direction === 'CONTEXT_DEPENDENT')
-      invariant(binding.contextRationale, 'CONTEXT_SCORE', '上下文相关指标评分必须声明依据');
     invariant(
-      binding.normalization === 'BOOLEAN'
-        ? metric.valueKind === 'BOOLEAN'
+      binding.normalization === 'NONE'
+        ? true // NONE 标准化可用于任何值类型
         : metric.valueKind === 'NUMBER',
       'SCORING_VALUE_KIND',
       '评分映射与指标值类型不兼容',

@@ -54,8 +54,8 @@ program
   .description('演示指标值标准化为 0-100 分的过程')
   .option(
     '-m, --method <method>',
-    '标准化方法: LINEAR_HIGHER|LINEAR_LOWER|TARGET_RANGE|BOOLEAN',
-    'LINEAR_HIGHER',
+    '标准化方法: PIECEWISE_LINEAR|FIXED_THRESHOLD|TARGET_RANGE|BENCHMARK|STATISTICAL|NONE',
+    'PIECEWISE_LINEAR',
   )
   .option('--min <number>', '最小值', '0')
   .option('--max <number>', '最大值', '100')
@@ -74,6 +74,12 @@ program
       max: Number(opts.max),
       targetMin: Number(opts.targetMin),
       targetMax: Number(opts.targetMax),
+      controlPoints: [{ x: Number(opts.min), y: 0 }, { x: Number(opts.max), y: 100 }],
+      thresholds: [0, 50, 100],
+      scores: [0, 50, 100],
+      benchmarkValue: 50,
+      statisticalMean: 50,
+      statisticalStdDev: 15,
     };
 
     const values = opts.values.split(',').map(Number);
@@ -100,10 +106,12 @@ program
 
     subheader('方法说明');
     const descriptions: Record<string, string> = {
-      LINEAR_HIGHER: '值越大分越高（如：任务完成率、可用性得分）',
-      LINEAR_LOWER: '值越小分越高（如：错误数、响应时间）',
+      PIECEWISE_LINEAR: '分段线性插值（如：控制点定义 min→0, max→100 的线性映射）',
+      FIXED_THRESHOLD: '固定阈值映射（如：阈值数组和对应分数数组）',
       TARGET_RANGE: '在目标范围内满分，偏离则递减（如：加载时间目标 2-4s）',
-      BOOLEAN: '满足条件即满分，否则零分（如：是否有隐私政策）',
+      BENCHMARK: '与基准值比较（如：与行业基准的比率映射到 0-100）',
+      STATISTICAL: '统计标准化（如：z-score 通过 sigmoid 映射到 0-100）',
+      NONE: '无标准化，直接截断到 0-100 范围',
     };
     console.log(`  ${chalk.italic(descriptions[method] ?? '未知方法')}`);
   });
@@ -301,7 +309,7 @@ program
     console.log('可用演示命令：');
     console.log(`  ${chalk.cyan('normalize')}  — 指标标准化方法演示`);
     console.log(
-      `    示例: ${chalk.gray('uxq-playground normalize --method LINEAR_HIGHER --values 0,30,60,90')}`,
+      `    示例: ${chalk.gray('uxq-playground normalize --method PIECEWISE_LINEAR --values 0,30,60,90')}`,
     );
     console.log(`  ${chalk.cyan('rule')}       — 规则引擎表达式求值`);
     console.log(`    示例: ${chalk.gray('uxq-playground rule --preset accessibility')}`);

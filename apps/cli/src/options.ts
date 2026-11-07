@@ -18,6 +18,7 @@ export interface CliOptions {
   copy?: boolean;
   url?: string;
   reason?: string;
+  profile?: string;
 }
 
 export type SupportedAgent = 'qoder' | 'claude' | 'codex' | 'kiro';
@@ -70,6 +71,8 @@ export function parseArgs(argv: string[]): ParsedArgs {
       options.url = args[++i]!;
     } else if (arg === '--reason' && i + 1 < args.length) {
       options.reason = args[++i]!;
+    } else if (arg === '--profile' && i + 1 < args.length) {
+      options.profile = args[++i]!;
     } else if (arg === '--copy') {
       options.copy = true;
     } else if (arg === '--help' || arg === '-h') {

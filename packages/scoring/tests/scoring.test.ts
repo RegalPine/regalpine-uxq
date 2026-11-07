@@ -43,10 +43,10 @@ function policy(overrides: Partial<ScoringPolicy> = {}): ScoringPolicy {
     name: '测试策略',
     mode: 'SCORE',
     bindings: [
-      { metricId: 'metric-1', weight: 1, normalization: 'LINEAR_LOWER', min: 0, max: 100 },
+      { metricId: 'metric-1', weight: 1, normalization: 'PIECEWISE_LINEAR', min: 0, max: 100, controlPoints: [{x: 0, y: 100}, {x: 100, y: 0}] },
     ],
     dimensions: [{ dimensionId: 'D02', weight: 1, minimumCoverage: 0 }],
-    missingPolicy: 'EXCLUDE',
+    missingPolicy: 'EXCLUDE_WITH_DISCLOSURE',
     minimumCoverage: 0,
     allowPartial: true,
     criticalRuleIds: [],
@@ -58,25 +58,27 @@ function policy(overrides: Partial<ScoringPolicy> = {}): ScoringPolicy {
 }
 
 describe('标准化', () => {
-  it('LINEAR_LOWER 值越低分越高', () => {
+  it('PIECEWISE_LINEAR 值越低分越高（反向控制点）', () => {
     const binding: ScoreBinding = {
       metricId: 'metric-1',
       weight: 1,
-      normalization: 'LINEAR_LOWER',
+      normalization: 'PIECEWISE_LINEAR',
       min: 0,
       max: 100,
+      controlPoints: [{ x: 0, y: 100 }, { x: 100, y: 0 }],
     };
     expect(normalize(0, binding)).toBe(100);
     expect(normalize(100, binding)).toBe(0);
     expect(normalize(50, binding)).toBe(50);
   });
-  it('LINEAR_HIGHER 值越高分越高', () => {
+  it('PIECEWISE_LINEAR 值越高分越高（正向控制点）', () => {
     const binding: ScoreBinding = {
       metricId: 'metric-1',
       weight: 1,
-      normalization: 'LINEAR_HIGHER',
+      normalization: 'PIECEWISE_LINEAR',
       min: 0,
       max: 100,
+      controlPoints: [{ x: 0, y: 0 }, { x: 100, y: 100 }],
     };
     expect(normalize(0, binding)).toBe(0);
     expect(normalize(100, binding)).toBe(100);
@@ -94,8 +96,8 @@ describe('标准化', () => {
     expect(normalize(50, binding)).toBe(100);
     expect(normalize(0, binding)).toBe(0);
   });
-  it('BOOLEAN 真为满分', () => {
-    const binding: ScoreBinding = { metricId: 'metric-1', weight: 1, normalization: 'BOOLEAN' };
+  it('FIXED_THRESHOLD 阈值映射', () => {
+    const binding: ScoreBinding = { metricId: 'metric-1', weight: 1, normalization: 'FIXED_THRESHOLD', thresholds: [0, 1], scores: [0, 100] };
     expect(normalize(1, binding)).toBe(100);
     expect(normalize(0, binding)).toBe(0);
   });
@@ -160,8 +162,8 @@ describe('维度聚合', () => {
     const dimension = aggregateDimension(
       policy({
         bindings: [
-          { metricId: 'metric-1', weight: 1, normalization: 'LINEAR_LOWER', min: 0, max: 100 },
-          { metricId: 'metric-2', weight: 1, normalization: 'LINEAR_LOWER', min: 0, max: 100 },
+          { metricId: 'metric-1', weight: 1, normalization: 'PIECEWISE_LINEAR', min: 0, max: 100, controlPoints: [{x: 0, y: 100}, {x: 100, y: 0}] },
+          { metricId: 'metric-2', weight: 1, normalization: 'PIECEWISE_LINEAR', min: 0, max: 100, controlPoints: [{x: 0, y: 100}, {x: 100, y: 0}] },
         ],
       }),
       'D02',

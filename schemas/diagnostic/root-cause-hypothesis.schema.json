@@ -17,7 +17,7 @@
       "$ref": "#/$defs/Text"
     },
     "status": {
-      "enum": ["HYPOTHESIS", "SUPPORTED", "REJECTED"]
+      "enum": ["PROPOSED", "UNDER_INVESTIGATION", "SUPPORTED", "REJECTED", "UNRESOLVED"]
     },
     "confidence": {
       "$ref": "#/$defs/Confidence"
