@@ -144,6 +144,39 @@ afterEach(async () => {
 });
 
 describe('存储适配', () => {
+  it('持久化并重新加载结算、诊断和 Finding 结果', async () => {
+    const definition = makeDefinition();
+    const { run } = await createRun(definition, undefined, { store, clock });
+    const runId = run.id;
+    const stored = await store.loadRun(runId);
+    stored.scores = [
+      {
+        id: 'score-1',
+        schemaVersion: '1.0.0',
+        createdAt: fixedTime,
+        runId,
+        metricResultId: 'metric-result-1',
+        metricId: 'metric-1',
+        policyId: definition.policy.id,
+        policyVersion: definition.policy.version,
+        weight: 1,
+        calculatedAt: fixedTime,
+        status: 'SCORED',
+        value: 85,
+      },
+    ];
+    stored.dimensions = [];
+    stored.signals = [];
+    stored.findings = [];
+    await store.saveRun(stored);
+
+    const reloaded = await store.loadRun(runId);
+    expect(reloaded.scores).toEqual(stored.scores);
+    expect(reloaded.dimensions).toEqual([]);
+    expect(reloaded.signals).toEqual([]);
+    expect(reloaded.findings).toEqual([]);
+  });
+
   it('创建和加载运行', async () => {
     const definition = makeDefinition();
     const plan = compilePlan({ definition }, clock);
